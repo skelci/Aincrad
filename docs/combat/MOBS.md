@@ -167,3 +167,4 @@ Elites are **rare, enhanced variants** of field mobs.
 | 26–50 | Caverns / Lava | 5–6 per floor | 4,000–10,600 | 400–1,160 | 1,000–2,900 | 5% |
 | 51–75 | Volcanic / Ice | 5–6 per floor | 11,000–19,800 | 1,200–2,170 | 3,000–5,500 | 5% |
 | 76–100 | Ice / Void | 6–8 per floor | 20,000–30,000 | 2,200–3,160 | 5,500–8,500 | 5% |
+| 100 (endgame) | The Abyss | 8 | 30,000 | 3,162 | 8,500 | 5% |
