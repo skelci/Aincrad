@@ -750,4 +750,29 @@ public void render(MatrixStack matrices, float tickDelta) {
 
 ---
 
-*Document version: 1.0 — Last updated 2026-10-10*
+---
+
+## 16. Menu Framework
+
+All SAO-style menus share a common framework:
+
+- **MenuWindow** (abstract base): translucent blue panel with title bar, close button, drag support, snap-to-edge, open/close animation
+- **MenuManager** (singleton): registers menus, manages focus (one active at a time), dispatches mouse events, renders active menu on top
+
+### Menu Windows
+
+| Menu | Keybind | Description |
+|---|---|---|
+| EquipmentMenu | C | Equipment grid with item detail panel |
+| SkillsMenu | V | Skill cards with tabs and assignment |
+| QuestLogMenu | J | Quest list with filters and progress |
+| WorldMapMenu | M | Full-screen floor map with waypoints |
+| GuildMenu | G | Guild roster, bank, management |
+| PartyMenu | P | Party members and settings |
+| SettingsMenu | — | HUD/graphics/keybind settings |
+| InventoryMenu | B | 8×5 item grid with stats |
+| AuctionHouseMenu | — | Auction listings with search |
+
+---
+
+*Document version: 2.0 — Last updated 2026-10-10*
