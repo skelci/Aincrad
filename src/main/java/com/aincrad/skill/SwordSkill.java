@@ -94,6 +94,20 @@ public abstract class SwordSkill implements Skill {
         return finisherMultiplier > 1.0;
     }
 
+    // ── Activation ─────────────────────────────────────────────────────
+
+    @Override
+    public void cast(Player player) {
+        onActivate(player);
+    }
+
+    /**
+     * Called when the skill is activated. Subclasses implement damage/effects here.
+     *
+     * @param player the player who activated the skill
+     */
+    protected abstract void onActivate(Player player);
+
     // ── Getters ────────────────────────────────────────────────────────
 
     public int getComboIndex() {
