@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "aincrad",
+  "version": "${version}",
+  "name": "Aincrad",
+  "description": "SAO-themed MMORPG mod: 100-floor tower, bosses, guilds, skills.",
+  "authors": ["Aincrad Team"],
+  "contact": {},
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.aincrad.AincradMod"],
+    "client": ["com.aincrad.AincradClient"]
+  },
+  "mixins": ["aincrad.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.19.0",
+    "fabric-api": "*",
+    "minecraft": ">=26.3"
+  }
+}
