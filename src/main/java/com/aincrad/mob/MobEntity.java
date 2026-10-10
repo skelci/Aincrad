@@ -1,15 +1,15 @@
 package com.aincrad.mob;
 
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.level.Level;
 
-public abstract class MobEntity extends Mob {
+public abstract class MobEntity extends PathfinderMob {
     protected MobType mobType;
     protected int floorLevel;
     protected int phase;
 
-    protected MobEntity(EntityType<? extends Mob> entityType, Level level) {
+    protected MobEntity(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
         this.mobType = MobType.HOSTILE;
         this.floorLevel = 1;
