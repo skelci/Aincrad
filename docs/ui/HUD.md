@@ -335,4 +335,444 @@ with SAO-style menu layout. Vanilla `Tab` scoreboard is repurposed.
 
 ---
 
-*Document version: 1.0 — Last updated 2026-10-10*
+## 11. HUD Element Positioning System
+
+All HUD elements are positioned using a screen-relative coordinate system
+with configurable anchor points. This allows the HUD to adapt to different
+resolutions and aspect ratios without hard-coded pixel values.
+
+### 11.1 Coordinate System
+
+- **Origin:** Top-left corner of the screen `(0, 0)`.
+- **Units:** Scaled pixels (`sp`), where `1 sp = 1 px` at 100% GUI scale.
+- **Y-axis:** Increases downward (standard screen coordinates).
+- **Safe zone:** Elements are clamped to a 4 px inset from screen edges.
+
+### 11.2 Anchor Points
+
+Each element declares an anchor that determines how its position is
+interpreted:
+
+| Anchor | Position Reference | Typical Use |
+|---|---|---|
+| `TOP_LEFT` | Element's top-left corner at `(x, y)` | Player status, party frames |
+| `TOP_CENTER` | Element's top-center at `(x, y)` | Boss bar, damage numbers |
+| `TOP_RIGHT` | Element's top-right corner at `(x, y)` | Minimap, menu buttons |
+| `CENTER` | Element's center at `(x, y)` | Radial menus, dialogs |
+| `BOTTOM_LEFT` | Element's bottom-left corner at `(x, y)` | Chat, system messages |
+| `BOTTOM_CENTER` | Element's bottom-center at `(x, y)` | Skill bar, hotbar |
+| `BOTTOM_RIGHT` | Element's bottom-right corner at `(x, y)` | Buffs, compass |
+
+### 11.3 Offset & Margin
+
+```json
+{
+  "element": "player_status",
+  "anchor": "TOP_LEFT",
+  "offset": { "x": 8, "y": 8 },
+  "margin": { "top": 0, "right": 0, "bottom": 0, "left": 0 }
+}
+```
+
+- **Offset:** Fixed pixel displacement from the anchor point.
+- **Margin:** Additional spacing applied after offset (for grouping).
+- **Scale factor:** Multiplied by GUI scale setting (0.5×–3.0×).
+
+### 11.4 Responsive Behavior
+
+- Elements re-anchor on window resize.
+- Minimum element size enforced (skill slots ≥ 32 px, text ≥ 8 px).
+- Overlap detection prevents elements from stacking on smaller screens.
+- User-dragged positions are stored as offsets from the nearest anchor.
+
+---
+
+## 12. Animation System
+
+The HUD uses a lightweight tweening engine for smooth transitions. All
+animations are time-based (not frame-based) to remain consistent across
+frame rates.
+
+### 12.1 Tweening Engine
+
+```java
+TweenManager.tween(element)
+    .property("opacity", 0.0f, 1.0f)
+    .duration(250, TimeUnit.MILLISECONDS)
+    .easing(Easing.CUBIC_OUT)
+    .onComplete(() -> element.setInteractive(true))
+    .start();
+```
+
+- **Properties animated:** `x`, `y`, `width`, `height`, `opacity`, `scale`,
+  `rotation`, `color` (RGBA interpolation).
+- **Duration:** Specified in milliseconds; clamped to `[0, 5000]`.
+- **Delay:** Optional start delay in milliseconds.
+- **Chaining:** `.then()` for sequential tweens; `.with()` for parallel.
+
+### 12.2 Easing Functions
+
+| Easing | Curve | Use Case |
+|---|---|---|
+| `LINEAR` | Constant speed | Damage numbers, cooldowns |
+| `QUAD_IN` | Accelerate | Element appear, slide-in |
+| `QUAD_OUT` | Decelerate | Element disappear, slide-out |
+| `CUBIC_IN` | Sharp accelerate | Menu open |
+| `CUBIC_OUT` | Sharp decelerate | Menu close, tooltip |
+| `ELASTIC_OUT` | Overshoot + settle | Level-up glow, buff apply |
+| `BOUNCE_OUT` | Bounce on land | Notification pop |
+| `BACK_IN` | Pull back then forward | Drawer open |
+| `BACK_OUT` | Overshoot then settle | Drawer close, panel snap |
+
+### 12.3 Keyframe Animations
+
+For complex sequences, keyframes define property values at specific times:
+
+```json
+{
+  "animation": "boss_spawn",
+  "keyframes": [
+    { "time": 0,    "opacity": 0, "scale": 0.5 },
+    { "time": 200,  "opacity": 1, "scale": 1.1 },
+    { "time": 400,  "opacity": 1, "scale": 1.0 }
+  ],
+  "loop": false,
+  "easing": "ELASTIC_OUT"
+}
+```
+
+- **Interpolation:** Linear between keyframes unless easing is specified
+  per-segment.
+- **Loop modes:** `NONE`, `LOOP`, `PING_PONG`.
+- **Events:** Keyframes can trigger callbacks (sound, particle, etc.).
+
+### 12.4 Animation States
+
+Elements with persistent animations use a state machine:
+
+| State | Trigger | Animation |
+|---|---|---|
+| `IDLE` | Default | Subtle pulse (passive skills) |
+| `HOVER` | Mouse enter | Border brighten + scale 1.02× |
+| `ACTIVE` | Click / use | Flash + scale 0.95× |
+| `COOLDOWN` | Skill on CD | Radial sweep + desaturate |
+| `DAMAGED` | Player hit | Red flash + shake |
+| `LEVEL_UP` | XP gain | Gold glow pulse + expand |
+| `DEATH` | HP = 0 | Fade to 30% opacity |
+
+---
+
+## 13. Event Handling
+
+The HUD processes mouse and keyboard input through a unified event system
+that supports both immediate-mode rendering and interactive widgets.
+
+### 13.1 Mouse Events
+
+| Event | Trigger | Default Behavior |
+|---|---|---|
+| `MOUSE_ENTER` | Cursor enters element bounds | Highlight border, play hover sound |
+| `MOUSE_LEAVE` | Cursor exits element bounds | Remove highlight |
+| `MOUSE_CLICK` | Left-click on element | Activate (open menu, use skill) |
+| `MOUSE_RIGHT_CLICK` | Right-click on element | Secondary action (assign, dismiss) |
+| `MOUSE_DRAG` | Left-click + move | Reposition element (if draggable) |
+| `MOUSE_WHEEL` | Scroll wheel over element | Zoom (minimap), scroll (lists) |
+| `MOUSE_RELEASE` | Button released after drag | Snap to grid/edge |
+
+**Hit testing:** Elements are tested in reverse draw order (topmost first).
+The first element whose bounds contain the cursor receives the event.
+Transparent regions (alpha < 0.1) are ignored for hit testing.
+
+### 13.2 Keyboard Events
+
+| Event | Trigger | Handling |
+|---|---|---|
+| `KEY_PRESS` | Key down | Execute bound action, set key state |
+| `KEY_REPEAT` | Key held | Repeat action (text scroll, menu nav) |
+| `KEY_RELEASE` | Key up | Clear key state, finish combo |
+
+**Keybind resolution:**
+1. Check if a menu is open → route to menu navigation.
+2. Check if chat is open → route to chat input.
+3. Check global keybinds (F8–F10, etc.).
+4. Check skill bar keybinds (1–7).
+5. Pass to Minecraft vanilla handler (if not consumed).
+
+**Modifier keys:** `Shift`, `Ctrl`, `Alt` are tracked as bitmask
+flags. Combos like `Shift + 1-7` are resolved before single-key binds.
+
+### 13.3 Event Propagation
+
+```
+Mouse Click
+    │
+    ▼
+┌─────────────┐
+│ Topmost     │ ← Check draw order (highest layer first)
+│ Element     │
+└─────────────┘
+    │ consumed?
+    ├── Yes → Stop propagation
+    └── No  → Next element below
+                  │
+                  ▼
+           ┌─────────────┐
+           │ World / Game │ ← If no HUD element consumed
+           └─────────────┘
+```
+
+- **Consumed events** are not passed to the game world.
+- **Focus:** Only one element has focus at a time (for keyboard input).
+- **Tab navigation:** `Tab` cycles focus through interactive elements.
+
+### 13.4 Focus Management
+
+- Clicking an element grants it focus.
+- `Esc` releases focus and closes the topmost menu.
+- Focused element shows a cyan dashed border.
+- Focus is lost when another element is clicked or `Esc` is pressed.
+
+---
+
+## 14. Configuration Persistence
+
+HUD layout, keybinds, and settings are stored in a JSON file that persists
+across game sessions.
+
+### 14.1 File Location
+
+```
+<game_dir>/config/aincrad-hud.json
+```
+
+- **Auto-save:** Changes are written immediately (debounced 500 ms).
+- **Backup:** Previous config kept as `aincrad-hud.json.bak`.
+- **Reset:** Settings menu → "Reset to Defaults" restores factory values.
+
+### 14.2 JSON Schema
+
+```json
+{
+  "version": 2,
+  "guiScale": 1.0,
+  "elements": {
+    "player_status": {
+      "anchor": "TOP_LEFT",
+      "offset": { "x": 8, "y": 8 },
+      "visible": true,
+      "opacity": 1.0
+    },
+    "skill_bar": {
+      "anchor": "BOTTOM_CENTER",
+      "offset": { "x": 0, "y": -12 },
+      "visible": true,
+      "slotCount": 7
+    },
+    "minimap": {
+      "anchor": "TOP_RIGHT",
+      "offset": { "x": -8, "y": 8 },
+      "visible": true,
+      "size": 128,
+      "zoom": 2.0
+    }
+  },
+  "keybinds": {
+    "equipment": "C",
+    "skills": "V",
+    "quest_log": "J",
+    "world_map": "M",
+    "guild": "G",
+    "party": "P",
+    "inventory": "B",
+    "damage_numbers_toggle": "F8",
+    "minimap_toggle": "F9",
+    "hud_toggle": "F10"
+  },
+  "settings": {
+    "damageNumbers": true,
+    "screenShake": true,
+    "colorblindMode": false,
+    "language": "en_us",
+    "hudOpacity": 0.85
+  }
+}
+```
+
+### 14.3 Save / Load Flow
+
+```
+Game Start
+    │
+    ▼
+┌─────────────────┐
+│ Read JSON file  │
+└─────────────────┘
+    │
+    ├── File exists → Parse & validate
+    │       │
+    │       ├── Valid → Apply to HUD
+    │       └── Invalid → Load defaults, log warning
+    │
+    └── No file → Create with defaults
+```
+
+**Validation rules:**
+- `version` must match current schema version (or be migratable).
+- `offset` values clamped to screen bounds.
+- `keybinds` checked for conflicts (duplicate keys rejected).
+- Unknown fields are ignored (forward compatibility).
+
+### 14.4 Migration
+
+When the schema version changes, a migration function transforms the old
+config to the new format:
+
+```java
+ConfigMigrator.migrate(config, fromVersion, toVersion);
+```
+
+- Migrations are sequential (1 → 2 → 3, never skipping).
+- Failed migrations fall back to defaults with a user notification.
+- Migration log is written to `aincrad-hud.log`.
+
+---
+
+## 15. Rendering Pipeline
+
+The HUD is rendered in a dedicated overlay pass after the world is drawn
+but before vanilla GUI elements. This ensures the HUD appears on top of
+the 3D scene but below chat and debug info.
+
+### 15.1 Draw Order (Back to Front)
+
+```
+1. World (Minecraft renderer)
+2. HUD Background Layer
+   ├── Minimap terrain (cached framebuffer)
+   ├── Party frames
+   └── Player status panel
+3. HUD Midground Layer
+   ├── Skill bar + cooldowns
+   ├── Boss health bar
+   └── Buff/debuff icons
+4. HUD Foreground Layer
+   ├── Damage numbers (floating)
+   ├── Tooltips
+   └── Cursor-attached elements
+5. Menu Windows (SAO-style)
+   ├── Equipment, Skills, Quest, etc.
+   └── Drag on top of all other menus
+6. Vanilla GUI (chat, debug, etc.)
+```
+
+### 15.2 Layering System
+
+Each element is assigned a `Layer` enum value:
+
+| Layer | Z-Index | Elements |
+|---|---|---|
+| `BACKGROUND` | 0 | Minimap terrain, world markers |
+| `PANEL` | 10 | Status panels, party frames |
+| `BAR` | 20 | Skill bar, boss bar |
+| `ICON` | 30 | Buffs, status effects |
+| `FLOATING` | 40 | Damage numbers, floating text |
+| `TOOLTIP` | 50 | Hover tooltips |
+| `MENU` | 100 | All menu windows |
+| `MODAL` | 200 | Dialogs, confirmations |
+| `CURSOR` | 300 | Cursor-attached UI |
+
+Higher Z-index elements are drawn later (on top) and receive input first.
+
+### 15.3 Framebuffer Caching
+
+To minimize per-frame GPU work, static or slowly-changing elements are
+rendered to offscreen framebuffers:
+
+| Element | Cache Strategy | Invalidation Trigger |
+|---|---|---|
+| Minimap terrain | Full framebuffer | Player crosses chunk boundary |
+| Skill icons | Atlas texture | Skill learned/changed |
+| Party frames | Per-member framebuffer | HP/MP change > 1% |
+| Boss bar | Full framebuffer | Boss targeted/damaged |
+| Menu backgrounds | 9-slice texture | Never (static) |
+
+**Framebuffer lifecycle:**
+1. Created on first use at element's current size.
+2. Re-rendered only when invalidation trigger fires.
+3. Destroyed when element is hidden or screen resized.
+4. GPU memory budget: 64 MB total for all cached framebuffers.
+
+### 15.4 Performance Budget
+
+| Metric | Target | Maximum |
+|---|---|---|
+| HUD draw calls | < 50 | 100 |
+| HUD vertices | < 5,000 | 10,000 |
+| Framebuffer switches | < 5 | 10 |
+| HUD render time | < 1.0 ms | 2.0 ms |
+| Texture memory | < 32 MB | 64 MB |
+
+**Optimization techniques:**
+- Batch draw calls by texture (minimize state changes).
+- Skip fully transparent elements (alpha = 0).
+- Use `GL_BLEND` only when needed (disable for opaque elements).
+- Cull off-screen elements before submitting draw commands.
+- Throttle damage number updates to 30 Hz (interpolate visually).
+
+### 15.5 Render Loop Integration
+
+```java
+// In HudOverlay.render()
+public void render(MatrixStack matrices, float tickDelta) {
+    // 1. Update animations
+    TweenManager.update(tickDelta);
+
+    // 2. Update dynamic data (HP, MP, cooldowns)
+    HudDataCache.update();
+
+    // 3. Draw background layer (cached)
+    drawLayer(Layer.BACKGROUND, matrices);
+
+    // 4. Draw midground layer
+    drawLayer(Layer.PANEL, matrices);
+    drawLayer(Layer.BAR, matrices);
+
+    // 5. Draw foreground layer
+    drawLayer(Layer.FLOATING, matrices);
+
+    // 6. Draw menus (if any open)
+    drawMenus(matrices);
+
+    // 7. Draw tooltips (if hovering)
+    drawTooltips(matrices);
+}
+```
+
+---
+
+---
+
+## 16. Menu Framework
+
+All SAO-style menus share a common framework:
+
+- **MenuWindow** (abstract base): translucent blue panel with title bar, close button, drag support, snap-to-edge, open/close animation
+- **MenuManager** (singleton): registers menus, manages focus (one active at a time), dispatches mouse events, renders active menu on top
+
+### Menu Windows
+
+| Menu | Keybind | Description |
+|---|---|---|
+| EquipmentMenu | C | Equipment grid with item detail panel |
+| SkillsMenu | V | Skill cards with tabs and assignment |
+| QuestLogMenu | J | Quest list with filters and progress |
+| WorldMapMenu | M | Full-screen floor map with waypoints |
+| GuildMenu | G | Guild roster, bank, management |
+| PartyMenu | P | Party members and settings |
+| SettingsMenu | — | HUD/graphics/keybind settings |
+| InventoryMenu | B | 8×5 item grid with stats |
+| AuctionHouseMenu | — | Auction listings with search |
+
+---
+
+*Document version: 2.0 — Last updated 2026-10-10*
