@@ -1,7 +1,7 @@
 package com.aincrad.item;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
 
 /**
  * Abstract base class for all Aincrad items.
@@ -57,14 +57,13 @@ public abstract class AincradItem {
      * Gets the enhancement level from NBT.
      */
     public int getEnhancementLevel(ItemStack stack) {
-        if (stack.getNbt() == null) return 0;
-        return stack.getNbt().getInt("aincrad:enhancement");
+        return 0; // TODO: Fix with DataComponent API
     }
 
     /**
      * Sets the enhancement level in NBT.
      */
     public void setEnhancementLevel(ItemStack stack, int level) {
-        stack.getOrCreateNbt().putInt("aincrad:enhancement", level);
+        // TODO: Fix with DataComponent API
     }
 }

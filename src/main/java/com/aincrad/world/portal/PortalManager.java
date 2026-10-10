@@ -1,8 +1,8 @@
 package com.aincrad.world.portal;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.core.BlockPos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +54,7 @@ public class PortalManager {
      * @param player     The player to teleport
      * @param targetFloor The floor number to send them to
      */
-    public void teleportToFloor(PlayerEntity player, int targetFloor) {
+    public void teleportToFloor(Player player, int targetFloor) {
         if (player == null) {
             LOGGER.warn("Attempted to teleport null player to floor {}", targetFloor);
             return;
@@ -63,7 +63,7 @@ public class PortalManager {
         LOGGER.info("Portal transition: {} -> Floor {}",
                 player.getName().getString(), targetFloor);
 
-        if (player instanceof ServerPlayerEntity serverPlayer) {
+        if (player instanceof ServerPlayer serverPlayer) {
             teleportServerPlayer(serverPlayer, targetFloor);
         } else {
             LOGGER.debug("Non-server player teleport requested: {}", player.getName().getString());
@@ -75,7 +75,7 @@ public class PortalManager {
      *
      * @param player The player to teleport
      */
-    public void teleportToHub(PlayerEntity player) {
+    public void teleportToHub(Player player) {
         if (player == null) {
             LOGGER.warn("Attempted to teleport null player to hub");
             return;
@@ -84,7 +84,7 @@ public class PortalManager {
         LOGGER.info("Hub portal transition: {} -> Floor 1 (Safe Zone)",
                 player.getName().getString());
 
-        if (player instanceof ServerPlayerEntity serverPlayer) {
+        if (player instanceof ServerPlayer serverPlayer) {
             teleportServerPlayer(serverPlayer, 1);
         } else {
             LOGGER.debug("Non-server player hub teleport requested: {}", player.getName().getString());
@@ -138,7 +138,7 @@ public class PortalManager {
      * STUB: Actual dimension switching requires:
      *   - A custom DimensionType registered in the dimension registry
      *   - A WorldStem with the floor's LevelStem
-     *   - ServerPlayerEntity.teleportTo(ServerLevel, x, y, z, yaw, pitch)
+     *   - ServerPlayer.teleportTo(ServerLevel, x, y, z, yaw, pitch)
      *
      * When ready, replace the LOGGER.info line below with:
      *   ServerLevel targetWorld = serverPlayer.getServer().getLevel(targetDimensionKey);
@@ -148,7 +148,7 @@ public class PortalManager {
      *                               serverPlayer.getYRot(), serverPlayer.getXRot());
      *   }
      */
-    private void teleportServerPlayer(ServerPlayerEntity player, int targetFloor) {
+    private void teleportServerPlayer(ServerPlayer player, int targetFloor) {
         // TODO: Replace with actual dimension teleport when infrastructure is ready
         LOGGER.info("[STUB] Would teleport {} to floor {} at {}",
                 player.getName().getString(),

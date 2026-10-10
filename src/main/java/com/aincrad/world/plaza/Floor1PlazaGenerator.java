@@ -1,13 +1,15 @@
 package com.aincrad.world.plaza;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.world.World;
-import net.minecraft.world.biome.BiomeKeys;
-import net.minecraft.world.biome.source.BiomeSource;
-import net.minecraft.world.gen.chunk.ChunkGenerator;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biomes;
+import net.minecraft.world.level.LevelHeightAccessor;
+import net.minecraft.world.level.NoiseColumn;
+import net.minecraft.world.level.biome.BiomeSource;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.core.BlockPos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,9 +58,9 @@ public class Floor1PlazaGenerator extends ChunkGenerator {
      * The entire plaza is flat at GROUND_LEVEL.
      */
     @Override
-    public int getBaseHeight(int x, int z, net.minecraft.world.gen.Heightmap.Type type,
-                             net.minecraft.world.World world,
-                             net.minecraft.world.gen.RandomState randomState) {
+    public int getBaseHeight(int x, int z, net.minecraft.world.level.levelgen.Heightmap.Types type,
+                             LevelHeightAccessor world,
+                             net.minecraft.world.level.levelgen.RandomState randomState) {
         // Flat plaza — everything at ground level
         if (isInsidePlaza(x, z)) {
             return GROUND_LEVEL;
@@ -72,9 +74,9 @@ public class Floor1PlazaGenerator extends ChunkGenerator {
      * Inside the plaza, fills with grass on top and stone below.
      */
     @Override
-    public net.minecraft.world.chunk.BlockColumn getBaseColumn(int x, int z,
-                                                               net.minecraft.world.World world,
-                                                               net.minecraft.world.gen.RandomState randomState) {
+    public NoiseColumn getBaseColumn(int x, int z,
+                                     LevelHeightAccessor world,
+                                     net.minecraft.world.level.levelgen.RandomState randomState) {
         if (isInsidePlaza(x, z)) {
             // Flat grass terrain: grass at GROUND_LEVEL, stone below
             BlockState[] column = new BlockState[GROUND_LEVEL + 1];
@@ -82,16 +84,16 @@ public class Floor1PlazaGenerator extends ChunkGenerator {
                 column[y] = Blocks.STONE.defaultBlockState();
             }
             column[GROUND_LEVEL] = Blocks.GRASS_BLOCK.defaultBlockState();
-            return new net.minecraft.world.chunk.BlockColumn(GROUND_LEVEL, column);
+            return new NoiseColumn(GROUND_LEVEL, column);
         }
-        return super.getBaseColumn(x, z, world, randomState);
+        return new NoiseColumn(GROUND_LEVEL, new BlockState[GROUND_LEVEL + 1]);
     }
 
     /**
      * Build the plaza structures into the given world at the specified chunk origin.
      * Called during chunk population.
      */
-    public void buildPlaza(World world, int chunkX, int chunkZ) {
+    public void buildPlaza(Level world, int chunkX, int chunkZ) {
         int blockX = chunkX * 16;
         int blockZ = chunkZ * 16;
 
@@ -133,7 +135,7 @@ public class Floor1PlazaGenerator extends ChunkGenerator {
     /**
      * Fill the entire 256x256 plaza area with flat grass terrain.
      */
-    private void levelPlazaGround(World world) {
+    private void levelPlazaGround(Level world) {
         for (int x = -HALF_PLAZA; x < HALF_PLAZA; x++) {
             for (int z = -HALF_PLAZA; z < HALF_PLAZA; z++) {
                 // Clear above ground
@@ -155,7 +157,7 @@ public class Floor1PlazaGenerator extends ChunkGenerator {
      * Build a marker at the spawn point (center of plaza).
      * Uses a small cobblestone platform with a beacon-like marker.
      */
-    private void buildSpawnMarker(World world) {
+    private void buildSpawnMarker(Level world) {
         BlockPos center = new BlockPos(0, GROUND_LEVEL, 0);
 
         // 3x3 cobblestone platform
@@ -177,7 +179,7 @@ public class Floor1PlazaGenerator extends ChunkGenerator {
      * Place NPC marker positions throughout the plaza.
      * Each marker is a gold block at ground level with a nameplate-like structure.
      */
-    private void buildNPCMarkers(World world) {
+    private void buildNPCMarkers(Level world) {
         int[][] npcPositions = {
                 {10, 0, 0},    // East of spawn
                 {-10, 0, 0},   // West of spawn
@@ -210,7 +212,7 @@ public class Floor1PlazaGenerator extends ChunkGenerator {
     /**
      * Build colored marker blocks for each district at the quadrant corners.
      */
-    private void buildDistrictMarkers(World world) {
+    private void buildDistrictMarkers(Level world) {
         int offset = HALF_PLAZA - DISTRICT_INSET;
 
         // SE: Market (emerald)
@@ -226,7 +228,7 @@ public class Floor1PlazaGenerator extends ChunkGenerator {
         placeDistrictMarker(world, offset, -offset, Blocks.DIAMOND_BLOCK, "Portal District");
     }
 
-    private void placeDistrictMarker(World world, int x, int z, Block block, String name) {
+    private void placeDistrictMarker(Level world, int x, int z, Block block, String name) {
         world.setBlock(new BlockPos(x, GROUND_LEVEL + 1, z), block.defaultBlockState(), 3);
         LOGGER.debug("District marker '{}' at ({}, {})", name, x, z);
     }
@@ -234,7 +236,7 @@ public class Floor1PlazaGenerator extends ChunkGenerator {
     /**
      * Build simple rectangular buildings in the Market district (SE quadrant).
      */
-    private void buildMarketDistrict(World world) {
+    private void buildMarketDistrict(Level world) {
         int startX = DISTRICT_INSET;
         int endX = HALF_PLAZA - DISTRICT_INSET;
         int startZ = DISTRICT_INSET;
@@ -247,7 +249,7 @@ public class Floor1PlazaGenerator extends ChunkGenerator {
         buildRectangularBuilding(world, startX + 10, startZ + 10, 3, 3, WALL_HEIGHT, Blocks.OAK_PLANKS);
 
         // 1 large market hall
-        buildRectangularBuilding(world, startX + 20, startZ + 5, 8, 6, WALL_HEIGHT + 4, Blocks.BRICK_BLOCK);
+        buildRectangularBuilding(world, startX + 20, startZ + 5, 8, 6, WALL_HEIGHT + 4, Blocks.BRICKS);
 
         LOGGER.info("Market district built in SE quadrant");
     }
@@ -255,7 +257,7 @@ public class Floor1PlazaGenerator extends ChunkGenerator {
     /**
      * Build simple rectangular buildings in the Residential district (SW quadrant).
      */
-    private void buildResidentialDistrict(World world) {
+    private void buildResidentialDistrict(Level world) {
         int startX = -HALF_PLAZA + DISTRICT_INSET;
         int endZ = HALF_PLAZA - DISTRICT_INSET;
 
@@ -276,7 +278,7 @@ public class Floor1PlazaGenerator extends ChunkGenerator {
     /**
      * Build training structures in the Training district (NW quadrant).
      */
-    private void buildTrainingDistrict(World world) {
+    private void buildTrainingDistrict(Level world) {
         // Large open training arena (walls only, no roof)
         int arenaX = -HALF_PLAZA + DISTRICT_INSET + 5;
         int arenaZ = -HALF_PLAZA + DISTRICT_INSET + 5;
@@ -297,7 +299,7 @@ public class Floor1PlazaGenerator extends ChunkGenerator {
      * Layout: 2x4 grid of portal pads, each with a distinct color.
      * Each pad is a 5x5 platform with a portal frame marker.
      */
-    private void buildPortalDistrict(World world) {
+    private void buildPortalDistrict(Level world) {
         int baseX = HALF_PLAZA - DISTRICT_INSET - 30;
         int baseZ = -HALF_PLAZA + DISTRICT_INSET + 5;
 
@@ -319,7 +321,7 @@ public class Floor1PlazaGenerator extends ChunkGenerator {
     /**
      * Build a single portal pad: 5x5 platform with a frame marker.
      */
-    private void buildPortalPad(World world, int x, int z, int targetFloor) {
+    private void buildPortalPad(Level world, int x, int z, int targetFloor) {
         // Stone platform (5x5)
         for (int dx = -2; dx <= 2; dx++) {
             for (int dz = -2; dz <= 2; dz++) {
@@ -349,7 +351,7 @@ public class Floor1PlazaGenerator extends ChunkGenerator {
     /**
      * Build border walls around the entire plaza perimeter.
      */
-    private void buildBorderWalls(World world) {
+    private void buildBorderWalls(Level world) {
         int h = 12;
         for (int x = -HALF_PLAZA; x <= HALF_PLAZA; x++) {
             // North and South walls
@@ -378,7 +380,7 @@ public class Floor1PlazaGenerator extends ChunkGenerator {
     /**
      * Build a solid rectangular building of the given dimensions.
      */
-    private void buildRectangularBuilding(World world, int originX, int originZ,
+    private void buildRectangularBuilding(Level world, int originX, int originZ,
                                           int width, int depth, int height, Block material) {
         for (int x = 0; x < width; x++) {
             for (int z = 0; z < depth; z++) {
@@ -400,7 +402,7 @@ public class Floor1PlazaGenerator extends ChunkGenerator {
     /**
      * Build rectangular walls only (no floor or ceiling).
      */
-    private void buildRectangularWalls(World world, int originX, int originZ,
+    private void buildRectangularWalls(Level world, int originX, int originZ,
                                        int width, int depth, int height, Block material) {
         for (int y = 1; y <= height; y++) {
             for (int x = 0; x < width; x++) {
@@ -421,7 +423,7 @@ public class Floor1PlazaGenerator extends ChunkGenerator {
     /**
      * Build a flat roof on top of a rectangular building.
      */
-    private void buildFlatRoof(World world, int originX, int originZ,
+    private void buildFlatRoof(Level world, int originX, int originZ,
                                int width, int depth, int y, Block material) {
         for (int x = 0; x < width; x++) {
             for (int z = 0; z < depth; z++) {
@@ -449,13 +451,13 @@ public class Floor1PlazaGenerator extends ChunkGenerator {
     // --- ChunkGenerator abstract method stubs ---
 
     @Override
-    protected com.mojang.serialization.MapCodec<? extends net.minecraft.world.gen.chunk.ChunkGenerator> codec() {
+    protected com.mojang.serialization.MapCodec<? extends ChunkGenerator> codec() {
         // Return a dummy codec — full implementation requires proper serialization
-        return net.minecraft.world.gen.chunk.ChunkGenerator.CODEC;
+        return com.mojang.serialization.MapCodec.unit(this);
     }
 
     @Override
-    public void spawnOriginalMobs(net.minecraft.world.gen.WorldGenRegion region) {
+    public void spawnOriginalMobs(net.minecraft.server.level.WorldGenRegion region) {
         // No mobs in the plaza safe zone
     }
 
@@ -467,6 +469,23 @@ public class Floor1PlazaGenerator extends ChunkGenerator {
     @Override
     public int getSeaLevel() {
         return GROUND_LEVEL - 1;
+    }
+
+    @Override
+    public void addDebugScreenInfo(java.util.List<String> info, net.minecraft.world.level.levelgen.RandomState randomState, net.minecraft.core.BlockPos pos, net.minecraft.world.level.levelgen.densityfunction.SamplerContext context) {
+        // Debug info for plaza generator
+    }
+
+    @Override
+    public java.util.concurrent.CompletableFuture<net.minecraft.world.level.chunk.ChunkAccess> buildTerrain(
+            net.minecraft.world.level.chunk.ChunkAccess chunk,
+            net.minecraft.world.level.levelgen.blending.Blender blender,
+            net.minecraft.world.level.levelgen.RandomState randomState,
+            net.minecraft.world.level.StructureManager structureManager,
+            net.minecraft.world.level.biome.BiomeManager biomeManager,
+            net.minecraft.server.level.WorldGenRegion region,
+            java.util.Set<net.minecraft.core.Holder<net.minecraft.world.level.biome.Biome>> biomes) {
+        return java.util.concurrent.CompletableFuture.completedFuture(chunk);
     }
 
     @Override

@@ -1,14 +1,16 @@
 package com.aincrad.world;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.biome.source.BiomeSource;
-import net.minecraft.world.chunk.BlockColumn;
-import net.minecraft.world.gen.Heightmap;
-import net.minecraft.world.gen.RandomState;
-import net.minecraft.world.gen.chunk.ChunkGenerator;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.biome.BiomeSource;
+import net.minecraft.world.level.chunk.BlockColumn;
+import net.minecraft.world.level.NoiseColumn;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.RandomState;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelHeightAccessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,24 +38,24 @@ public class FloorChunkGenerator extends ChunkGenerator {
     }
 
     @Override
-    public int getBaseHeight(int x, int z, Heightmap.Type type, World world, RandomState randomState) {
+    public int getBaseHeight(int x, int z, Heightmap.Types type, LevelHeightAccessor world, RandomState randomState) {
         int groundHeight = computeTerrainHeight(x, z);
         return Math.max(1, Math.min(world.getHeight(), groundHeight));
     }
 
     @Override
-    public BlockColumn getBaseColumn(int x, int z, World world, RandomState randomState) {
+    public NoiseColumn getBaseColumn(int x, int z, LevelHeightAccessor world, RandomState randomState) {
         int columnHeight = computeTerrainHeight(x, z);
         BlockState[] states = new BlockState[columnHeight + 1];
         for (int y = 0; y < columnHeight; y++) {
             if (y < columnHeight - 4) {
-                states[y] = Blocks.STONE.getDefaultState();
+                states[y] = Blocks.STONE.defaultBlockState();
             } else {
-                states[y] = Blocks.DIRT.getDefaultState();
+                states[y] = Blocks.DIRT.defaultBlockState();
             }
         }
-        states[columnHeight] = getSurfaceBlock().getDefaultState();
-        return new BlockColumn(columnHeight, states);
+        states[columnHeight] = getSurfaceBlock();
+        return new NoiseColumn(columnHeight, states);
     }
 
     /**
@@ -90,16 +92,16 @@ public class FloorChunkGenerator extends ChunkGenerator {
      */
     private BlockState getSurfaceBlock() {
         return switch (theme) {
-            case PLAINS -> Blocks.GRASS_BLOCK.getDefaultState();
-            case FOREST -> Blocks.GRASS_BLOCK.getDefaultState();
-            case CAVE -> Blocks.STONE.getDefaultState();
-            case LAVA -> Blocks.BLACKSTONE.getDefaultState();
-            case ICE -> Blocks.SNOW_BLOCK.getDefaultState();
-            case DESERT -> Blocks.SAND.getDefaultState();
-            case SWAMP -> Blocks.MUD.getDefaultState();
-            case OCEAN -> Blocks.WATER.getDefaultState();
-            case SKY -> Blocks.WHITE_WOOL.getDefaultState();
-            case VOID -> Blocks.OBSIDIAN.getDefaultState();
+            case PLAINS -> Blocks.GRASS_BLOCK.defaultBlockState();
+            case FOREST -> Blocks.GRASS_BLOCK.defaultBlockState();
+            case CAVE -> Blocks.STONE.defaultBlockState();
+            case LAVA -> Blocks.BLACKSTONE.defaultBlockState();
+            case ICE -> Blocks.SNOW_BLOCK.defaultBlockState();
+            case DESERT -> Blocks.SAND.defaultBlockState();
+            case SWAMP -> Blocks.MUD.defaultBlockState();
+            case OCEAN -> Blocks.WATER.defaultBlockState();
+            case SKY -> Blocks.SNOW_BLOCK.defaultBlockState();
+            case VOID -> Blocks.OBSIDIAN.defaultBlockState();
         };
     }
 
@@ -117,7 +119,7 @@ public class FloorChunkGenerator extends ChunkGenerator {
     /**
      * Place bedrock walls at the 1024-block boundary.
      */
-    public void buildBoundaryWalls(World world, int chunkX, int chunkZ) {
+    public void buildBoundaryWalls(Level world, int chunkX, int chunkZ) {
         int minX = -FloorDimension.HALF_SIZE;
         int maxX = FloorDimension.HALF_SIZE - 1;
         int minZ = -FloorDimension.HALF_SIZE;
@@ -133,7 +135,7 @@ public class FloorChunkGenerator extends ChunkGenerator {
                 int wz = blockZ + lz;
                 if (wx == minX || wx == maxX || wz == minZ || wz == maxZ) {
                     for (int y = 0; y <= wallTop; y++) {
-                        world.setBlock(new BlockPos(wx, y, wz), Blocks.BEDROCK.getDefaultState(), 3);
+                        world.setBlock(new BlockPos(wx, y, wz), Blocks.BEDROCK.defaultBlockState(), 3);
                     }
                 }
             }
@@ -143,6 +145,33 @@ public class FloorChunkGenerator extends ChunkGenerator {
     @Override
     public int getSeaLevel() {
         return FloorDimension.GROUND_LEVEL - 1;
+    }
+
+    @Override
+    public void addDebugScreenInfo(java.util.List<String> info, net.minecraft.world.level.levelgen.RandomState randomState, net.minecraft.core.BlockPos pos, net.minecraft.world.level.levelgen.densityfunction.SamplerContext context) {
+        // Debug info for floor chunk generator
+    }
+
+    @Override
+    public java.util.concurrent.CompletableFuture<net.minecraft.world.level.chunk.ChunkAccess> buildTerrain(
+            net.minecraft.world.level.chunk.ChunkAccess chunk,
+            net.minecraft.world.level.levelgen.blending.Blender blender,
+            net.minecraft.world.level.levelgen.RandomState randomState,
+            net.minecraft.world.level.StructureManager structureManager,
+            net.minecraft.world.level.biome.BiomeManager biomeManager,
+            net.minecraft.server.level.WorldGenRegion region,
+            java.util.Set<net.minecraft.core.Holder<net.minecraft.world.level.biome.Biome>> biomes) {
+        return java.util.concurrent.CompletableFuture.completedFuture(chunk);
+    }
+
+    @Override
+    protected com.mojang.serialization.MapCodec<? extends ChunkGenerator> codec() {
+        return com.mojang.serialization.MapCodec.unit(this);
+    }
+
+    @Override
+    public void spawnOriginalMobs(net.minecraft.server.level.WorldGenRegion region) {
+        // No mobs spawned by this generator
     }
 
     @Override

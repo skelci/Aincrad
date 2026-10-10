@@ -1,6 +1,6 @@
 package com.aincrad.world;
 
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 
 /**
  * Metadata for a single Aincrad floor.
