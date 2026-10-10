@@ -32,8 +32,8 @@ The Aincrad tower is a 100-floor vertical structure. Due to Minecraft's world he
 
 ### 3.1 Layout
 
-- Floor 1 is the **hub town**, a 512 × 512 block plaza.
-- Central plaza (128 × 128) with:
+- Floor 1 is the **hub town**, a 1024 × 1024 block plaza.
+- Central plaza (256 × 256) with:
   - Spawn point (where new players arrive)
   - NPCs: quest givers, shopkeepers, guild registrar, matchmaking board
   - Notice board (news, events)
@@ -57,7 +57,7 @@ The Aincrad tower is a 100-floor vertical structure. Due to Minecraft's world he
 
 ### 4.1 Design
 
-- Every floor has a **safe zone** at its entrance (32 × 32 blocks around the spawn portal).
+- Every floor has a **safe zone** at its entrance (64 × 64 blocks around the spawn portal).
 - Safe zones prevent mob spawning and PvP.
 - The Floor 1 plaza is a full-floor safe zone.
 
