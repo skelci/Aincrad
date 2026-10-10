@@ -187,14 +187,14 @@ Higher loot tiers unlock better enchantments, rarer materials, and higher-tier e
 
 ## 5. Floor Size and Layout
 
-- Each floor is a **512 × 512 block** area (32 × 32 chunks), enclosed by bedrock walls.
+- Each floor is a **1024 × 1024 block** area (64 × 64 chunks), enclosed by bedrock walls.
 - Terrain height varies by theme (flat for plains, mountainous for cave, etc.), typically 20–40 blocks of vertical variation.
-- The **boss arena** is generated at the floor's center (or farthest point from spawn), a circular arena of **radius 40 blocks** with a distinct visual boundary (e.g., a ring of themed blocks).
+- The **boss arena** is generated at the floor's center (or farthest point from spawn), a circular arena of **radius 64 blocks** with a distinct visual boundary (e.g., a ring of themed blocks).
 - The **spawn point** is at the floor's edge, near the entrance portal from the previous floor.
 
 ## 6. Boss Arena Generation
 
-- The arena is a flat or gently domed circle, radius 40 blocks.
+- The arena is a flat or gently domed circle, radius 64 blocks.
 - A ring of themed blocks (e.g., obsidian for lava, ice for ice) marks the boundary.
 - The boss spawns at the arena center when a player enters the ring.
 - During the fight, a barrier prevents leaving the arena (optional; can be configured).
@@ -217,6 +217,6 @@ Higher loot tiers unlock better enchantments, rarer materials, and higher-tier e
 
 ## 9. Safe Zones
 
-- Each floor's spawn area (a 32 × 32 block zone around the entrance) is a **safe zone**: no mob spawning, no PvP.
+- Each floor's spawn area (a 64 × 64 block zone around the entrance) is a **safe zone**: no mob spawning, no PvP.
 - The Floor 1 plaza is a larger safe zone (the main town).
 - Safe zones are visually marked (e.g., a change in floor texture or a particle boundary).
