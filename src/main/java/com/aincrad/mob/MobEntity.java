@@ -2,8 +2,6 @@ package com.aincrad.mob;
 
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.ai.goal.GoalSelector;
-import net.minecraft.world.entity.ai.goal.target.TargetGoal;
 import net.minecraft.world.level.Level;
 
 public abstract class MobEntity extends Mob {
@@ -21,8 +19,10 @@ public abstract class MobEntity extends Mob {
     @Override
     protected void registerGoals() {
         super.registerGoals();
-        this.goalSelector = new GoalSelector();
-        this.targetSelector = new GoalSelector();
+        if (isAggressive()) {
+            this.targetSelector.addGoal(1, new net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal(this));
+            this.targetSelector.addGoal(2, new net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal<>(this, net.minecraft.world.entity.player.Player.class, true));
+        }
     }
 
     @Override
