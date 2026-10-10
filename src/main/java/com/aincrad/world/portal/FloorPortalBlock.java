@@ -1,12 +1,12 @@
 package com.aincrad.world.portal;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +36,7 @@ public class FloorPortalBlock extends Block {
 
     public FloorPortalBlock(int targetFloor, int targetTier, boolean isActive) {
         // Use iron block as base; in production you'd create proper settings
-        super(Properties.copy(Blocks.IRON_BLOCK));
+        super(Properties.of());
         this.targetFloor = targetFloor;
         this.targetTier = targetTier;
         this.isActive = isActive;
@@ -51,14 +51,14 @@ public class FloorPortalBlock extends Block {
      * If the entity is a player and the portal is active, trigger teleportation.
      */
     @Override
-    public void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity) {
+    public void entityInside(BlockState state, Level world, BlockPos pos, Entity entity, net.minecraft.world.entity.InsideBlockEffectApplier applier, boolean isMovement) {
         if (!isActive) {
             return;
         }
-        if (!(entity instanceof PlayerEntity player)) {
+        if (!(entity instanceof Player player)) {
             return;
         }
-        if (world.isClient()) {
+        if (world.isClientSide()) {
             return;
         }
 
@@ -75,7 +75,7 @@ public class FloorPortalBlock extends Block {
     /**
      * Spawn portal particle effects. Currently a no-op stub.
      */
-    private void spawnPortalParticles(World world, BlockPos pos) {
+    private void spawnPortalParticles(Level world, BlockPos pos) {
         // TODO: Implement particle spawning using world.addParticle()
         // Example (once API is confirmed):
         // world.addParticle(ParticleTypes.PORTAL, pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5, 0, 0, 0);

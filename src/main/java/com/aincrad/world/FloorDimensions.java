@@ -1,10 +1,11 @@
 package com.aincrad.world;
 
-import net.minecraft.world.World;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.world.dimension.DimensionType;
-import net.minecraft.world.dimension.DimensionOptions;
+import net.minecraft.world.level.Level;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.dimension.LevelStem;
 
 /**
  * Central registry for all 100 Aincrad floor dimensions.
@@ -27,8 +28,8 @@ public class FloorDimensions {
      */
     public static void registerAll() {
         for (int floor = 1; floor <= FLOOR_COUNT; floor++) {
-            RegistryKey<World> worldKey = getFloorKey(floor);
-            RegistryKey<DimensionType> dimensionKey = getDimensionKey(floor);
+            ResourceKey<Level> worldKey = getFloorKey(floor);
+            ResourceKey<DimensionType> dimensionKey = getDimensionKey(floor);
 
             // In a full implementation, DimensionOptions would be created and registered:
             // DimensionOptions options = new DimensionOptions(dimensionType, chunkGenerator);
@@ -41,23 +42,23 @@ public class FloorDimensions {
     }
 
     /**
-     * Returns the RegistryKey<World> for the given floor number.
+     * Returns the ResourceKey<Level> for the given floor number.
      * @param floor Floor number (1-100)
-     * @return RegistryKey identifying this floor's World
+     * @return RegistryKey identifying this floor's Level
      */
-    public static RegistryKey<World> getFloorKey(int floor) {
+    public static ResourceKey<Level> getFloorKey(int floor) {
         validateFloor(floor);
-        return RegistryKey.of(RegistryKeys.WORLD, new net.minecraft.util.Identifier("aincrad", "floor_" + floor));
+        return ResourceKey.create(Registries.DIMENSION, Identifier.fromNamespaceAndPath("aincrad", "floor_" + floor));
     }
 
     /**
-     * Returns the RegistryKey<DimensionType> for the given floor number.
+     * Returns the ResourceKey<DimensionType> for the given floor number.
      * @param floor Floor number (1-100)
      * @return RegistryKey identifying this floor's DimensionType
      */
-    public static RegistryKey<DimensionType> getDimensionKey(int floor) {
+    public static ResourceKey<DimensionType> getDimensionKey(int floor) {
         validateFloor(floor);
-        return RegistryKey.of(RegistryKeys.DIMENSION_TYPE, new net.minecraft.util.Identifier("aincrad", "floor_" + floor));
+        return ResourceKey.create(Registries.DIMENSION_TYPE, Identifier.fromNamespaceAndPath("aincrad", "floor_" + floor));
     }
 
     /**

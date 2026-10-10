@@ -1,12 +1,13 @@
 package com.aincrad.world.portal;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.level.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,16 +40,16 @@ public class FloorPortalEntity extends Entity {
     /** The type identifier for NBT serialization. */
     public static final String ENTITY_ID = "floor_portal";
 
-    public FloorPortalEntity(EntityType<?> type, World world) {
+    public FloorPortalEntity(EntityType<?> type, Level world) {
         super(type, world);
         this.sourceFloor = 1;
         this.targetFloor = 1;
-        this.targetPos = BlockPos.ORIGIN;
+        this.targetPos = BlockPos.ZERO;
         this.isActive = true;
-        this.noClip = true; // Pass through blocks
+        this.noPhysics = true; // Pass through blocks
     }
 
-    public FloorPortalEntity(EntityType<?> type, World world,
+    public FloorPortalEntity(EntityType<?> type, Level world,
                             int sourceFloor, int targetFloor, BlockPos targetPos) {
         this(type, world);
         this.sourceFloor = sourceFloor;
@@ -62,17 +63,17 @@ public class FloorPortalEntity extends Entity {
      */
     @Override
     public void tick() {
-        if (this.level().isClient() || !this.isActive) {
+        if (this.level().isClientSide() || !this.isActive) {
             return;
         }
 
-        Box searchBox = this.getBoundingBox().inflate(0.5);
-        List<PlayerEntity> players = this.level().getEntitiesOfClass(
-                PlayerEntity.class, searchBox,
+        AABB searchBox = this.getBoundingBox().inflate(0.5);
+        List<Player> players = this.level().getEntitiesOfClass(
+                Player.class, searchBox,
                 player -> !player.isSpectator() && player.isAlive()
         );
 
-        for (PlayerEntity player : players) {
+        for (Player player : players) {
             LOGGER.debug("Player {} overlapped portal entity (floor {} -> {})",
                     player.getName().getString(), sourceFloor, targetFloor);
             PortalManager.getInstance().teleportToFloor(player, targetFloor);
@@ -103,25 +104,28 @@ public class FloorPortalEntity extends Entity {
         this.isActive = active;
     }
 
+    @Override
+    public boolean hurtServer(net.minecraft.server.level.ServerLevel level, net.minecraft.world.damagesource.DamageSource source, float amount) {
+        return false; // Portal entity is invulnerable
+    }
+
     // --- NBT serialization ---
 
     @Override
-    protected void defineSynchedData() {
+    protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
         // No synchronized data for now
     }
 
     @Override
-    protected void readAdditionalSaveData(NbtCompound nbt) {
-        this.sourceFloor = nbt.getInt("SourceFloor");
-        this.targetFloor = nbt.getInt("TargetFloor");
-        if (nbt.contains("TargetPos")) {
-            this.targetPos = BlockPos.of(nbt.getLong("TargetPos"));
-        }
-        this.isActive = nbt.getBoolean("IsActive");
+    protected void readAdditionalSaveData(ValueInput nbt) {
+        this.sourceFloor = nbt.getIntOr("SourceFloor", 1);
+        this.targetFloor = nbt.getIntOr("TargetFloor", 1);
+        this.targetPos = BlockPos.of(nbt.getLongOr("TargetPos", 0L));
+        this.isActive = nbt.getBooleanOr("IsActive", true);
     }
 
     @Override
-    protected void addAdditionalSaveData(NbtCompound nbt) {
+    protected void addAdditionalSaveData(ValueOutput nbt) {
         nbt.putInt("SourceFloor", this.sourceFloor);
         nbt.putInt("TargetFloor", this.targetFloor);
         nbt.putLong("TargetPos", this.targetPos.asLong());
