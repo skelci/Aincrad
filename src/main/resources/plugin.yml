@@ -1,8 +1,8 @@
 name: Aincrad
-version: 0.1.0
+version: 0.2.0
 main: com.aincrad.paper.AincradPaperPlugin
 api-version: '1.21'
 commands:
   aincrad:
     description: Aincrad main command
-    usage: /aincrad <guild|party|quest|warp|shop>
+    usage: /aincrad <guild|party|quest|progression|dungeon|economy|help>
