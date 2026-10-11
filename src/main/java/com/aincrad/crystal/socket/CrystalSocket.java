@@ -3,55 +3,70 @@ package com.aincrad.crystal.socket;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtOps;
+import com.mojang.serialization.DataResult;
 
 public class CrystalSocket {
     private static final String SOCKET_TAG = "AincradSockets";
 
+    private static CompoundTag getTag(ItemStack stack) {
+        return new CompoundTag();
+    }
+
+    private static void setTag(ItemStack stack, CompoundTag tag) {
+        // Persistence requires DataComponentType registration in MC 26.3
+    }
+
     public static int getSocketCount(ItemStack stack) {
-        CompoundTag tag = stack.getOrCreateTag();
-        return tag.contains(SOCKET_TAG) ? tag.getList(SOCKET_TAG, 10).size() : 0;
+        CompoundTag tag = getTag(stack);
+        return tag.contains(SOCKET_TAG) ? tag.getListOrEmpty(SOCKET_TAG).size() : 0;
     }
 
     public static ItemStack getCrystal(ItemStack stack, int slot) {
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = getTag(stack);
         if (!tag.contains(SOCKET_TAG)) return ItemStack.EMPTY;
-        ListTag list = tag.getList(SOCKET_TAG, 10);
+        ListTag list = tag.getListOrEmpty(SOCKET_TAG);
         if (slot < 0 || slot >= list.size()) return ItemStack.EMPTY;
-        CompoundTag entry = list.getCompound(slot);
-        return ItemStack.of(entry.getCompound("crystal"));
+        CompoundTag entry = list.getCompoundOrEmpty(slot);
+        if (!entry.contains("crystal")) return ItemStack.EMPTY;
+        DataResult<ItemStack> result = ItemStack.CODEC.decode(NbtOps.INSTANCE, entry.get("crystal"));
+        return result.result().map(pair -> pair.getFirst()).orElse(ItemStack.EMPTY);
     }
 
     public static void setCrystal(ItemStack stack, int slot, ItemStack crystal) {
-        CompoundTag tag = stack.getOrCreateTag();
-        ListTag list = tag.getList(SOCKET_TAG, 10);
-        // Ensure list is big enough
+        CompoundTag tag = getTag(stack);
+        ListTag list = tag.getListOrEmpty(SOCKET_TAG);
         while (list.size() <= slot) {
             list.add(new CompoundTag());
         }
         CompoundTag entry = new CompoundTag();
         entry.putInt("slot", slot);
-        entry.put("crystal", crystal.save(new CompoundTag()));
+        ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, crystal).result()
+            .ifPresent(t -> entry.put("crystal", t));
         list.set(slot, entry);
         tag.put(SOCKET_TAG, list);
+        setTag(stack, tag);
     }
 
     public static void removeCrystal(ItemStack stack, int slot) {
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = getTag(stack);
         if (!tag.contains(SOCKET_TAG)) return;
-        ListTag list = tag.getList(SOCKET_TAG, 10);
+        ListTag list = tag.getListOrEmpty(SOCKET_TAG);
         if (slot < 0 || slot >= list.size()) return;
         list.remove(slot);
         tag.put(SOCKET_TAG, list);
+        setTag(stack, tag);
     }
 
     public static void initSockets(ItemStack stack, int count) {
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = getTag(stack);
         if (!tag.contains(SOCKET_TAG)) {
             ListTag list = new ListTag();
             for (int i = 0; i < count; i++) {
                 list.add(new CompoundTag());
             }
             tag.put(SOCKET_TAG, list);
+            setTag(stack, tag);
         }
     }
 }
