@@ -1,5 +1,7 @@
 package com.aincrad.mob;
 
+import com.aincrad.crystal.drop.CrystalDropHandler;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.level.Level;
@@ -62,5 +64,16 @@ public abstract class MobEntity extends PathfinderMob {
             case HOSTILE, PACK, RANGED, AMBUSHER, ENRAGED, ELITE, BOSS, RAID_BOSS -> true;
             default -> false;
         };
+    }
+
+    @Override
+    public void die(DamageSource damageSource) {
+        super.die(damageSource);
+        if (!this.level().isClientSide()) {
+            var crystal = CrystalDropHandler.rollCrystal(false, 0);
+            if (!crystal.isEmpty()) {
+                this.spawnAtLocation((net.minecraft.server.level.ServerLevel) this.level(), crystal);
+            }
+        }
     }
 }
