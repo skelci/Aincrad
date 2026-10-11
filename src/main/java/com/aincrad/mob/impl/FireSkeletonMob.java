@@ -69,8 +69,7 @@ public class FireSkeletonMob extends MobEntity {
         this.setHealth(BASE_HP * hpScale);
     }
 
-    @Override
-    public void performRangedAttack(net.minecraft.world.entity.LivingEntity target, float velocity) {
+    public void shootArrow(net.minecraft.world.entity.LivingEntity target) {
         Arrow arrow = new Arrow(this.level(), this,
             new ItemStack(Items.ARROW), null);
         double dx = target.getX() - this.getX();
@@ -90,7 +89,7 @@ public class FireSkeletonMob extends MobEntity {
                 && this.getTarget() != null && this.getTarget().isAlive()) {
             double dist = this.distanceTo(this.getTarget());
             if (dist > 3.0 && dist < 15.0) {
-                this.performRangedAttack(this.getTarget(), 1.0f);
+                this.shootArrow(this.getTarget());
                 this.rangedTimer = RANGED_COOLDOWN;
             }
         }
