@@ -1,0 +1,154 @@
+# Aincrad Balance Configuration
+# All game balance values are defined here and loaded by BalanceConfig.
+
+# ---- XP Curve ----
+xp:
+  base: 50
+  exponent: 1.8
+  maxLevel: 100
+
+# ---- Stat Points ----
+statPoints:
+  perLevel: 5
+  total: 500
+
+# ---- Skill Points ----
+skillPoints:
+  perLevel: 3
+  total: 299
+
+# ---- HP / MP Per Level ----
+hp:
+  perLevel: 10
+  vitMultiplier: 2
+mp:
+  perLevel: 5
+  intMultiplier: 1.5
+
+# ---- Damage Formula ----
+damage:
+  strMultiplier: 2
+  weaponAtkMultiplier: 1
+
+# ---- Critical Hits ----
+crit:
+  dexMultiplier: 0.05
+  maxChance: 50
+  baseDamage: 150
+  strDamageMultiplier: 0.5
+
+# ---- Evasion ----
+evasion:
+  agiMultiplier: 0.03
+  maxChance: 30
+
+# ---- Regeneration (per second) ----
+regen:
+  hpBase: 1
+  hpVitMultiplier: 0.5
+  mpBase: 0.5
+  mpIntMultiplier: 0.3
+
+# ---- Weight Limit ----
+weight:
+  base: 100
+  strMultiplier: 5
+
+# ---- Boss Scaling ----
+boss:
+  hpBase: 500
+  hpExponent: 1.6
+  damageBase: 20
+  damageExponent: 1.3
+
+# ---- Mob Scaling ----
+mob:
+  hpBase: 30
+  hpExponent: 1.5
+  damageBase: 4
+  damageExponent: 1.3
+
+# ---- XP Scaling ----
+xpScaling:
+  base: 8
+  exponent: 1.4
+
+# ---- Loot Drop Rates (%) ----
+loot:
+  common: 60
+  uncommon: 25
+  rare: 10
+  epic: 4
+  legendary: 0.9
+  mythic: 0.1
+
+# ---- Enhancement Success Rates (%) ----
+enhancement:
+  success:
+    "1": 100
+    "2": 95
+    "3": 90
+    "4": 85
+    "5": 80
+    "6": 75
+    "7": 70
+    "8": 65
+    "9": 60
+    "10": 55
+    "11": 50
+    "12": 45
+    "13": 40
+    "14": 35
+    "15": 30
+  breakChance:
+    "1": 0
+    "2": 0
+    "3": 0
+    "4": 0
+    "5": 0
+    "6": 5
+    "7": 10
+    "8": 15
+    "9": 20
+    "10": 25
+    "11": 30
+    "12": 35
+    "13": 40
+    "14": 45
+    "15": 50
+
+# ---- Crystal Drop Rates (%) ----
+crystal:
+  tier1: 50
+  tier2: 30
+  tier3: 15
+  tier4: 4
+  tier5: 1
+
+# ---- Armor Set Bonus (%) ----
+armorSet:
+  twoPieces: 10
+  fourPieces: 25
+  sixPieces: 50
+
+# ---- Party XP Bonus ----
+party:
+  xpBonusPerMember: 2
+
+# ---- Guild XP Curve ----
+guild:
+  xpBase: 250
+  xpExponent: 1.5
+  maxLevel: 20
+
+# ---- Dungeon Lockout (days) ----
+dungeon:
+  lockoutDays: 7
+
+# ---- Auction House Fee (%) ----
+auctionHouse:
+  feePercent: 5
+
+# ---- Shop Markup (%) ----
+shop:
+  markupPercent: 20
