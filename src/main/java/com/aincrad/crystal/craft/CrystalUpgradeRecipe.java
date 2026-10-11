@@ -33,15 +33,15 @@ public class CrystalUpgradeRecipe {
      * Uses FORGE as the crafting station since no CRYSTAL_FORGE exists.
      */
     public CraftingRecipe toCraftingRecipe() {
-        CrystalItem inputCrystal = new CrystalItem(type, fromTier);
-        CrystalItem outputCrystal = new CrystalItem(type, toTier);
+        CrystalItemWrapper inputWrapper = CrystalItemWrapper.of(type, fromTier);
+        CrystalItemWrapper outputWrapper = CrystalItemWrapper.of(type, toTier);
         List<ItemStack> inputs = List.of(
-            new ItemStack(inputCrystal),
-            new ItemStack(inputCrystal),
-            new ItemStack(inputCrystal)
+            new ItemStack(inputWrapper),
+            new ItemStack(inputWrapper),
+            new ItemStack(inputWrapper)
         );
         return new CraftingRecipe(
-            new ItemStack(outputCrystal),
+            new ItemStack(outputWrapper),
             inputs,
             CraftingStation.FORGE,
             1.0f
