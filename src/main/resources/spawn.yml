@@ -1,0 +1,104 @@
+# Aincrad Mob Spawn Configuration
+# Defines per-theme mob spawning: which mobs appear, their weights, and caps.
+#
+# Each theme has 5 mobs. Weights are relative spawn chances (higher = more common).
+# cap is the maximum number of that mob type alive at once on a floor.
+
+themes:
+  forest:
+    name: "Forest"
+    mobs:
+      - { id: slime,    mobClass: "com.aincrad.mob.impl.SlimeMob",          weight: 30, cap: 8 }
+      - { id: wolf,     mobClass: "com.aincrad.mob.impl.ForestWolfMob",     weight: 25, cap: 6 }
+      - { id: skeleton, mobClass: "com.aincrad.mob.impl.WoodlandSkeletonMob", weight: 20, cap: 5 }
+      - { id: spider,   mobClass: "com.aincrad.mob.impl.ThornSpiderMob",    weight: 15, cap: 4 }
+      - { id: cow,      mobClass: "com.aincrad.mob.impl.MushroomCowMob",    weight: 10, cap: 3 }
+
+  cave:
+    name: "Cave"
+    mobs:
+      - { id: bat,      mobClass: "com.aincrad.mob.impl.CaveBatMob",        weight: 30, cap: 8 }
+      - { id: zombie,   mobClass: "com.aincrad.mob.impl.StoneZombieMob",    weight: 25, cap: 6 }
+      - { id: spider,   mobClass: "com.aincrad.mob.impl.CrystalSpiderMob",  weight: 20, cap: 5 }
+      - { id: skeleton, mobClass: "com.aincrad.mob.impl.RuinSkeletonMob",   weight: 15, cap: 4 }
+      - { id: slime,    mobClass: "com.aincrad.mob.impl.SlimeMob",          weight: 10, cap: 3 }
+
+  ice:
+    name: "Ice"
+    mobs:
+      - { id: wolf,     mobClass: "com.aincrad.mob.impl.FrostWolfMob",      weight: 30, cap: 6 }
+      - { id: skeleton, mobClass: "com.aincrad.mob.impl.IceSkeletonMob",    weight: 25, cap: 5 }
+      - { id: slime,    mobClass: "com.aincrad.mob.impl.SnowSlimeMob",      weight: 20, cap: 5 }
+      - { id: bat,      mobClass: "com.aincrad.mob.impl.FrostBatMob",       weight: 15, cap: 6 }
+      - { id: golem,    mobClass: "com.aincrad.mob.impl.GlacierGolemMob",   weight: 10, cap: 2 }
+
+  desert:
+    name: "Desert"
+    mobs:
+      - { id: spider,   mobClass: "com.aincrad.mob.impl.SandSpiderMob",     weight: 30, cap: 6 }
+      - { id: skeleton, mobClass: "com.aincrad.mob.impl.DesertSkeletonMob", weight: 25, cap: 5 }
+      - { id: slime,    mobClass: "com.aincrad.mob.impl.SandSlimeMob",      weight: 20, cap: 5 }
+      - { id: cactus,   mobClass: "com.aincrad.mob.impl.CactusMob",         weight: 15, cap: 3 }
+      - { id: wraith,   mobClass: "com.aincrad.mob.impl.SandWraithMob",     weight: 10, cap: 3 }
+
+  volcano:
+    name: "Volcano"
+    mobs:
+      - { id: bat,      mobClass: "com.aincrad.mob.impl.LavaBatMob",        weight: 30, cap: 8 }
+      - { id: slime,    mobClass: "com.aincrad.mob.impl.LavaSlimeMob",      weight: 25, cap: 6 }
+      - { id: skeleton, mobClass: "com.aincrad.mob.impl.FireSkeletonMob",   weight: 20, cap: 5 }
+      - { id: golem,    mobClass: "com.aincrad.mob.impl.ObsidianGolemMob",  weight: 15, cap: 2 }
+      - { id: wraith,   mobClass: "com.aincrad.mob.impl.FlameWraithMob",   weight: 10, cap: 3 }
+
+  ocean:
+    name: "Ocean"
+    mobs:
+      - { id: drowned,  mobClass: "com.aincrad.mob.impl.DrownedMob",        weight: 30, cap: 6 }
+      - { id: slime,    mobClass: "com.aincrad.mob.impl.CoralSlimeMob",     weight: 25, cap: 6 }
+      - { id: serpent,  mobClass: "com.aincrad.mob.impl.SeaSerpentMob",     weight: 20, cap: 4 }
+      - { id: jellyfish,mobClass: "com.aincrad.mob.impl.JellyfishMob",      weight: 15, cap: 5 }
+      - { id: deepone,  mobClass: "com.aincrad.mob.impl.DeepOneMob",        weight: 10, cap: 3 }
+
+  mountain:
+    name: "Mountain"
+    mobs:
+      - { id: bat,      mobClass: "com.aincrad.mob.impl.SkyBatMob",         weight: 30, cap: 8 }
+      - { id: wolf,     mobClass: "com.aincrad.mob.impl.MountainWolfMob",   weight: 25, cap: 6 }
+      - { id: slime,    mobClass: "com.aincrad.mob.impl.CloudSlimeMob",     weight: 20, cap: 5 }
+      - { id: skeleton, mobClass: "com.aincrad.mob.impl.StormSkeletonMob",  weight: 15, cap: 4 }
+      - { id: golem,    mobClass: "com.aincrad.mob.impl.CliffGolemMob",     weight: 10, cap: 2 }
+
+  swamp:
+    name: "Swamp"
+    mobs:
+      - { id: spider,   mobClass: "com.aincrad.mob.impl.PoisonSpiderMob",  weight: 30, cap: 6 }
+      - { id: slime,    mobClass: "com.aincrad.mob.impl.SwampSlimeMob",     weight: 25, cap: 6 }
+      - { id: bat,      mobClass: "com.aincrad.mob.impl.BogBatMob",         weight: 20, cap: 8 }
+      - { id: skeleton, mobClass: "com.aincrad.mob.impl.MarshSkeletonMob",  weight: 15, cap: 4 }
+      - { id: wraith,   mobClass: "com.aincrad.mob.impl.VenomWraithMob",   weight: 10, cap: 3 }
+
+  crystal:
+    name: "Crystal"
+    mobs:
+      - { id: bat,      mobClass: "com.aincrad.mob.impl.CrystalBatMob",     weight: 30, cap: 8 }
+      - { id: slime,    mobClass: "com.aincrad.mob.impl.VoidSlimeMob",      weight: 25, cap: 6 }
+      - { id: spider,   mobClass: "com.aincrad.mob.impl.GemSpiderMob",      weight: 20, cap: 5 }
+      - { id: skeleton, mobClass: "com.aincrad.mob.impl.CrystalSkeletonMob", weight: 15, cap: 4 }
+      - { id: wraith,   mobClass: "com.aincrad.mob.impl.VoidWraithMob",     weight: 10, cap: 3 }
+
+  final_tower:
+    name: "Final Tower"
+    mobs:
+      - { id: bat,      mobClass: "com.aincrad.mob.impl.ShadowBatMob",      weight: 30, cap: 8 }
+      - { id: slime,    mobClass: "com.aincrad.mob.impl.DarkSlimeMob",      weight: 25, cap: 6 }
+      - { id: spider,   mobClass: "com.aincrad.mob.impl.ChaosSpiderMob",   weight: 20, cap: 5 }
+      - { id: skeleton, mobClass: "com.aincrad.mob.impl.DarkSkeletonMob",   weight: 15, cap: 4 }
+      - { id: golem,    mobClass: "com.aincrad.mob.impl.VoidGolemMob",      weight: 10, cap: 2 }
+
+# Global spawn settings
+settings:
+  spawnRadiusMin: 20
+  spawnRadiusMax: 40
+  spawnIntervalTicks: 100
+  defaultFloorCap: 20
+  maxMobsPerSpawn: 3
