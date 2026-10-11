@@ -5,6 +5,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import com.mojang.serialization.DataResult;
+import com.mojang.datafixers.util.Pair;
 
 public class CrystalSocket {
     private static final String SOCKET_TAG = "AincradSockets";
@@ -29,8 +30,8 @@ public class CrystalSocket {
         if (slot < 0 || slot >= list.size()) return ItemStack.EMPTY;
         CompoundTag entry = list.getCompoundOrEmpty(slot);
         if (!entry.contains("crystal")) return ItemStack.EMPTY;
-        DataResult<ItemStack> result = ItemStack.CODEC.decode(NbtOps.INSTANCE, entry.get("crystal"));
-        return result.result().map(pair -> pair.getFirst()).orElse(ItemStack.EMPTY);
+        DataResult<Pair<ItemStack, net.minecraft.nbt.Tag>> result = ItemStack.CODEC.decode(NbtOps.INSTANCE, entry.get("crystal"));
+        return result.result().map(Pair::getFirst).orElse(ItemStack.EMPTY);
     }
 
     public static void setCrystal(ItemStack stack, int slot, ItemStack crystal) {
