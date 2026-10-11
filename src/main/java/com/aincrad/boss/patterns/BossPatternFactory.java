@@ -2,7 +2,8 @@ package com.aincrad.boss.patterns;
 
 import com.aincrad.boss.BossAttackPattern;
 import com.aincrad.boss.BossEntity;
-import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.core.Holder;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.level.Level;
 
 /**
@@ -119,7 +120,7 @@ public final class BossPatternFactory {
     /**
      * Creates a self-buff pattern that increases an attribute.
      */
-    public static BossAttackPattern createBuff(String name, Attributes attr, float multiplier, int cooldown) {
+    public static BossAttackPattern createBuff(String name, Holder<Attribute> attr, float multiplier, int cooldown) {
         return new BossAttackPattern(name, 30, cooldown) {
             @Override
             public void execute(BossEntity boss, Level level) {
