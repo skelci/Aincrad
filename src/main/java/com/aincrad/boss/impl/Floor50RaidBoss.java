@@ -39,6 +39,7 @@ public class Floor50RaidBoss extends BossEntity {
         super(entityType, level);
         this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(BASE_HP);
         this.setHealth(BASE_HP);
+        this.setBossTier(10);
     }
 
     @Override

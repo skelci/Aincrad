@@ -1,29 +1,45 @@
 package com.aincrad.crystal;
 
-import com.aincrad.item.AincradItem;
 import com.aincrad.item.ItemRarity;
 import com.aincrad.item.ItemType;
+import net.minecraft.world.item.Item;
 
 /**
  * A crystal item that can be slotted into the Crystal equipment slot.
  * 6 types × 5 tiers = 30 crystal variants.
  */
-public class CrystalItem extends AincradItem {
+public class CrystalItem extends Item {
 
     private final CrystalType crystalType;
     private final CrystalTier crystalTier;
+    private final String name;
+    private final ItemRarity rarity;
+    private final ItemType type;
+    private final int weight;
+    private final int baseValue;
+    private final String description;
 
     public CrystalItem(CrystalType crystalType, CrystalTier crystalTier) {
-        super(crystalTier.getDisplayName() + " " + crystalType.getDisplayName() + " Crystal",
-              getRarityForTier(crystalTier), ItemType.CRYSTAL, 5, 50 * crystalTier.getLevel(),
-              "A " + crystalTier.getDisplayName().toLowerCase() + " crystal of "
-              + crystalType.getDisplayName().toLowerCase() + ".");
+        super(new Properties());
         this.crystalType = crystalType;
         this.crystalTier = crystalTier;
+        this.name = crystalTier.getDisplayName() + " " + crystalType.getDisplayName() + " Crystal";
+        this.rarity = getRarityForTier(crystalTier);
+        this.type = ItemType.CRYSTAL;
+        this.weight = 5;
+        this.baseValue = 50 * crystalTier.getLevel();
+        this.description = "A " + crystalTier.getDisplayName().toLowerCase() + " crystal of "
+                + crystalType.getDisplayName().toLowerCase() + ".";
     }
 
     public CrystalType getCrystalType() { return crystalType; }
     public CrystalTier getCrystalTier() { return crystalTier; }
+    public String getName() { return name; }
+    public ItemRarity getRarity() { return rarity; }
+    public ItemType getType() { return type; }
+    public int getWeight() { return weight; }
+    public int getBaseValue() { return baseValue; }
+    public String getDescription() { return description; }
 
     /**
      * Returns the rarity based on crystal tier.

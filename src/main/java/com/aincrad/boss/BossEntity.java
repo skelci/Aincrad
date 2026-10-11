@@ -1,8 +1,10 @@
 package com.aincrad.boss;
 
+import com.aincrad.crystal.drop.CrystalDropHandler;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
@@ -61,6 +63,9 @@ public abstract class BossEntity extends Monster {
 
     /** Cooldown tracker — one entry per pattern, in ticks. */
     protected final List<Integer> patternCooldowns = new ArrayList<>();
+
+    /** Boss tier (1-10), used for crystal drop scaling. */
+    protected int bossTier = 1;
 
     // ------------------------------------------------------------------
     // Construction
@@ -272,5 +277,29 @@ public abstract class BossEntity extends Monster {
         }
 
         this.enrageTicksRemaining = input.getInt(NBT_ENRAGE_TICKS).orElse(DEFAULT_ENRAGE_SECONDS * 20);
+    }
+
+    // ------------------------------------------------------------------
+    // Death / crystal drops
+    // ------------------------------------------------------------------
+
+    /**
+     * Sets the boss tier for crystal drop scaling.
+     *
+     * @param tier boss tier (1-10)
+     */
+    public void setBossTier(int tier) {
+        this.bossTier = Math.max(1, Math.min(10, tier));
+    }
+
+    @Override
+    public void die(DamageSource damageSource) {
+        super.die(damageSource);
+        if (!this.level().isClientSide()) {
+            var crystal = CrystalDropHandler.rollCrystal(true, this.bossTier);
+            if (!crystal.isEmpty()) {
+                this.spawnAtLocation((net.minecraft.server.level.ServerLevel) this.level(), crystal);
+            }
+        }
     }
 }
