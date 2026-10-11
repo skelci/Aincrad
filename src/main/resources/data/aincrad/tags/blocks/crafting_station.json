@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "aincrad:crafting_forge",
+    "aincrad:crafting_alchemy",
+    "aincrad:crafting_workbench",
+    "aincrad:crafting_enchanting"
+  ]
+}

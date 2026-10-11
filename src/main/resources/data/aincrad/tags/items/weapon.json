@@ -1,0 +1,20 @@
+{
+  "replace": false,
+  "values": [
+    "aincrad:sword_iron",
+    "aincrad:sword_steel",
+    "aincrad:sword_mythril",
+    "aincrad:sword_adamantite",
+    "aincrad:sword_dragon",
+    "aincrad:sword_shadow",
+    "aincrad:sword_void",
+    "aincrad:sword_holy",
+    "aincrad:axe_iron",
+    "aincrad:axe_steel",
+    "aincrad:axe_mythril",
+    "aincrad:axe_adamantite",
+    "aincrad:axe_dragon",
+    "aincrad:axe_shadow",
+    "aincrad:axe_void"
+  ]
+}
