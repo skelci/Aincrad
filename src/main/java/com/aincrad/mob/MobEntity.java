@@ -16,6 +16,7 @@ public abstract class MobEntity extends PathfinderMob {
         this.mobType = MobType.HOSTILE;
         this.floorLevel = 1;
         this.phase = 1;
+        this.applyFloorScaling(this.floorLevel);
     }
 
     @Override
@@ -49,6 +50,7 @@ public abstract class MobEntity extends PathfinderMob {
 
     public void setFloorLevel(int floorLevel) {
         this.floorLevel = floorLevel;
+        this.applyFloorScaling(floorLevel);
     }
 
     public int getPhase() {
@@ -64,6 +66,16 @@ public abstract class MobEntity extends PathfinderMob {
             case HOSTILE, PACK, RANGED, AMBUSHER, ENRAGED, ELITE, BOSS, RAID_BOSS -> true;
             default -> false;
         };
+    }
+
+    /**
+     * Apply floor-based stat scaling. Called after construction and whenever
+     * the floor level changes. Subclasses override to set their own attributes.
+     *
+     * @param floor the current floor level (1+)
+     */
+    protected void applyFloorScaling(int floor) {
+        // Default: no-op. Subclasses override.
     }
 
     @Override
