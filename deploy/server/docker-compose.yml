@@ -1,0 +1,25 @@
+services:
+  aincrad-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: aincrad-server:latest
+    container_name: aincrad-server
+    restart: unless-stopped
+    ports:
+      - "25565:25565"
+    volumes:
+      - ./world:/server/world
+      - ./world_nether:/server/world_nether
+      - ./world_the_end:/server/world_the_end
+      - ./logs:/server/logs
+      - ./mods:/server/mods:ro
+      - ./plugins:/server/plugins:ro
+    stdin_open: true
+    tty: true
+    deploy:
+      resources:
+        limits:
+          memory: 6G
+        reservations:
+          memory: 4G
