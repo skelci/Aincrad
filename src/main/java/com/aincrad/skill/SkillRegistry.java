@@ -1,5 +1,6 @@
 package com.aincrad.skill;
 
+import com.aincrad.skill.impl.*;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -18,6 +19,19 @@ public final class SkillRegistry {
 
     private SkillRegistry() {
         // Prevent instantiation
+    }
+
+    static {
+        register(new HorizontalSlash());
+        register(new VerticalSlash());
+        register(new SharpTurn());
+        register(new CrescentArc());
+        register(new PiercingThrust());
+        register(new RisingBlade());
+        register(new FallingStar());
+        register(new BladeDance());
+        register(new CrossSlash());
+        register(new FinalStrike());
     }
 
     /**
