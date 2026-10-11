@@ -23,6 +23,7 @@ public abstract class ArmorPiece extends AincradItem {
         this.bonus2 = bonus2;
         this.bonus4 = bonus4;
         this.bonus6 = bonus6;
+        ArmorPieceRegistry.register(this);
     }
 
     public ArmorSet getSet() { return set; }

@@ -18,9 +18,11 @@ public final class ArmorSetBonusApplier {
         for (EquipmentSlot slot : EquipmentSlot.values()) {
             ItemStack stack = player.getItemBySlot(slot);
             if (stack.isEmpty()) continue;
-            if (stack.getItem() instanceof ArmorPiece armorPiece) {
-                setCounts.merge(armorPiece.getSet(), 1, Integer::sum);
-                setPieces.putIfAbsent(armorPiece.getSet(), armorPiece);
+            String itemName = stack.getHoverName().getString();
+            ArmorPiece piece = ArmorPieceRegistry.getByName(itemName);
+            if (piece != null) {
+                setCounts.merge(piece.getSet(), 1, Integer::sum);
+                setPieces.putIfAbsent(piece.getSet(), piece);
             }
         }
 
