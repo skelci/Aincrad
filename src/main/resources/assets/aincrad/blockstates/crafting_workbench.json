@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "aincrad:block/crafting_workbench"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "aincrad:pickaxe_iron",
+    "aincrad:pickaxe_steel",
+    "aincrad:pickaxe_mythril",
+    "aincrad:pickaxe_adamantite",
+    "aincrad:pickaxe_dragon"
+  ]
+}

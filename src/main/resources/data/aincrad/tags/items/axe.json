@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "aincrad:axe_iron",
+    "aincrad:axe_steel",
+    "aincrad:axe_mythril",
+    "aincrad:axe_adamantite",
+    "aincrad:axe_dragon",
+    "aincrad:axe_shadow",
+    "aincrad:axe_void"
+  ]
+}
