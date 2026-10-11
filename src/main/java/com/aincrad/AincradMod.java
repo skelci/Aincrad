@@ -3,6 +3,7 @@ package com.aincrad;
 import com.aincrad.boss.BossRegistration;
 import com.aincrad.skill.SkillRegistration;
 import com.aincrad.dungeon.layout.DungeonLayoutRegistration;
+import com.aincrad.mob.spawn.MobSpawnIntegration;
 import com.aincrad.world.FloorDimensions;
 import com.aincrad.world.FloorRegistry;
 import net.fabricmc.api.ModInitializer;
@@ -33,5 +34,9 @@ public class AincradMod implements ModInitializer {
         // Register all dungeon layouts
         DungeonLayoutRegistration.registerAll();
         LOGGER.info("Dungeon layouts registered: {}", com.aincrad.dungeon.layout.DungeonLayoutRegistry.size());
+
+        // Initialize mob spawning system
+        MobSpawnIntegration.initialize();
+        LOGGER.info("Mob spawn system initialized");
     }
 }
