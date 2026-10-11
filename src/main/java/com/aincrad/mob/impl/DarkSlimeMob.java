@@ -22,7 +22,7 @@ import net.minecraft.world.level.Level;
 public class DarkSlimeMob extends MobEntity {
 
     public static final ResourceKey<EntityType<?>> TYPE_KEY = ResourceKey.create(
-        Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath("aincrad", "dark_slime_mob"));
+        Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath("aincrad", "darkslimemob"));
 
     public static final EntityType<DarkSlimeMob> TYPE = Registry.register(
         BuiltInRegistries.ENTITY_TYPE, TYPE_KEY,
@@ -32,8 +32,7 @@ public class DarkSlimeMob extends MobEntity {
 
     private static final float BASE_HP = 24.0f;
     private static final float BASE_DAMAGE = 5.0f;
-    private static final float BASE_SPEED = 0.25f;
-    private static final int MAX_SPLIT = 3;
+    private static final float BASE_SPEED = 0.28f;
 
     public DarkSlimeMob(EntityType<? extends MobEntity> entityType, Level level) {
         super(entityType, level);
@@ -43,53 +42,20 @@ public class DarkSlimeMob extends MobEntity {
     @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new FloatGoal(this));
-        this.goalSelector.addGoal(2, new SlimeBounceGoal(this));
-        this.goalSelector.addGoal(3, new MeleeAttackGoal(this, 1.0, false));
-        this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
+        this.goalSelector.addGoal(2, new MeleeAttackGoal(this, 1.0, false));
+        this.goalSelector.addGoal(3, new RandomLookAroundGoal(this));
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
     }
 
     @Override
     protected void applyFloorScaling(int floor) {
-        float hpScale = 1.0f + (floor - 1) * 0.18f;
-        float dmgScale = 1.0f + (floor - 1) * 0.12f;
+        float hpScale = 1.0f + (floor - 1) * 0.15f;
+        float dmgScale = 1.0f + (floor - 1) * 0.10f;
         float spdScale = 1.0f + (floor - 1) * 0.02f;
-
         this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(BASE_HP * hpScale);
         this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(BASE_DAMAGE * dmgScale);
         this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(BASE_SPEED * spdScale);
         this.setHealth(BASE_HP * hpScale);
-    }
-
-    @Override
-    public boolean isInvulnerableTo(DamageSource source) {
-        if (source.getMsgId().equals("wither") || source.getMsgId().equals("magic")) {
-            return true;
-        }
-        return super.isInvulnerableTo(source);
-    }
-
-    @Override
-    public void die(DamageSource damageSource) {
-        if (!this.level().isClientSide() && this.getFloorLevel() > 1 && this.isAlive()) {
-            int splitCount = Math.min(MAX_SPLIT, this.getFloorLevel() / 2);
-            for (int i = 0; i < splitCount; i++) {
-                DarkSlimeMob child = new DarkSlimeMob(TYPE, this.level());
-                child.setFloorLevel(Math.max(1, this.getFloorLevel() - 1));
-                child.applyFloorScaling(child.getFloorLevel());
-                child.setPos(
-                    this.getX() + (this.random.nextDouble() - 0.5) * 1.5,
-                    this.getY(),
-                    this.getZ() + (this.random.nextDouble() - 0.5) * 1.5);
-                this.level().addFreshEntity(child);
-            }
-        }
-        super.die(damageSource);
-    }
-
-    @Override
-    public boolean isSensitiveToWater() {
-        return false;
     }
 }
