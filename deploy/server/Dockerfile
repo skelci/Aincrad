@@ -8,15 +8,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     jq \
     && rm -rf /var/lib/apt/lists/*
 
-# Download Paper 26.3
-RUN curl -fsSL -o paper.jar \
-    "https://api.papermc.io/v2/projects/paper/versions/26.3/builds/latest/downloads/paper-26.3-latest.jar"
+# Copy Paper jar if it exists (user should download it first)
+COPY paper.jar /server/paper.jar
 
-# Install Fabric server
+# Install Fabric server for 1.21.1
 RUN curl -fsSL -o fabric-installer.jar \
     "https://maven.fabricmc.net/net/fabricmc/fabric-installer/1.0.1/fabric-installer-1.0.1.jar" \
     && java -jar fabric-installer.jar server \
-        --mcversion 26.3 \
+        --mcversion 1.21.1 \
         --loader 0.19.5 \
         --downloadMinecraft \
         --noprofile \

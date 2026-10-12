@@ -5,3 +5,7 @@ build/
 out/
 run/
 .DS_Store
+deploy/server/world/
+deploy/server/world_nether/
+deploy/server/world_the_end/
+deploy/server/logs/

@@ -22,16 +22,7 @@ public final class SkillRegistry {
     }
 
     static {
-        register(new HorizontalSlash());
-        register(new VerticalSlash());
-        register(new SharpTurn());
-        register(new CrescentArc());
-        register(new PiercingThrust());
-        register(new RisingBlade());
-        register(new FallingStar());
-        register(new BladeDance());
-        register(new CrossSlash());
-        register(new FinalStrike());
+        // Skills are registered via SkillRegistration.registerAll()
     }
 
     /**

@@ -1,6 +1,7 @@
 plugins {
     id 'net.fabricmc.fabric-loom' version '1.17-SNAPSHOT'
     id 'java'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 version = '0.1.0'
@@ -29,4 +30,43 @@ processResources {
 java {
     sourceCompatibility = JavaVersion.VERSION_25
     targetCompatibility = JavaVersion.VERSION_25
+}
+
+tasks.named('jar') {
+    manifest {
+        attributes(
+            'Implementation-Title': 'Aincrad',
+            'Implementation-Version': project.version,
+            'Implementation-Vendor': 'com.aincrad',
+            'Fabric-Mod': 'true'
+        )
+    }
+}
+
+// Paper plugin jar task
+tasks.register('paperPluginJar', Jar) {
+    archiveClassifier.set('paper-plugin')
+    from(sourceSets.main.output) {
+        include 'com/aincrad/paper/**'
+    }
+    from('src/main/resources') {
+        include 'paper-plugin.yml'
+    }
+    manifest {
+        attributes(
+            'Implementation-Title': 'Aincrad Paper Plugin',
+            'Implementation-Version': project.version,
+            'Implementation-Vendor': 'com.aincrad',
+            'Main-Class': 'com.aincrad.paper.AincradPaperPlugin',
+            'Plugin-Name': 'Aincrad',
+            'Plugin-Version': project.version,
+            'Plugin-API-Version': '1.21',
+            'Plugin-Load': 'STARTUP',
+            'Plugin-Authors': 'skelci'
+        )
+    }
+}
+
+tasks.named('build') {
+    dependsOn 'paperPluginJar'
 }

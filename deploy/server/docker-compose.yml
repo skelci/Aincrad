@@ -7,7 +7,7 @@ services:
     container_name: aincrad-server
     restart: unless-stopped
     ports:
-      - "25565:25565"
+      - "25566:25565"
     volumes:
       - ./world:/server/world
       - ./world_nether:/server/world_nether
