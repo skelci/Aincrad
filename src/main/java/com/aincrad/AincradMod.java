@@ -6,6 +6,7 @@ import com.aincrad.dungeon.layout.DungeonLayoutRegistration;
 import com.aincrad.mob.spawn.MobSpawnIntegration;
 import com.aincrad.world.FloorDimensions;
 import com.aincrad.world.FloorRegistry;
+import com.aincrad.devtest.DevTestCommand;
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,5 +39,9 @@ public class AincradMod implements ModInitializer {
         // Initialize mob spawning system
         MobSpawnIntegration.initialize();
         LOGGER.info("Mob spawn system initialized");
+
+        // Register dev test commands
+        DevTestCommand.register();
+        LOGGER.info("Dev test commands registered");
     }
 }
