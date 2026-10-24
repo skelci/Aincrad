@@ -33,7 +33,7 @@ public final class BureauKiosk {
         int[][] spots = {{20, -4}, {-20, -4}, {12, 27}, {-332, 0}, {-332, 2},
                 {-332, 4}, {-332, 6}, {-332, 8}};
         for (int[] s : spots) {
-            for (int y = G; y <= G + 5; y++) {
+            for (int y = G + 1; y <= G + 5; y++) {
                 org.bukkit.block.Block b = w.getBlockAt(s[0], y, s[1]);
                 Material m = b.getType();
                 if (m == Material.BOOKSHELF || m == Material.LECTERN || m == Material.STONE_BRICKS

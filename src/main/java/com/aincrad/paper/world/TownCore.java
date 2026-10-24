@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.Sign;
 import org.bukkit.block.data.type.TrapDoor;
 import org.bukkit.block.data.type.WallSign;
 
@@ -49,14 +50,24 @@ public final class TownCore {
         w.getBlockAt(x, y, z).setBlockData(Bukkit.createBlockData("lantern[hanging=true]"));
     }
 
-    private static void standingSign(World w, int x, int y, int z, int rot) {
-        w.getBlockAt(x, y, z).setBlockData(Bukkit.createBlockData("oak_sign[rotation=" + rot + "]"));
+    private static void standingSign(World w, int x, int y, int z, int rot, String... lines) {
+        var pos = w.getBlockAt(x, y, z);
+        pos.setBlockData(Bukkit.createBlockData("oak_sign[rotation=" + rot + "]"));
+        writeSign(pos, lines);
     }
 
-    private static void wallSignSouth(World w, int x, int y, int z, int rot) {
+    private static void writeSign(org.bukkit.block.Block pos, String... lines) {
+        if (!(pos.getState() instanceof Sign s)) return;
+        for (int i = 0; i < Math.min(4, lines.length); i++) s.setLine(i, lines[i]);
+        s.update();
+    }
+
+    private static void wallSignSouth(World w, int x, int y, int z, int rot, String... lines) {
         WallSign s = (WallSign) Bukkit.createBlockData(Material.OAK_WALL_SIGN);
         s.setFacing(BlockFace.SOUTH);
-        w.getBlockAt(x, y, z).setBlockData(s);
+        var pos = w.getBlockAt(x, y, z);
+        pos.setBlockData(s);
+        writeSign(pos, lines);
     }
 
     private static void plaza(World w) {
@@ -358,15 +369,15 @@ public final class TownCore {
         box(w, 36, 4, 36, 7, G + 1, G + 1, Material.OAK_PLANKS);
         set(w, 35, G + 2, 5, Material.OAK_STAIRS);
         set(w, 35, G + 2, 6, Material.OAK_STAIRS);
-        standingSign(w, 36, G + 2, 5, 8);
+        standingSign(w, 36, G + 2, 5, 8, "§1Guild Hall", "§7Quests", "§7Skills");
         set(w, 36, G + 2, 7, Material.LANTERN);
         for (int x = 39; x <= 46; x++) box(w, x, -12, x, -12, G + 1, G + 3, Material.LODESTONE);
         set(w, 38, G + 1, -12, Material.LODESTONE);
         set(w, 47, G + 1, -12, Material.LODESTONE);
-        standingSign(w, 40, G + 4, -12, 0);
-        standingSign(w, 42, G + 4, -12, 1);
-        standingSign(w, 44, G + 4, -12, 0);
-        standingSign(w, 46, G + 4, -12, 1);
+        standingSign(w, 40, G + 4, -12, 0, "§1Skill", "§7Library");
+        standingSign(w, 42, G + 4, -12, 1, "§1Sword", "§7Arts");
+        standingSign(w, 44, G + 4, -12, 0, "§1Guild", "§7Rank");
+        standingSign(w, 46, G + 4, -12, 1, "§1Books", "§7Bind on use");
         set(w, 38, G + 2, -12, Material.RED_BANNER);
         set(w, 47, G + 2, -12, Material.RED_BANNER);
         for (int x = 41; x <= 47; x++) set(w, x, G + 7, 0, Material.IRON_BARS);
@@ -500,7 +511,7 @@ public final class TownCore {
         set(w, -44, G + 2, -2, Material.GOLD_BLOCK);
         box(w, -45, 0, -45, 0, G + 2, G + 4, Material.POLISHED_BLACKSTONE_WALL);
         set(w, -45, G + 5, 0, Material.BELL);
-        standingSign(w, -44, G + 3, -2, 4);
+        standingSign(w, -44, G + 3, -2, 4, "§1Market Hall", "§6Merchant", "§7Shop bell");
         for (int x = -52; x <= -51; x++) {
             set(w, x, G + 1, 10, Material.BARREL);
             set(w, x, G + 1, 11, Material.CHEST);
@@ -567,7 +578,7 @@ public final class TownCore {
                 set(w, x, G + 2, -42, col);
                 set(w, x, G + 2, -41, col);
             }
-            wallSignSouth(w, lx + 1, G + 4, -42, i);
+            wallSignSouth(w, lx + 1, G + 4, -42, i, "§4§lDungeon", "§cNo. " + (i + 1), "", "§4Danger");
             set(w, lx + 1, G + 2, -40, Material.END_ROD);
             set(w, lx, G + 2, -40, Material.GOLD_BLOCK);
             set(w, lx + 2, G + 2, -40, Material.GOLD_BLOCK);
@@ -607,8 +618,7 @@ public final class TownCore {
     }
 
     private static void plazaFinal(World w) {
-        for (int z = 6; z <= 9; z++) set(w, 0, G + 2, z, Material.RED_CARPET);
-        for (int z = 10; z <= 16; z++) set(w, 0, G + 1, z, Material.RED_CARPET);
+        for (int z = 6; z <= 14; z++) set(w, 0, G + 1, z, Material.RED_CARPET);
                 for (int z = 16; z <= 20; z++) set(w, -7, G + 1, z, Material.RED_CARPET);
         for (int x : new int[]{-3, 3}) {
             bannerPole(w, x, 26);
