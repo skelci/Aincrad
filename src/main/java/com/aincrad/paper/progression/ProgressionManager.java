@@ -13,7 +13,7 @@ public final class ProgressionManager {
         static final ProgressionManager INSTANCE = new ProgressionManager();
     }
 
-    private static final double XP_COEFFICIENT = 50.0;
+    private static final double XP_COEFFICIENT = 70.0;
     private static final double XP_EXPONENT = 1.5;
     private static final double NG_PLUS_BONUS_PER_CYCLE = 0.05;
     private static final double NG_PLUS_MAX_BONUS = 0.25;

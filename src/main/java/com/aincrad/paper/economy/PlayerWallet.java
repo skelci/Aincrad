@@ -38,6 +38,10 @@ public final class PlayerWallet {
 
     public Col withdraw(Col amount, String reason) {
         if (amount == null || amount.isZero()) return balance;
+        if (amount.getAmount() > balance.getAmount()) {
+            throw new IllegalStateException("Insufficient funds: need " + amount.getAmount()
+                    + ", have " + balance.getAmount());
+        }
         this.balance = this.balance.subtract(amount);
         logTransaction(amount.negate(), reason);
         return balance;

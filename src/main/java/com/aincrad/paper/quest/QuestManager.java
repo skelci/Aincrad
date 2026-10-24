@@ -23,6 +23,47 @@ public final class QuestManager {
     private QuestManager() {
         cooldownConfig.put(QuestType.DAILY, Duration.ofHours(24));
         cooldownConfig.put(QuestType.WEEKLY, Duration.ofDays(7));
+        registerDefaultQuests();
+    }
+
+    private void registerDefaultQuests() {
+        QuestObjective.Type K = QuestObjective.Type.KILL;
+        QuestObjective.Type D = QuestObjective.Type.DEFEAT;
+        QuestObjective.Type I = QuestObjective.Type.INVESTIGATE;
+
+        registerQuest(new Quest("f1_warm_steel", "Warm Steel, Cold Morning", QuestType.MAIN, 1, "Guide Asuna",
+                List.of(),
+                List.of(new QuestObjective(K, "Frenzy Cow", 4)),
+                new QuestReward(35, 150, List.of(), 1), Quest.TurnInMethod.UI, false));
+        registerQuest(new Quest("f1_ranch_trouble", "Ranch Trouble", QuestType.MAIN, 1, "Guild Receptionist",
+                List.of("f1_warm_steel"),
+                List.of(new QuestObjective(K, "Blood Fang Pig", 4),
+                        new QuestObjective(K, "Mad Fleece", 4)),
+                new QuestReward(55, 200, List.of(), 1), Quest.TurnInMethod.UI, false));
+        registerQuest(new Quest("f1_cull_the_foe", "Cull the Foe", QuestType.SIDE, 1, "Guild Receptionist",
+                List.of(),
+                List.of(new QuestObjective(K, "any", 6)),
+                new QuestReward(40, 160, List.of(), 1), Quest.TurnInMethod.UI, true));
+        registerQuest(new Quest("f1_weeping_stone", "The Weeping Stone", QuestType.SIDE, 1, "Herbalist Suna",
+                List.of(),
+                List.of(new QuestObjective(I, "The Weeping Stone", 1)),
+                new QuestReward(50, 220, List.of(), 1), Quest.TurnInMethod.UI, false));
+        registerQuest(new Quest("f1_broken_seal", "A Seal Unmade", QuestType.SIDE, 1, "Watchman Corin",
+                List.of(),
+                List.of(new QuestObjective(I, "The Broken Seal", 1)),
+                new QuestReward(55, 240, List.of(), 1), Quest.TurnInMethod.UI, false));
+        registerQuest(new Quest("f1_hunters_ledger", "The Hunter's Ledger", QuestType.SIDE, 1, "Guild Receptionist",
+                List.of(),
+                List.of(new QuestObjective(I, "Hunter's Ledger", 1)),
+                new QuestReward(45, 200, List.of(), 1), Quest.TurnInMethod.UI, false));
+        registerQuest(new Quest("f1_ilfang_ending", "The End of Ilfang's Road", QuestType.MAIN, 1, "Guide Asuna",
+                List.of("f1_ranch_trouble", "f1_cull_the_foe"),
+                List.of(new QuestObjective(D, "Ilfang", 1)),
+                new QuestReward(180, 800, List.of(), 2), Quest.TurnInMethod.UI, false));
+        registerQuest(new Quest("f1_daily_round", "Round the Floor", QuestType.DAILY, 1, "Watchman Corin",
+                List.of(),
+                List.of(new QuestObjective(K, "any", 12)),
+                new QuestReward(30, 120, List.of(), 0), Quest.TurnInMethod.UI, true));
     }
 
     public static QuestManager getInstance() {

@@ -6,7 +6,7 @@ import java.util.Objects;
  * Single quest objective with type, target, and progress tracking.
  */
 public final class QuestObjective {
-    public enum Type { KILL, COLLECT, DEFEAT, TALK }
+    public enum Type { KILL, COLLECT, DEFEAT, TALK, INVESTIGATE }
 
     private final Type type;
     private final String target;

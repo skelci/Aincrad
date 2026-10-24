@@ -19,7 +19,8 @@ public class DataStore {
 
     public DataStore(JavaPlugin plugin) {
         this.plugin = plugin;
-        this.dataFolder = new File(plugin.getDataFolder(), "data");
+        this.dataFolder = new File("data/Aincrad/data");
+        this.dataFolder.mkdirs();
         if (!dataFolder.exists()) {
             dataFolder.mkdirs();
         }

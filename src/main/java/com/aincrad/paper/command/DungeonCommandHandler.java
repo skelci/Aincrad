@@ -27,6 +27,10 @@ public class DungeonCommandHandler {
     }
 
     private void handleCreate(CommandSender sender, String[] args, DungeonManager dm) {
+        if (!sender.hasPermission("aincrad.admin")) {
+            sender.sendMessage("§cAdmin only.");
+            return;
+        }
         if (args.length < 5) { sender.sendMessage("§cUsage: /aincrad dungeon create <id> <tier> <floor>"); return; }
         try {
             DungeonTier tier = DungeonTier.valueOf(args[3].toUpperCase());

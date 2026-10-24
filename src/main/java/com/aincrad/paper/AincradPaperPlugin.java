@@ -1,28 +1,270 @@
 package com.aincrad.paper;
 
 import com.aincrad.paper.command.AincradCommand;
+import com.aincrad.paper.listener.GameListener;
 import com.aincrad.paper.listener.PlayerListener;
 import com.aincrad.paper.persistence.DataStore;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class AincradPaperPlugin extends JavaPlugin {
+public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.Listener {
 
+    public java.io.File dataDir() {
+        java.io.File dir = new java.io.File("data/Aincrad");
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        return dir;
+    }
+
+
+
+    private static AincradPaperPlugin instance;
     private DataStore dataStore;
 
     @Override
     public void onEnable() {
+        instance = this;
         saveDefaultConfig();
         this.dataStore = new DataStore(this);
-
-        getCommand("aincrad").setExecutor(new AincradCommand(this));
         getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
+        getServer().getPluginManager().registerEvents(new GameListener(this), this);
+        mobSpawnService = new com.aincrad.paper.mobs.MobSpawnService(this);
+        mobSpawnService.start();
+        skillService = new com.aincrad.paper.skills.PaperSkillService(this);
+        skillService.start();
+        getServer().getPluginManager().registerEvents(new com.aincrad.paper.listener.ItemMechanicListener(), this);
+        
+        // Generate Floor 1 plaza + override spawn (south of fountain, on road)
+        getServer().getScheduler().runTaskLater(this, () -> {
+            ensureFloor1();
+            for (var world : getServer().getWorlds()) {
+                if (world.getName().toLowerCase().contains("floor_")) {
+                    configureFloorWorld(world);
+                }
+                if (isFloor1(world)) {
+                    setupFloor1();
+                }
+            }
+        }, 40L);
+
+        getServer().getScheduler().runTaskTimer(this, () -> {
+            for (var world : getServer().getWorlds()) {
+                String n = world.getName().toLowerCase();
+                if (n.contains("floor_") && world.getFullTime() != 12600L) {
+                    configureFloorWorld(world);
+                }
+            }
+        }, 200L * 30, 200L * 30);
+
+        registerCommand("skill", (sender, command, label, args) -> {
+            if (sender instanceof org.bukkit.entity.Player p) {
+                if (args.length >= 1 && args[0].equalsIgnoreCase("drives")) {
+                    skillService.giveDrives(p);
+                } else {
+                    com.aincrad.paper.skills.SkillGui.open(p, skillService);
+                }
+            } else {
+                sender.sendMessage("Player only");
+            }
+            return true;
+        });
+        com.aincrad.paper.skills.SkillGui.registerListener(this);
+        com.aincrad.paper.skills.ShopGui.registerListener(this);
+        new com.aincrad.paper.mobs.MobFrenzy(this);
+        com.aincrad.paper.hud.StatsSync.start(this);
+        com.aincrad.paper.world.TreetopCleaner.start(this);
+        com.aincrad.paper.quest.QuestGui.register(this);
+        getServer().getPluginManager().registerEvents(
+                new com.aincrad.paper.listener.TownMenuListener(), this);
+        getServer().getScheduler().runTaskTimer(this,
+                com.aincrad.paper.quest.QuestWorld::tick, 60L, 40L);
+        getServer().getMessenger().registerOutgoingPluginChannel(this, "aincrad:skill_cast");
+        getServer().getMessenger().registerOutgoingPluginChannel(this, "aincrad:vfx");
+        getServer().getMessenger().registerIncomingPluginChannel(this, "aincrad:skill_cast",
+                (channel, player, data) -> {
+                    if (data.length < 1) return;
+                    int slot = data[0];
+                    var def = skillService.boundSkill(player, slot);
+                    if (def == null) return;
+                    getServer().getScheduler().runTask(this,
+                            () -> skillService.use(player, def.id()));
+                });
+
+        economyPersistence = new com.aincrad.paper.economy.EconomyPersistence(this);
+        economyPersistence.load();
+        getServer().getScheduler().runTaskTimer(this,
+                () -> economyPersistence.save(), 20L * 60 * 5, 20L * 60 * 5);
+
+        floorBoss = new com.aincrad.paper.world.FloorBoss(this);
+        floorBoss.setMobService(mobSpawnService);
+        getServer().getPluginManager().registerEvents(floorBoss, this);
+        getServer().getScheduler().runTaskLater(this, () -> floorBoss.buildArena(), 100L);
+
+        floorDungeons = new com.aincrad.paper.world.FloorDungeons(this);
+        floorDungeons.setMobService(mobSpawnService);
+        getServer().getPluginManager().registerEvents(floorDungeons, this);
+        getServer().getPluginManager().registerEvents(
+                new com.aincrad.paper.listener.FloorWorldListener(), this);
+        getServer().getScheduler().runTaskLater(this, () -> floorDungeons.buildAll(), 80L);
+        
+        getServer().getPluginManager().registerEvents(this, this);
         getLogger().info("Aincrad Paper plugin enabled.");
+    }
+
+    private void ensureFloor1() {
+        for (var w : getServer().getWorlds()) {
+            if (isFloor1(w)) {
+                return;
+            }
+        }
+        try {
+            boolean ok = org.bukkit.Bukkit.dispatchCommand(org.bukkit.Bukkit.getConsoleSender(),
+                    "execute in aincrad:floor_1 positioned 0.5 66.5 40.5 run forceload add 0 0 0 0");
+            getLogger().info("ensureFloor1: lazy dimension load dispatch=" + ok);
+        } catch (Throwable t) {
+            getLogger().warning("ensureFloor1 failed: " + t);
+        }
+        getServer().getScheduler().runTaskTimer(this, () -> setupFloor1(), 60L, 100L);
+    }
+
+    @org.bukkit.event.EventHandler
+    public void onFloorWorldLoad(org.bukkit.event.world.WorldLoadEvent event) {
+        if (isFloor1(event.getWorld())) {
+            getServer().getScheduler().runTaskLater(this, this::setupFloor1, 40L);
+        }
+    }
+
+    private boolean floor1Ready = false;
+
+    public void setupFloor1() {
+        if (floor1Ready) {
+            return;
+        }
+        org.bukkit.World direct = org.bukkit.Bukkit.getWorld("aincrad:floor_1");
+        if (direct == null) {
+            direct = org.bukkit.Bukkit.getWorld("world_aincrad_floor_1");
+        }
+        if (direct != null && isFloor1(direct)) {
+            setupFloor1In(direct);
+            return;
+        }
+        for (var world : getServer().getWorlds()) {
+            if (isFloor1(world)) {
+                setupFloor1In(world);
+            }
+        }
+        if (!floor1Ready && ++floor1Probe % 10 == 1) {
+            StringBuilder sb = new StringBuilder();
+            for (var w : getServer().getWorlds()) {
+                sb.append(w.getName()).append(' ');
+            }
+            getLogger().info("setupFloor1 probe: direct=" + (direct == null ? "null" : direct.getName())
+                    + " worlds=[" + sb + "]");
+        }
+    }
+
+    private int floor1Probe = 0;
+
+    private void setupFloor1In(org.bukkit.World world) {
+        {
+            floor1Ready = true;
+                com.aincrad.paper.world.PlazaGenerator.generatePlaza(world);
+                com.aincrad.paper.world.SpawnPlaza.ensure(world);
+                world.setSpawnLocation(com.aincrad.paper.world.SpawnPlaza.SPAWN_X,
+                        com.aincrad.paper.world.SpawnPlaza.SPAWN_Y,
+                        com.aincrad.paper.world.SpawnPlaza.SPAWN_Z);
+                configureFloorWorld(world);
+                if (floorDungeons != null) {
+                    floorDungeons.buildAll();
+                }
+                if (floorBoss != null) {
+                    floorBoss.buildArena();
+                }
+                com.aincrad.paper.world.BureauKiosk.build(world);
+            }
+    }
+
+    /** SAO floors: eternal dusk, no weather, world border. */
+    private void configureFloorWorld(org.bukkit.World world) {
+        try {
+            world.setFullTime(12600L);
+            world.setGameRule(org.bukkit.GameRule.DO_DAYLIGHT_CYCLE, false);
+            world.setGameRule(org.bukkit.GameRule.DO_WEATHER_CYCLE, false);
+            world.setStorm(false);
+        } catch (Throwable ignored) {
+            // custom dimensions may lack an independent world clock
+        }
+        try {
+            org.bukkit.WorldBorder border = world.getWorldBorder();
+            border.setCenter(0.5, 0.5);
+            border.setSize(isFloor1(world) ? 2800 : 2400);
+            border.setWarningDistance(120);
+        } catch (Throwable ignored) {
+        }
+    }
+
+    public static boolean isFloor(int floor, org.bukkit.World world) {
+        String n = world.getName().toLowerCase();
+        int colon = n.indexOf(':');
+        if (colon >= 0) n = n.substring(colon + 1);
+        return n.equals("floor_" + floor);
+    }
+
+    public static boolean isFloor1(org.bukkit.World world) {
+        String n = world.getName().toLowerCase();
+        return n.equals("floor_1") || n.endsWith("_floor_1") || n.endsWith(":floor_1");
+    }
+
+    public static boolean isFloorWorld(org.bukkit.World world) {
+        String n = world.getName().toLowerCase();
+        int colon = n.indexOf(':');
+        if (colon >= 0) n = n.substring(colon + 1);
+        return n.matches("floor_\\d+") || n.contains("aincrad");
+    }
+
+    public static AincradPaperPlugin getInstance() {
+        return instance;
+    }
+
+    private void registerCommand(String name, org.bukkit.command.CommandExecutor executor) {
+        var cmd = new org.bukkit.command.Command(name) {
+            @Override
+            public boolean execute(org.bukkit.command.CommandSender sender, String commandLabel, String[] args) {
+                return executor.onCommand(sender, this, commandLabel, args);
+            }
+            @Override
+            public java.util.List<String> tabComplete(org.bukkit.command.CommandSender sender, String alias, String[] args) {
+                if (executor instanceof org.bukkit.command.TabCompleter tc) {
+                    return tc.onTabComplete(sender, this, alias, args);
+                }
+                return java.util.List.of();
+            }
+        };
+        getServer().getCommandMap().register(name, cmd);
     }
 
     @Override
     public void onDisable() {
+        if (economyPersistence != null) {
+            economyPersistence.save();
+        }
+        if (skillService != null) {
+            skillService.saveAll();
+        }
         getLogger().info("Aincrad Paper plugin disabled.");
     }
+
+    private com.aincrad.paper.mobs.MobSpawnService mobSpawnService;
+    private com.aincrad.paper.skills.PaperSkillService skillService;
+
+    public com.aincrad.paper.mobs.MobSpawnService getMobSpawnService() { return mobSpawnService; }
+
+    private com.aincrad.paper.world.FloorDungeons floorDungeons;
+    private com.aincrad.paper.world.FloorBoss floorBoss;
+    private com.aincrad.paper.economy.EconomyPersistence economyPersistence;
+
+    public com.aincrad.paper.world.FloorBoss getFloorBoss() { return floorBoss; }
+    public com.aincrad.paper.skills.PaperSkillService getSkillService() { return skillService; }
 
     public DataStore getDataStore() {
         return dataStore;

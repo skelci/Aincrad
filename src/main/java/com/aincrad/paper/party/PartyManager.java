@@ -60,7 +60,9 @@ public final class PartyManager {
         Party party = parties.get(partyId);
         if (party == null) return false;
         if (playerToParty.containsKey(targetUuid)) return false;
-        return party.addMember(targetUuid, targetName, targetLevel);
+        if (!party.addMember(targetUuid, targetName, targetLevel)) return false;
+        playerToParty.put(targetUuid, partyId);
+        return true;
     }
 
     public boolean joinParty(UUID partyId, UUID playerUuid, String playerName, int playerLevel) {

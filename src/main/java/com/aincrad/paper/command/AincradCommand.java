@@ -13,9 +13,10 @@ import java.util.List;
 public class AincradCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> SUBCOMMANDS = List.of(
-            "guild", "party", "quest", "progression", "dungeon", "economy", "help"
+            "guild", "party", "quest", "progression", "dungeon", "economy", "item", "mob", "skill", "help"
     );
 
+    private final AincradPaperPlugin plugin;
     private final GuildCommandHandler guildHandler;
     private final PartyCommandHandler partyHandler;
     private final QuestCommandHandler questHandler;
@@ -23,6 +24,7 @@ public class AincradCommand implements CommandExecutor, TabCompleter {
     private final DungeonCommandHandler dungeonHandler;
 
     public AincradCommand(AincradPaperPlugin plugin) {
+        this.plugin = plugin;
         this.guildHandler = new GuildCommandHandler(plugin);
         this.partyHandler = new PartyCommandHandler(plugin);
         this.questHandler = new QuestCommandHandler(plugin);
@@ -45,10 +47,72 @@ public class AincradCommand implements CommandExecutor, TabCompleter {
             case "progression" -> progressionHandler.handle(sender, args);
             case "dungeon" -> dungeonHandler.handle(sender, args);
             case "economy" -> handleEconomy(sender, args);
+            case "item" -> com.aincrad.paper.items.ItemCommands.handle(sender, args, plugin);
+            case "mob" -> handleMob(sender, args);
+            case "skill" -> {
+                if (sender instanceof org.bukkit.command.CommandSender s && s instanceof org.bukkit.entity.Player p
+                        && plugin.getSkillService() != null) {
+                    plugin.getSkillService().handle(p, args);
+                } else sender.sendMessage("Player only");
+            }
+            case "floor" -> handleFloor(sender, args);
+            case "boss" -> {
+                if (!sender.hasPermission("aincrad.admin")) {
+                    sender.sendMessage("§cAdmin only");
+                    return true;
+                }
+                if (sender instanceof org.bukkit.entity.Player p) {
+                    plugin.getFloorBoss().summon(p.getWorld(), 1, p.getLocation());
+                }
+            }
             case "help" -> sendHelp(sender);
             default -> sender.sendMessage("§6[Aincrad] §fUnknown subcommand: " + args[0]);
         }
         return true;
+    }
+
+    private void handleFloor(CommandSender sender, String[] args) {
+        if (!(sender instanceof org.bukkit.entity.Player player)) {
+            sender.sendMessage("Player only");
+            return;
+        }
+        int n = 1;
+        if (args.length > 2) {
+            try {
+                n = Math.max(1, Math.min(100, Integer.parseInt(args[2])));
+            } catch (NumberFormatException e) {
+                sender.sendMessage("§cUsage: /aincrad floor <1-100>");
+                return;
+            }
+        }
+        if (n > com.aincrad.paper.world.FloorBoss.unlockedFloors() && !player.isOp()) {
+            player.sendMessage("§cFloor " + n + " is sealed. Defeat the floor boss to unlock the next floor.");
+            return;
+        }
+        if (n == 1 && com.aincrad.paper.AincradPaperPlugin.isFloor1(player.getWorld())) {
+            player.sendMessage("§7You are already on Floor 1.");
+            return;
+        }
+        org.bukkit.Bukkit.dispatchCommand(org.bukkit.Bukkit.getConsoleSender(),
+                "execute in aincrad:floor_" + n + " run tp " + player.getName() + " 0 66 40");
+        player.sendMessage("§dTravelling to Floor " + n + "...");
+    }
+
+    private void handleMob(CommandSender sender, String[] args) {
+        if (!(sender instanceof org.bukkit.entity.Player player)) {
+            sender.sendMessage("Player only");
+            return;
+        }
+        if (plugin.getMobSpawnService() == null) {
+            sender.sendMessage("Mob service not started");
+            return;
+        }
+        int floor = 1;
+        if (args.length >= 3) {
+            try { floor = Math.max(1, Integer.parseInt(args[2])); } catch (NumberFormatException ignored) { }
+        }
+        boolean spawned = plugin.getMobSpawnService().spawnNearPlayer(player, floor);
+        sender.sendMessage(spawned ? "§aMob spawned near you." : "§cNo safe spot or spec found.");
     }
 
     private void handleEconomy(CommandSender sender, String[] args) {
