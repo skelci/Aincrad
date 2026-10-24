@@ -13,3 +13,6 @@ bin/
 deploy/server/data/
 deploy/server/paper.yml
 deploy/server/plugins/
+deploy/server/world/
+deploy/server/world_nether/
+deploy/server/world_the_end/
