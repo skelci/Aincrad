@@ -6,9 +6,12 @@ services:
     image: aincrad-server:latest
     container_name: aincrad-server
     restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     ports:
-      - "25566:25565"
-      - "25575:25575"
+      - "25566:25565/tcp"
+      - "25575:25575/tcp"
     volumes:
       - ./logs:/server/logs
       - ./data:/server/data

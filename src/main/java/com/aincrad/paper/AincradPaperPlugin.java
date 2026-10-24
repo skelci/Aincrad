@@ -100,6 +100,11 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
             }
             return true;
         };
+        getServer().getScheduler().runTaskTimer(this, () -> {
+            for (org.bukkit.entity.Player p : getServer().getOnlinePlayers()) {
+                com.aincrad.paper.listener.ItemMechanicListener.enforceArmor(p);
+            }
+        }, 40L, 20L);
         registerCommand("stats", stats);
         registerCommand("level", stats);
         com.aincrad.paper.skills.ShopGui.registerListener(this);
@@ -257,11 +262,14 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
     }
 
     private static void disableStructures(org.bukkit.World w) {
-        for (org.bukkit.Structure s : org.bukkit.Structure.getStructures()) {
-            try {
-                w.setGenerateStructure(s, false);
-            } catch (Exception ignored) {
-            }
+        try {
+            Class<?> struct = Class.forName("org.bukkit.Structure");
+            Object[] values = struct.getEnumConstants();
+            if (values == null) return;
+            java.lang.reflect.Method m =
+                    w.getClass().getMethod("setGenerateStructure", struct, boolean.class);
+            for (Object s : values) m.invoke(w, s, false);
+        } catch (Throwable ignored) {
         }
     }
 

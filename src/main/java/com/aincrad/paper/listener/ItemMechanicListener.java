@@ -87,16 +87,60 @@ public class ItemMechanicListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onEquipAttempt(org.bukkit.event.inventory.EquipItemEvent event) {
-        if (!(event.getEntity() instanceof Player player)) return;
-        ItemDefs.Def def = ItemDefs.resolve(event.getItemStack());
-        if (def == null || def.defense() <= 0) return;
+    public void onArmorClick(org.bukkit.event.inventory.InventoryClickEvent event) {
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+        var action = event.getAction();
+        ItemStack cur = event.getCurrentItem();
+        ItemStack cursor = event.getCursor();
+        if (action == org.bukkit.event.inventory.InventoryAction.MOVE_TO_OTHER_INVENTORY
+                && blockedArmor(cur, player)) {
+            event.setCancelled(true);
+            return;
+        }
+        var top = event.getView().getTopInventory();
+        if (top == null || !(top.getHolder() instanceof Player) || event.getClickedInventory() != top)
+            return;
+        int slot = event.getSlot();
+        if ((slot == 5 || slot == 6 || slot == 7 || slot == 8) && blockedArmor(cursor, player))
+            event.setCancelled(true);
+    }
+
+    private static boolean blockedArmor(ItemStack is, Player player) {
+        if (is == null) return false;
+        ItemDefs.Def def = ItemDefs.resolve(is);
+        if (def == null || def.defense() <= 0) return false;
         int level = com.aincrad.paper.progression.ProgressionManager.getInstance()
                 .getProgression(player.getUniqueId()).getLevel();
         if (level < def.levelReq()) {
-            event.setCancelled(true);
             player.sendMessage("\u00a7c" + def.name() + " requires level " + def.levelReq()
                     + " (you are " + level + ")");
+            return true;
+        }
+        return false;
+    }
+
+    public static void enforceArmor(Player player) {
+        if (!player.isOnline()) return;
+        var inv = player.getInventory();
+        org.bukkit.inventory.EquipmentSlot[] slots = {
+                org.bukkit.inventory.EquipmentSlot.HEAD,
+                org.bukkit.inventory.EquipmentSlot.CHEST,
+                org.bukkit.inventory.EquipmentSlot.LEGS,
+                org.bukkit.inventory.EquipmentSlot.FEET};
+        for (var slot : slots) {
+            ItemStack is = inv.getItem(slot);
+            if (is == null) continue;
+            ItemDefs.Def def = ItemDefs.resolve(is);
+            if (def == null || def.defense() <= 0) continue;
+            int level = com.aincrad.paper.progression.ProgressionManager.getInstance()
+                    .getProgression(player.getUniqueId()).getLevel();
+            if (level >= def.levelReq()) continue;
+            inv.setItem(slot, null);
+            if (!player.getInventory().addItem(is).isEmpty()) {
+                player.getWorld().dropItemNaturally(player.getLocation(), is);
+            }
+            player.sendMessage("\u00a7c" + def.name() + " requires level " + def.levelReq()
+                    + " — unequipped.");
         }
     }
 
