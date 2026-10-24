@@ -25,6 +25,9 @@ public class GameListener implements Listener {
         if (!dead.getWorld().getName().toLowerCase().contains("floor_")) {
             return;
         }
+        event.setKeepInventory(true);
+        event.setKeepLevel(true);
+        event.setDroppedExp(0);
         try {
             var wallet = com.aincrad.paper.economy.EconomyManager.getInstance()
                     .getWallet(dead.getUniqueId());
@@ -96,6 +99,18 @@ public class GameListener implements Listener {
         // If leaving Aincrad world, keep adventure mode
         if (isAincradWorld(to)) {
             player.setGameMode(GameMode.ADVENTURE);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onCombust(org.bukkit.event.entity.EntityCombustEvent event) {
+        if (!(event.getEntity() instanceof org.bukkit.entity.LivingEntity living)) return;
+        if (!isAincradWorld(living.getWorld())) return;
+        if (living instanceof org.bukkit.entity.Skeleton
+                || living instanceof org.bukkit.entity.Zombie
+                || living instanceof org.bukkit.entity.Phantom
+                || living instanceof org.bukkit.entity.Drowned) {
+            event.setCancelled(true);
         }
     }
 

@@ -45,8 +45,7 @@ public class TownMenuListener implements Listener {
     }
 
     private static boolean isPotted(Block b) {
-        return b.getType() == Material.FLOWER_POT
-                && b.getBlockData().getAsString().contains("potted");
+        return b.getType().name().startsWith("POTTED_");
     }
 
     private static boolean inTown(Block b) {

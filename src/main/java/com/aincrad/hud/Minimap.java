@@ -197,7 +197,7 @@ public class Minimap extends HudElement {
         extractor.text(font, "W", mapX + 2, pcy - 3, HudPalette.TEXT_PRIMARY);
 
         String coords = "X: " + centerX + "  Z: " + centerZ + "  Y: " + centerY;
-        extractor.text(font, coords, mapX + RADIUS - font.width(coords) / 2, mapY + MAP_SIZE + 2, HudPalette.TEXT_SECONDARY);
+        extractor.text(font, coords, mapX + RADIUS - font.width(coords) / 2, mapY + MAP_SIZE + 12, HudPalette.TEXT_SECONDARY);
     }
 
     private void renderEntities(GuiGraphicsExtractor extractor, Minecraft mc, int mapX, int mapY) {

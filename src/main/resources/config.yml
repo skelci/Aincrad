@@ -1,0 +1,3 @@
+# Aincrad Paper plugin config
+# Floors unlocked for progression (1 = Floor 1 available)
+unlocked_floors: 1

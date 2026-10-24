@@ -49,7 +49,14 @@ public final class ProgressionManager {
         double multiplier = getXpMultiplier(progression.getNgPlusCount());
         double adjustedAmount = baseAmount * multiplier;
         progression.addXp(adjustedAmount);
-        return processLevelUps(progression);
+        int gained = processLevelUps(progression);
+        org.bukkit.entity.Player online = org.bukkit.Bukkit.getPlayer(playerId);
+        if (online != null) syncActionBar(online);
+        return gained;
+    }
+
+    public void syncActionBar(org.bukkit.entity.Player player) {
+        player.setLevel(getProgression(player.getUniqueId()).getLevel());
     }
 
     private int processLevelUps(PlayerProgression progression) {

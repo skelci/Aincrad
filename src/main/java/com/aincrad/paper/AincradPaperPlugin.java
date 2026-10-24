@@ -169,10 +169,7 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
         {
             floor1Ready = true;
                 com.aincrad.paper.world.PlazaGenerator.generatePlaza(world);
-                com.aincrad.paper.world.SpawnPlaza.ensure(world);
-                world.setSpawnLocation(com.aincrad.paper.world.SpawnPlaza.SPAWN_X,
-                        com.aincrad.paper.world.SpawnPlaza.SPAWN_Y,
-                        com.aincrad.paper.world.SpawnPlaza.SPAWN_Z);
+                world.setSpawnLocation(0, 65, 8);
                 configureFloorWorld(world);
                 if (floorDungeons != null) {
                     floorDungeons.buildAll();

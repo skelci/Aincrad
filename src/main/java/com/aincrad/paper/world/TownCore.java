@@ -96,29 +96,24 @@ public final class TownCore {
 
     private static void fountain(World w) {
         int cx = 0, cz = 21;
-        for (int dx = -7; dx <= 7; dx++) {
-            for (int dz = -7; dz <= 7; dz++) {
+        for (int dx = -6; dx <= 6; dx++) {
+            for (int dz = -6; dz <= 6; dz++) {
                 int r = Math.abs(dx) + Math.abs(dz);
                 int x = cx + dx, z = cz + dz;
-                if (r == 7) set(w, x, G + 2, z, Material.ANDESITE_WALL);
-                if (r >= 5 && r <= 6) {
-                    box(w, x, z, x, z, G + 2, G + 3, Material.POLISHED_ANDESITE);
-                    slab(w, x, G + 4, z, Material.POLISHED_ANDESITE_SLAB);
+                if (r == 6) {
+                    box(w, x, z, x, z, G + 1, G + 2, Material.POLISHED_ANDESITE);
+                    continue;
                 }
-                if (r <= 4) {
-                    set(w, x, G + 2, z, Material.WATER);
-                    set(w, x, G + 3, z, Material.WATER);
-                }
+                if (r > 5) continue;
+                set(w, x, G, z, Material.SMOOTH_STONE);
+                set(w, x, G + 1, z, Material.WATER);
+                if (r == 3 && (dx == 0 || dz == 0))
+                    set(w, x, G + 1, z, Material.POLISHED_ANDESITE);
             }
         }
-        box(w, cx, cz, cx, cz, G + 2, G + 4, Material.POLISHED_ANDESITE);
+        box(w, cx, cz, cx, cz, G + 1, G + 2, Material.POLISHED_ANDESITE);
+        set(w, cx, G + 3, cz, Material.GOLD_BLOCK);
         set(w, cx, G + 4, cz, Material.GLOWSTONE);
-        set(w, cx, G + 5, cz, Material.GOLD_BLOCK);
-        set(w, cx, G + 6, cz, TownKit.chain());
-        set(w, cx, G + 4, cz - 1, Material.WATER);
-        set(w, cx, G + 4, cz + 1, Material.WATER);
-        set(w, cx - 1, G + 4, cz, Material.WATER);
-        set(w, cx + 1, G + 4, cz, Material.WATER);
         lamp(w, -8, 17);
         lamp(w, 8, 17);
         lamp(w, -8, 25);
@@ -126,14 +121,14 @@ public final class TownCore {
     }
 
     private static void temple(World w) {
-        clearArea(w, -11, -13, 11, 13, 28);
-        pave(w, -10, -12, 10, 13);
+        clearArea(w, -11, -20, 11, 6, 28);
+        pave(w, -10, -19, 10, 6);
         for (int x = -10; x <= 10; x++) {
-            for (int z = -12; z <= 12; z++) {
-                if (!(x == -10 || x == 10 || z == -12 || z == 12)) continue;
+            for (int z = -19; z <= 5; z++) {
+                if (!(x == -10 || x == 10 || z == -19 || z == 5)) continue;
                 for (int y = 1; y <= 20; y++) {
                     Material m = y <= 9 ? Material.STONE_BRICKS : Material.SMOOTH_QUARTZ;
-                    if ((x == -10 || x == 10) && (z == -12 || z == 12) && y <= 12) m = Material.MOSSY_STONE_BRICKS;
+                    if ((x == -10 || x == 10) && (z == -19 || z == 5) && y <= 12) m = Material.MOSSY_STONE_BRICKS;
                     if (y == 10 || y == 11) m = Material.CHISELED_STONE_BRICKS;
                     set(w, x, G + y, z, m);
                 }
@@ -141,25 +136,25 @@ public final class TownCore {
         }
         for (int x = -9; x <= 9; x += 6) {
             if (x == 0) continue;
-            for (int zz : new int[]{12, -12}) box(w, x, zz, x + 1, zz, G + 1, G + 20, Material.POLISHED_ANDESITE);
+            for (int zz : new int[]{5, -19}) box(w, x, zz, x + 1, zz, G + 1, G + 20, Material.POLISHED_ANDESITE);
         }
-        for (int zz : new int[]{-10, 10}) {
+        for (int zz : new int[]{-17, 3}) {
             for (int y = 1; y <= 20; y++) {
                 set(w, -10, G + y, zz, Material.POLISHED_ANDESITE);
                 set(w, 10, G + y, zz, Material.POLISHED_ANDESITE);
             }
         }
         for (int x = -1; x <= 1; x++)
-            for (int z = 11; z <= 12; z++)
+            for (int z = 4; z <= 5; z++)
                 for (int y = 1; y <= 4; y++)
                     set(w, x, G + y, z, Material.AIR);
-        doorWood(w, -6, 12, BlockFace.SOUTH, Material.OAK_DOOR);
-        doorWood(w, -5, 12, BlockFace.SOUTH, Material.OAK_DOOR);
-        doorWood(w, 5, 12, BlockFace.SOUTH, Material.OAK_DOOR);
-        doorWood(w, 6, 12, BlockFace.SOUTH, Material.OAK_DOOR);
-        win2(w, -6, G + 6, 12, BlockFace.SOUTH);
-        win2(w, 5, G + 6, 12, BlockFace.SOUTH);
-        win2(w, -1, G + 6, 12, BlockFace.SOUTH);
+        doorWood(w, -6, 5, BlockFace.SOUTH, Material.OAK_DOOR);
+        doorWood(w, -5, 5, BlockFace.SOUTH, Material.OAK_DOOR);
+        doorWood(w, 5, 5, BlockFace.SOUTH, Material.OAK_DOOR);
+        doorWood(w, 6, 5, BlockFace.SOUTH, Material.OAK_DOOR);
+        win2(w, -6, G + 6, 5, BlockFace.SOUTH);
+        win2(w, 5, G + 6, 5, BlockFace.SOUTH);
+        win2(w, -1, G + 6, 5, BlockFace.SOUTH);
         for (int dx = -4; dx <= 4; dx++) {
             for (int dy = -4; dy <= 4; dy++) {
                 int r = Math.max(Math.abs(dx), Math.abs(dy));
@@ -168,60 +163,60 @@ public final class TownCore {
                 if (r == 4) m = Material.STONE_BRICKS;
                 else if (r == 0) m = Material.GLOWSTONE;
                 else m = pick(ROSE, (dx + 9) * 7 + (dy + 9) * 13);
-                set(w, dx, G + 15 + dy, 12, m);
-                set(w, dx, G + 15 + dy, 11, m);
+                set(w, dx, G + 15 + dy, 5, m);
+                set(w, dx, G + 15 + dy, 4, m);
             }
         }
         for (int x = -10; x <= 10; x += 20) {
-            for (int z0 = -9; z0 <= 6; z0 += 3) {
+            for (int z0 = -16; z0 <= -1; z0 += 3) {
                 Material c = pick(STRIPS, hash(z0, x));
                 for (int zz = z0; zz <= z0 + 1; zz++)
                     for (int y = 7; y <= 14; y++)
                         set(w, x, G + y, zz, c);
             }
         }
-        doorLocked(w, 0, -12, BlockFace.NORTH);
-        win2(w, -7, G + 3, -12, BlockFace.NORTH);
-        win2(w, 6, G + 3, -12, BlockFace.NORTH);
-        win2(w, -7, G + 14, -12, BlockFace.NORTH);
-        win2(w, 6, G + 14, -12, BlockFace.NORTH);
+        doorLocked(w, 0, -19, BlockFace.NORTH);
+        win2(w, -7, G + 3, -19, BlockFace.NORTH);
+        win2(w, 6, G + 3, -19, BlockFace.NORTH);
+        win2(w, -7, G + 14, -19, BlockFace.NORTH);
+        win2(w, 6, G + 14, -19, BlockFace.NORTH);
         for (int x = -4; x <= 4; x++)
-            for (int z = 13; z <= 16; z++)
+            for (int z = 6; z <= 9; z++)
                 slab(w, x, G + 1, z, Material.STONE_BRICK_SLAB);
         for (int x : new int[]{-9, -7, 7, 9}) {
-            box(w, x, 14, x, 14, G + 1, G + 4, Material.POLISHED_ANDESITE);
-            slab(w, x, G + 5, 14, Material.POLISHED_ANDESITE_SLAB);
-            set(w, x, G + 1, 13, Material.POLISHED_ANDESITE_SLAB);
+            box(w, x, 7, x, 7, G + 1, G + 4, Material.POLISHED_ANDESITE);
+            slab(w, x, G + 5, 7, Material.POLISHED_ANDESITE_SLAB);
+            set(w, x, G + 1, 6, Material.POLISHED_ANDESITE_SLAB);
         }
         bellTower(w);
-        box(w, -10, -12, 10, 12, G + 20, G + 21, Material.STONE_BRICKS);
-        roofCap(w, -10, -12, 10, 12, G + 22, Material.STONE_BRICK_SLAB);
-        set(w, 2, G + 28, 0, Material.GOLD_BLOCK);
-        set(w, 2, G + 29, 0, Material.END_ROD);
+        box(w, -10, -19, 10, 5, G + 20, G + 21, Material.STONE_BRICKS);
+        roofCap(w, -10, -19, 10, 5, G + 22, Material.STONE_BRICK_SLAB);
+        set(w, 2, G + 28, -7, Material.GOLD_BLOCK);
+        set(w, 2, G + 29, -7, Material.END_ROD);
         templeInterior(w);
     }
 
     private static void bellTower(World w) {
         for (int x = -10; x <= -6; x++) {
-            for (int z = -12; z <= -8; z++) {
-                if (!(x == -10 || x == -6 || z == -12 || z == -8)) continue;
+            for (int z = -19; z <= -15; z++) {
+                if (!(x == -10 || x == -6 || z == -19 || z == -15)) continue;
                 for (int y = 13; y <= 22; y++) {
                     Material m = (y % 7) < 6 ? Material.SMOOTH_QUARTZ : Material.STONE_BRICKS;
-                    if ((x == -10 && z == -12) || (x == -6 && z == -12) || (x == -10 && z == -8)) m = Material.POLISHED_ANDESITE;
+                    if ((x == -10 && z == -19) || (x == -6 && z == -19) || (x == -10 && z == -15)) m = Material.POLISHED_ANDESITE;
                     set(w, x, G + y, z, m);
                 }
             }
         }
-        set(w, -8, G + 20, -10, Material.AIR);
-        set(w, -8, G + 21, -10, Material.AIR);
+        set(w, -8, G + 20, -17, Material.AIR);
+        set(w, -8, G + 21, -17, Material.AIR);
         for (int x = -9; x <= -7; x++)
-            for (int z = -11; z <= -9; z++)
+            for (int z = -18; z <= -16; z++)
                 set(w, x, G + 22, z, Material.GLOWSTONE);
-        set(w, -8, G + 22, -10, TownKit.chain());
-        set(w, -8, G + 21, -10, Material.BELL);
-        set(w, -8, G + 20, -10, Material.LANTERN);
-        box(w, -9, -11, -7, -9, G + 23, G + 23, Material.GOLD_BLOCK);
-        box(w, -8, -10, -8, -10, G + 24, G + 24, Material.GOLD_BLOCK);
+        set(w, -8, G + 22, -17, TownKit.chain());
+        set(w, -8, G + 21, -17, Material.BELL);
+        set(w, -8, G + 20, -17, Material.LANTERN);
+        box(w, -9, -18, -7, -16, G + 23, G + 23, Material.GOLD_BLOCK);
+        box(w, -8, -17, -8, -17, G + 24, G + 24, Material.GOLD_BLOCK);
     }
 
     private static void roofCap(World w, int x1, int z1, int x2, int z2, int baseY, Material mat) {
@@ -243,75 +238,75 @@ public final class TownCore {
     private static void templeInterior(World w) {
         for (int px = -5; px <= 5; px += 5) {
             if (px == 0) continue;
-            for (int pz = -4; pz <= 8; pz += 4) {
+            for (int pz = -11; pz <= 1; pz += 4) {
                 for (int y = 1; y <= 16; y++)
                     set(w, px, G + y, pz, y == 10 ? Material.GLOWSTONE : Material.SMOOTH_QUARTZ);
                 box(w, px, pz, px, pz, G + 17, G + 18, Material.POLISHED_ANDESITE);
                 set(w, px, G + 19, pz, Material.END_ROD);
             }
         }
-        for (int z = 1; z <= 7; z += 2) {
+        for (int z = -6; z <= 0; z += 2) {
             for (int x = -7; x <= -2; x++) stair(w, x, G + 1, z, BlockFace.NORTH, Material.OAK_STAIRS);
             for (int x = 2; x <= 7; x++) stair(w, x, G + 1, z, BlockFace.NORTH, Material.OAK_STAIRS);
         }
         for (int x = -8; x <= 8; x += 4) {
-            for (int z = -4; z <= 10; z += 4) {
+            for (int z = -11; z <= 1; z += 4) {
                 set(w, x, G, z, Material.GLOWSTONE);
                 set(w, x, G + 1, z, (x >= -1 && x <= 1) ? Material.RED_CARPET : Material.WHITE_CARPET);
             }
         }
         for (int x : new int[]{-8, 8}) {
-            for (int z : new int[]{-10, 10}) {
+            for (int z : new int[]{-17, 3}) {
                 set(w, x, G, z, Material.SEA_LANTERN);
                 set(w, x, G + 1, z, Material.WHITE_CARPET);
             }
         }
         for (int x = -1; x <= 1; x++)
-            for (int z = -4; z <= 11; z++)
+            for (int z = -11; z <= 4; z++)
                 if (w.getBlockAt(x, G + 1, z).getType() != Material.GLOWSTONE) set(w, x, G + 1, z, Material.RED_CARPET);
         for (int x = -8; x <= 8; x++) {
             if (x == 0) continue;
-            for (int z = -11; z <= -7; z++) slab(w, x, G + 6, z, Material.STONE_BRICK_SLAB);
-            for (int z = -11; z <= -9; z++) slab(w, x, G + 11, z, Material.STONE_BRICK_SLAB);
+            for (int z = -18; z <= -14; z++) slab(w, x, G + 6, z, Material.STONE_BRICK_SLAB);
+            for (int z = -18; z <= -16; z++) slab(w, x, G + 11, z, Material.STONE_BRICK_SLAB);
         }
-        slab(w, -9, G + 6, -6, Material.STONE_BRICK_SLAB);
-        slab(w, 9, G + 6, -6, Material.STONE_BRICK_SLAB);
+        slab(w, -9, G + 6, -13, Material.STONE_BRICK_SLAB);
+        slab(w, 9, G + 6, -13, Material.STONE_BRICK_SLAB);
         for (int x = -8; x <= 8; x++) {
             if (x >= -2 && x <= 2) continue;
-            set(w, x, G + 7, -7, Material.STONE_BRICK_WALL);
-            if (Math.abs(x) != 9) set(w, x, G + 12, -9, Material.STONE_BRICK_WALL);
+            set(w, x, G + 7, -14, Material.STONE_BRICK_WALL);
+            if (Math.abs(x) != 9) set(w, x, G + 12, -16, Material.STONE_BRICK_WALL);
         }
         for (int x : new int[]{-6, 6})
-            box(w, x, -7, x, -7, G + 1, G + 5, Material.POLISHED_ANDESITE);
+            box(w, x, -14, x, -14, G + 1, G + 5, Material.POLISHED_ANDESITE);
         for (int side = -1; side <= 1; side += 2) {
             int px = side * 9;
             for (int k = 1; k <= 5; k++) {
-                set(w, px, G + k, -k, Material.AIR);
-                stair(w, px, G + k, -k, BlockFace.NORTH, Material.STONE_BRICK_STAIRS);
+                set(w, px, G + k, -k - 7, Material.AIR);
+                stair(w, px, G + k, -k - 7, BlockFace.NORTH, Material.STONE_BRICK_STAIRS);
             }
         }
-        for (int x = -8; x <= 8; x += 4) hangingLantern(w, x, G + 5, -8);
-        for (int x = -6; x <= 6; x += 6) hangingLantern(w, x, G + 10, -10);
-        for (int x = -9; x <= -6; x++) box(w, x, -11, x, -11, G + 7, G + 8, Material.BOOKSHELF);
-        for (int x = 6; x <= 9; x++) box(w, x, -11, x, -11, G + 7, G + 8, Material.BOOKSHELF);
-        box(w, -3, -11, 3, -6, G + 1, G + 1, Material.SMOOTH_QUARTZ);
-        for (int x = -2; x <= 2; x++) slab(w, x, G + 1, -5, Material.SMOOTH_QUARTZ_SLAB);
+        for (int x = -8; x <= 8; x += 4) hangingLantern(w, x, G + 5, -15);
+        for (int x = -6; x <= 6; x += 6) hangingLantern(w, x, G + 10, -17);
+        for (int x = -9; x <= -6; x++) box(w, x, -18, x, -18, G + 7, G + 8, Material.BOOKSHELF);
+        for (int x = 6; x <= 9; x++) box(w, x, -18, x, -18, G + 7, G + 8, Material.BOOKSHELF);
+        box(w, -3, -18, 3, -13, G + 1, G + 1, Material.SMOOTH_QUARTZ);
+        for (int x = -2; x <= 2; x++) slab(w, x, G + 1, -12, Material.SMOOTH_QUARTZ_SLAB);
         for (int x = -1; x <= 1; x++) {
-            set(w, x, G + 2, -5, Material.RED_CARPET);
-            set(w, x, G + 2, -6, Material.RED_CARPET);
+            set(w, x, G + 2, -12, Material.RED_CARPET);
+            set(w, x, G + 2, -13, Material.RED_CARPET);
         }
-        set(w, 0, G + 2, -6, Material.RED_CARPET);
-        set(w, 0, G + 2, -8, Material.GOLD_BLOCK);
-        pot(w, 0, G + 3, -8, Material.POPPY);
-        set(w, -2, G + 2, -8, Material.END_ROD);
-        set(w, 2, G + 2, -8, Material.END_ROD);
-        set(w, -1, G + 2, -9, Material.GOLD_BLOCK);
-        set(w, 1, G + 2, -9, Material.GOLD_BLOCK);
-        set(w, 2, G + 1, -3, Material.LECTERN);
-        box(w, -8, 11, -4, 11, G + 1, G + 2, Material.BOOKSHELF);
-        box(w, 4, 11, 8, 11, G + 1, G + 2, Material.BOOKSHELF);
-        pot(w, -6, G + 3, 11, Material.POPPY);
-        pot(w, 6, G + 3, 11, Material.POPPY);
+        set(w, 0, G + 2, -13, Material.RED_CARPET);
+        set(w, 0, G + 2, -15, Material.GOLD_BLOCK);
+        pot(w, 0, G + 3, -15, Material.POPPY);
+        set(w, -2, G + 2, -15, Material.END_ROD);
+        set(w, 2, G + 2, -15, Material.END_ROD);
+        set(w, -1, G + 2, -16, Material.GOLD_BLOCK);
+        set(w, 1, G + 2, -16, Material.GOLD_BLOCK);
+        set(w, 2, G + 1, -10, Material.LECTERN);
+        box(w, -8, 4, -4, 4, G + 1, G + 2, Material.BOOKSHELF);
+        box(w, 4, 4, 8, 4, G + 1, G + 2, Material.BOOKSHELF);
+        pot(w, -6, G + 3, 4, Material.POPPY);
+        pot(w, 6, G + 3, 4, Material.POPPY);
     }
 
     private static void guild(World w) {
@@ -343,8 +338,6 @@ public final class TownCore {
         for (int z = 0; z <= 2; z++)
             for (int y = 1; y <= 4; y++)
                 set(w, 33, G + y, z, Material.AIR);
-        doorWood(w, 33, 0, BlockFace.WEST, Material.OAK_DOOR);
-        doorWood(w, 33, 1, BlockFace.WEST, Material.OAK_DOOR);
         for (int z = -1; z <= 2; z++) set(w, 33, G + 5, z, Material.CHISELED_SANDSTONE);
         set(w, 33, G + 1, -1, Material.CUT_SANDSTONE);
         set(w, 33, G + 1, 2, Material.CUT_SANDSTONE);
@@ -386,9 +379,6 @@ public final class TownCore {
         hangingLantern(w, 44, G + 6, 0);
         box(w, 54, -1, 54, 1, G + 1, G + 2, Material.BRICKS);
         set(w, 54, G + 2, 0, Material.CAMPFIRE);
-        slab(w, 53, G + 3, -1, Material.BRICK_SLAB);
-        slab(w, 53, G + 3, 0, Material.BRICK_SLAB);
-        slab(w, 53, G + 3, 1, Material.BRICK_SLAB);
         for (int tz : new int[]{-4, 4}) {
             for (int x = 39; x <= 47; x += 4) set(w, x, G + 1, tz, Material.DARK_OAK_LOG);
             box(w, 38, tz, 48, tz, G + 2, G + 2, Material.DARK_OAK_PLANKS);
@@ -459,7 +449,7 @@ public final class TownCore {
                         || ((z == -13 || z == 13) && ((x + 55) % 4 == 0))
                         || ((x == -55 || x == -33) && ((z + 13) % 4 == 0));
                 if (post && corner) box(w, x, z, x, z, G + 2, G + 9, Material.DARK_OAK_LOG);
-                for (int y = 2; y <= 9; y++) {
+                for (int y = 2; y <= 10; y++) {
                     Material m;
                     if (post) m = Material.DARK_OAK_LOG;
                     else if (y == 6 || y == 7) m = Material.DARK_OAK_PLANKS;
@@ -471,8 +461,6 @@ public final class TownCore {
         for (int z = -1; z <= 1; z++)
             for (int y = 1; y <= 4; y++)
                 set(w, -33, G + y, z, Material.AIR);
-        doorWood(w, -33, -1, BlockFace.WEST, Material.OAK_DOOR);
-        doorWood(w, -33, 1, BlockFace.WEST, Material.OAK_DOOR);
         for (int z = -2; z <= 2; z++) set(w, -33, G + 5, z, Material.CHISELED_SANDSTONE);
         set(w, -33, G + 1, -2, Material.DARK_OAK_LOG);
         set(w, -33, G + 1, 2, Material.DARK_OAK_LOG);
@@ -512,7 +500,7 @@ public final class TownCore {
         set(w, -44, G + 2, -2, Material.GOLD_BLOCK);
         box(w, -45, 0, -45, 0, G + 2, G + 4, Material.POLISHED_BLACKSTONE_WALL);
         set(w, -45, G + 5, 0, Material.BELL);
-        standingSign(w, -44, G + 2, 1, 4);
+        standingSign(w, -44, G + 3, -2, 4);
         for (int x = -52; x <= -51; x++) {
             set(w, x, G + 1, 10, Material.BARREL);
             set(w, x, G + 1, 11, Material.CHEST);
@@ -579,7 +567,7 @@ public final class TownCore {
                 set(w, x, G + 2, -42, col);
                 set(w, x, G + 2, -41, col);
             }
-            wallSignSouth(w, lx + 1, G + 6, -42, i);
+            wallSignSouth(w, lx + 1, G + 4, -42, i);
             set(w, lx + 1, G + 2, -40, Material.END_ROD);
             set(w, lx, G + 2, -40, Material.GOLD_BLOCK);
             set(w, lx + 2, G + 2, -40, Material.GOLD_BLOCK);
@@ -619,9 +607,9 @@ public final class TownCore {
     }
 
     private static void plazaFinal(World w) {
-        for (int z = 13; z <= 16; z++) set(w, 0, G + 2, z, Material.RED_CARPET);
-        set(w, 0, G + 1, 26, Material.RED_CARPET);
-        for (int z = 16; z <= 26; z++) set(w, -7, G + 1, z, Material.RED_CARPET);
+        for (int z = 6; z <= 9; z++) set(w, 0, G + 2, z, Material.RED_CARPET);
+        for (int z = 10; z <= 16; z++) set(w, 0, G + 1, z, Material.RED_CARPET);
+                for (int z = 16; z <= 20; z++) set(w, -7, G + 1, z, Material.RED_CARPET);
         for (int x : new int[]{-3, 3}) {
             bannerPole(w, x, 26);
             bannerPole(w, x, -26);

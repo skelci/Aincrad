@@ -24,10 +24,11 @@ public class PlayerListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         event.getPlayer().sendMessage("§8§m-§c§m--------§8§m-§r §c§lAINCRAD§r §8§m-§c§m--------§8§m-");
         event.getPlayer().sendMessage("§7Floor 1 — Aincrad, the black iron castle.");
-        event.getPlayer().sendMessage("§7Plaza: §fbookshelf §8- skills §8| §7lectern §8- quests §8| §7bell §8- shop");
+        event.getPlayer().sendMessage("§7Guild Hall: §fquest board §8+ §fskill shelf §8| §7Market Hall: §fmerchant bell");
         event.getPlayer().sendMessage("§8§m---------------------------------");
         var player = event.getPlayer();
         ProgressionManager.getInstance().getProgression(player.getUniqueId());
+        ProgressionManager.getInstance().syncActionBar(player);
         com.aincrad.paper.items.ItemCommands.grantStarterKitIfNew(player);
 
         Guild guild = GuildManager.getInstance(plugin.getDataStore()).findGuildOf(player.getUniqueId());

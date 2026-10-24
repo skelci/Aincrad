@@ -19,12 +19,9 @@ public final class ItemCommands {
         Boolean got = player.getPersistentDataContainer().get(KEY_KIT, PersistentDataType.BOOLEAN);
         if (Boolean.TRUE.equals(got)) return;
         player.getPersistentDataContainer().set(KEY_KIT, PersistentDataType.BOOLEAN, true);
-        give(player, "anneal_blade", 1);
-        give(player, "sprout_coif", 1);
-        give(player, "sprout_jacket", 1);
-        give(player, "sprout_leggings", 1);
-        give(player, "sprout_boots", 1);
-        player.sendMessage("§6[ Aincrad ] §aStarter kit granted: Anneal Blade + Sprout armor set.");
+        com.aincrad.paper.economy.EconomyManager.getInstance()
+                .deposit(player.getUniqueId(), new com.aincrad.paper.economy.Col(100), "starting_funds");
+        player.sendMessage("§6[ Aincrad ] §aWelcome. 100 Col granted — gear up at the Market Hall.");
     }
 
     public static void handle(CommandSender sender, String[] args, Object plugin) {

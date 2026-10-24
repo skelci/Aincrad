@@ -186,10 +186,15 @@ public final class TownKit {
     public static void refreshPanes(World w) {
         for (int[] p : panes) {
             org.bukkit.block.Block b = w.getBlockAt(p[0], p[1], p[2]);
-            if (b.getType() == Material.GLASS_PANE) {
-                b.setType(Material.AIR, false);
-                b.setType(Material.GLASS_PANE, true);
+            if (b.getType() != Material.GLASS_PANE) continue;
+            b.setType(Material.AIR, false);
+            b.setType(Material.GLASS_PANE, false);
+            for (int[] d : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {0, 1, 0}}) {
+                org.bukkit.block.Block nb = b.getRelative(d[0], d.length > 2 ? d[2] : 0, d[1]);
+                Material m = nb.getType();
+                if (m != Material.AIR) nb.setType(m, true);
             }
+            b.setType(Material.GLASS_PANE, true);
         }
         panes.clear();
     }

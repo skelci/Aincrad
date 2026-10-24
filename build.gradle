@@ -51,6 +51,11 @@ tasks.register('paperPluginJar', Jar) {
     }
     from('src/main/resources') {
         include 'paper-plugin.yml'
+        include 'plugin.yml'
+        include 'config.yml'
+        include 'spawn.yml'
+        include 'balance.yml'
+        include 'mob_balance.yml'
     }
     manifest {
         attributes(

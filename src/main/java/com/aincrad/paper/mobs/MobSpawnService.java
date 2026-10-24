@@ -142,9 +142,8 @@ public class MobSpawnService implements Listener {
                 if (!(entity instanceof org.bukkit.entity.Creature creature)) continue;
                 var pdc = creature.getPersistentDataContainer();
                 String id = pdc.get(KEY_MOB, org.bukkit.persistence.PersistentDataType.STRING);
-                if (id == null || !id.startsWith("aincrad:fury")
-                        && !id.contains("blood_fang") && !id.contains("razor_hen")
-                        && !id.contains("mad_fleece")) {
+                if (id == null || !(id.startsWith("fury") || id.contains("blood_fang")
+                        || id.contains("razor_hen") || id.contains("mad_fleece"))) {
                     continue;
                 }
                 int level = pdc.get(KEY_MOB_LEVEL, org.bukkit.persistence.PersistentDataType.INTEGER) != null
@@ -376,7 +375,7 @@ public class MobSpawnService implements Listener {
                     if (tracker.updateProgress(quest.id(), i, 1)
                             && o.getCurrent() >= o.getRequired()) {
                         killer.sendMessage("§a✔ Quest objective complete: §f" + quest.name()
-                                + " §7- turn in with /aincrad quest");
+                                + " §7- report at the Guild Hall quest board");
                     }
                 }
             }
