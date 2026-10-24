@@ -9,10 +9,9 @@ services:
     ports:
       - "25566:25565"
     volumes:
-      - ./world:/server/world
-      - ./world_nether:/server/world_nether
-      - ./world_the_end:/server/world_the_end
       - ./logs:/server/logs
+      - ./data:/server/data
+      - ./datapacks:/server/world/datapacks:ro
       - ./mods:/server/mods:ro
       - ./plugins:/server/plugins:ro
     stdin_open: true

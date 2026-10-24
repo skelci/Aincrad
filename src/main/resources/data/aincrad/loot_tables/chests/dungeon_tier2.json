@@ -1,17 +1,71 @@
 {
-  "type": "minecraft:chest",
   "pools": [
     {
       "rolls": 3,
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "aincrad:sword_iron",
+          "name": "aincrad:sword_steel",
+          "weight": 15
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:axe_steel",
           "weight": 10
         },
         {
           "type": "minecraft:item",
-          "name": "aincrad:armor_iron_helmet",
+          "name": "aincrad:armor_steel_helmet",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_steel_chestplate",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_steel_leggings",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_steel_boots",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:sword_iron",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_sword_polished",
+          "weight": 10
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_armor_polished",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_vitality_polished",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_agility_polished",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_magic_polished",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_shield_polished",
           "weight": 5
         },
         {
@@ -20,6 +74,27 @@
           "weight": 3
         }
       ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:sword_steel",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_steel_chestplate",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_sword_polished",
+          "weight": 2
+        }
+      ]
     }
-  ]
+  ],
+  "type": "minecraft:chest"
 }

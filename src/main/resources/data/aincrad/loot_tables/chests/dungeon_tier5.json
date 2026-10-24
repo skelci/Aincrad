@@ -1,25 +1,175 @@
 {
-  "type": "minecraft:chest",
   "pools": [
     {
-      "rolls": 3,
+      "rolls": 4,
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "aincrad:sword_iron",
+          "name": "aincrad:sword_shadow",
           "weight": 10
         },
         {
           "type": "minecraft:item",
-          "name": "aincrad:armor_iron_helmet",
+          "name": "aincrad:sword_void",
+          "weight": 10
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:sword_holy",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:axe_shadow",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:axe_void",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_shadow_helmet",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_shadow_chestplate",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_shadow_leggings",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_shadow_boots",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_void_helmet",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_void_chestplate",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_void_leggings",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_void_boots",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_holy_helmet",
+          "weight": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_holy_chestplate",
+          "weight": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_holy_leggings",
+          "weight": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_holy_boots",
+          "weight": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_sword_transcendent",
+          "weight": 10
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_armor_transcendent",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_vitality_transcendent",
           "weight": 5
         },
         {
           "type": "minecraft:item",
-          "name": "aincrad:crystal_sword_rough",
+          "name": "aincrad:crystal_agility_transcendent",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_magic_transcendent",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_shield_transcendent",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_sword_flawless",
           "weight": 3
         }
       ]
+    },
+    {
+      "rolls": 2,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:sword_shadow",
+          "weight": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:sword_void",
+          "weight": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:sword_holy",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_shadow_chestplate",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_void_chestplate",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_holy_chestplate",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_sword_transcendent",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_armor_transcendent",
+          "weight": 2
+        }
+      ]
     }
-  ]
+  ],
+  "type": "minecraft:chest"
 }

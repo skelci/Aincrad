@@ -25,10 +25,10 @@ RUN curl -fsSL -o fabric-installer.jar \
 COPY mods/ /server/mods/
 COPY plugins/ /server/plugins/
 COPY server.properties /server/server.properties
+COPY paper.yml /server/paper.yml
 COPY eula.txt /server/eula.txt
-
-# Create volume for world data
-VOLUME ["/server/world", "/server/world_nether", "/server/world_the_end", "/server/logs"]
+RUN mkdir -p /server/world/datapacks
+COPY datapacks/ /server/world/datapacks/
 
 EXPOSE 25565
 

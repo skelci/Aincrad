@@ -1,25 +1,135 @@
 {
-  "type": "minecraft:chest",
   "pools": [
     {
       "rolls": 3,
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "aincrad:sword_iron",
-          "weight": 10
+          "name": "aincrad:sword_mythril",
+          "weight": 12
         },
         {
           "type": "minecraft:item",
-          "name": "aincrad:armor_iron_helmet",
+          "name": "aincrad:sword_dragon",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:axe_mythril",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:axe_dragon",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_mythril_helmet",
+          "weight": 7
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_mythril_chestplate",
+          "weight": 7
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_mythril_leggings",
+          "weight": 7
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_mythril_boots",
+          "weight": 7
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_dragon_helmet",
           "weight": 5
         },
         {
           "type": "minecraft:item",
-          "name": "aincrad:crystal_sword_rough",
+          "name": "aincrad:armor_dragon_chestplate",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_dragon_leggings",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_dragon_boots",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_sword_flawless",
+          "weight": 10
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_armor_flawless",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_vitality_flawless",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_agility_flawless",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_magic_flawless",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_shield_flawless",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_sword_perfect",
           "weight": 3
         }
       ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:sword_mythril",
+          "weight": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:sword_dragon",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_mythril_chestplate",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_dragon_chestplate",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_sword_flawless",
+          "weight": 2
+        }
+      ]
     }
-  ]
+  ],
+  "type": "minecraft:chest"
 }

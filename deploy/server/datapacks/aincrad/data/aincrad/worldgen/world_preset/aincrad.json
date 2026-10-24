@@ -1,0 +1,3015 @@
+{
+  "dimensions": {
+    "minecraft:overworld": {
+      "type": "minecraft:overworld",
+      "generator": {
+        "type": "minecraft:noise",
+        "biome_source": {
+          "type": "minecraft:multi_noise",
+          "preset": "minecraft:overworld"
+        },
+        "settings": "minecraft:overworld"
+      }
+    },
+    "aincrad:floor_1": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 62
+            },
+            {
+              "block": "minecraft:dirt",
+              "height": 2
+            },
+            {
+              "block": "minecraft:grass_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_2": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:dirt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:grass_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_3": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:dirt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:grass_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_4": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:dirt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:grass_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_5": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:dirt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:grass_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_6": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:dirt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:grass_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_7": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:dirt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:grass_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_8": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:dirt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:grass_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_9": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:dirt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:grass_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_10": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:dirt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:grass_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_11": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:dirt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:grass_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_12": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:dirt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:grass_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_13": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:dirt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:grass_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_14": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:dirt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:grass_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_15": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:dirt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:grass_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_16": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:dirt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:grass_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_17": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:dirt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:grass_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_18": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:dirt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:grass_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_19": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:dirt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:grass_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_20": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:dirt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:grass_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_21": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:deepslate",
+              "height": 58
+            },
+            {
+              "block": "minecraft:deepslate",
+              "height": 4
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_22": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:deepslate",
+              "height": 58
+            },
+            {
+              "block": "minecraft:deepslate",
+              "height": 4
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_23": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:deepslate",
+              "height": 58
+            },
+            {
+              "block": "minecraft:deepslate",
+              "height": 4
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_24": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:deepslate",
+              "height": 58
+            },
+            {
+              "block": "minecraft:deepslate",
+              "height": 4
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_25": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:deepslate",
+              "height": 58
+            },
+            {
+              "block": "minecraft:deepslate",
+              "height": 4
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_26": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:deepslate",
+              "height": 58
+            },
+            {
+              "block": "minecraft:deepslate",
+              "height": 4
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_27": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:deepslate",
+              "height": 58
+            },
+            {
+              "block": "minecraft:deepslate",
+              "height": 4
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_28": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:deepslate",
+              "height": 58
+            },
+            {
+              "block": "minecraft:deepslate",
+              "height": 4
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_29": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:deepslate",
+              "height": 58
+            },
+            {
+              "block": "minecraft:deepslate",
+              "height": 4
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_30": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:deepslate",
+              "height": 58
+            },
+            {
+              "block": "minecraft:deepslate",
+              "height": 4
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_31": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:blackstone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:basalt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:blackstone",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_32": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:blackstone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:basalt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:blackstone",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_33": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:blackstone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:basalt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:blackstone",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_34": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:blackstone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:basalt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:blackstone",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_35": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:blackstone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:basalt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:blackstone",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_36": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:blackstone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:basalt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:blackstone",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_37": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:blackstone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:basalt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:blackstone",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_38": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:blackstone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:basalt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:blackstone",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_39": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:blackstone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:basalt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:blackstone",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_40": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:blackstone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:basalt",
+              "height": 4
+            },
+            {
+              "block": "minecraft:blackstone",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_41": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:blue_ice",
+              "height": 58
+            },
+            {
+              "block": "minecraft:packed_ice",
+              "height": 4
+            },
+            {
+              "block": "minecraft:snow_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_42": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:blue_ice",
+              "height": 58
+            },
+            {
+              "block": "minecraft:packed_ice",
+              "height": 4
+            },
+            {
+              "block": "minecraft:snow_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_43": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:blue_ice",
+              "height": 58
+            },
+            {
+              "block": "minecraft:packed_ice",
+              "height": 4
+            },
+            {
+              "block": "minecraft:snow_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_44": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:blue_ice",
+              "height": 58
+            },
+            {
+              "block": "minecraft:packed_ice",
+              "height": 4
+            },
+            {
+              "block": "minecraft:snow_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_45": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:blue_ice",
+              "height": 58
+            },
+            {
+              "block": "minecraft:packed_ice",
+              "height": 4
+            },
+            {
+              "block": "minecraft:snow_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_46": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:blue_ice",
+              "height": 58
+            },
+            {
+              "block": "minecraft:packed_ice",
+              "height": 4
+            },
+            {
+              "block": "minecraft:snow_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_47": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:blue_ice",
+              "height": 58
+            },
+            {
+              "block": "minecraft:packed_ice",
+              "height": 4
+            },
+            {
+              "block": "minecraft:snow_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_48": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:blue_ice",
+              "height": 58
+            },
+            {
+              "block": "minecraft:packed_ice",
+              "height": 4
+            },
+            {
+              "block": "minecraft:snow_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_49": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:blue_ice",
+              "height": 58
+            },
+            {
+              "block": "minecraft:packed_ice",
+              "height": 4
+            },
+            {
+              "block": "minecraft:snow_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_50": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:blue_ice",
+              "height": 58
+            },
+            {
+              "block": "minecraft:packed_ice",
+              "height": 4
+            },
+            {
+              "block": "minecraft:snow_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_51": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:sandstone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:sandstone",
+              "height": 4
+            },
+            {
+              "block": "minecraft:sand",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_52": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:sandstone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:sandstone",
+              "height": 4
+            },
+            {
+              "block": "minecraft:sand",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_53": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:sandstone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:sandstone",
+              "height": 4
+            },
+            {
+              "block": "minecraft:sand",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_54": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:sandstone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:sandstone",
+              "height": 4
+            },
+            {
+              "block": "minecraft:sand",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_55": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:sandstone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:sandstone",
+              "height": 4
+            },
+            {
+              "block": "minecraft:sand",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_56": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:sandstone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:sandstone",
+              "height": 4
+            },
+            {
+              "block": "minecraft:sand",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_57": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:sandstone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:sandstone",
+              "height": 4
+            },
+            {
+              "block": "minecraft:sand",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_58": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:sandstone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:sandstone",
+              "height": 4
+            },
+            {
+              "block": "minecraft:sand",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_59": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:sandstone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:sandstone",
+              "height": 4
+            },
+            {
+              "block": "minecraft:sand",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_60": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:sandstone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:sandstone",
+              "height": 4
+            },
+            {
+              "block": "minecraft:sand",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_61": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:muddy_mangrove_roots",
+              "height": 4
+            },
+            {
+              "block": "minecraft:mud",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_62": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:muddy_mangrove_roots",
+              "height": 4
+            },
+            {
+              "block": "minecraft:mud",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_63": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:muddy_mangrove_roots",
+              "height": 4
+            },
+            {
+              "block": "minecraft:mud",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_64": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:muddy_mangrove_roots",
+              "height": 4
+            },
+            {
+              "block": "minecraft:mud",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_65": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:muddy_mangrove_roots",
+              "height": 4
+            },
+            {
+              "block": "minecraft:mud",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_66": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:muddy_mangrove_roots",
+              "height": 4
+            },
+            {
+              "block": "minecraft:mud",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_67": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:muddy_mangrove_roots",
+              "height": 4
+            },
+            {
+              "block": "minecraft:mud",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_68": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:muddy_mangrove_roots",
+              "height": 4
+            },
+            {
+              "block": "minecraft:mud",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_69": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:muddy_mangrove_roots",
+              "height": 4
+            },
+            {
+              "block": "minecraft:mud",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_70": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:muddy_mangrove_roots",
+              "height": 4
+            },
+            {
+              "block": "minecraft:mud",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_71": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:sand",
+              "height": 4
+            },
+            {
+              "block": "minecraft:water",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_72": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:sand",
+              "height": 4
+            },
+            {
+              "block": "minecraft:water",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_73": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:sand",
+              "height": 4
+            },
+            {
+              "block": "minecraft:water",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_74": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:sand",
+              "height": 4
+            },
+            {
+              "block": "minecraft:water",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_75": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:sand",
+              "height": 4
+            },
+            {
+              "block": "minecraft:water",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_76": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:sand",
+              "height": 4
+            },
+            {
+              "block": "minecraft:water",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_77": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:sand",
+              "height": 4
+            },
+            {
+              "block": "minecraft:water",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_78": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:sand",
+              "height": 4
+            },
+            {
+              "block": "minecraft:water",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_79": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:sand",
+              "height": 4
+            },
+            {
+              "block": "minecraft:water",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_80": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:sand",
+              "height": 4
+            },
+            {
+              "block": "minecraft:water",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_81": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:packed_ice",
+              "height": 4
+            },
+            {
+              "block": "minecraft:snow_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_82": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:packed_ice",
+              "height": 4
+            },
+            {
+              "block": "minecraft:snow_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_83": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:packed_ice",
+              "height": 4
+            },
+            {
+              "block": "minecraft:snow_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_84": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:packed_ice",
+              "height": 4
+            },
+            {
+              "block": "minecraft:snow_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_85": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:packed_ice",
+              "height": 4
+            },
+            {
+              "block": "minecraft:snow_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_86": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:packed_ice",
+              "height": 4
+            },
+            {
+              "block": "minecraft:snow_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_87": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:packed_ice",
+              "height": 4
+            },
+            {
+              "block": "minecraft:snow_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_88": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:packed_ice",
+              "height": 4
+            },
+            {
+              "block": "minecraft:snow_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_89": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:packed_ice",
+              "height": 4
+            },
+            {
+              "block": "minecraft:snow_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_90": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:stone",
+              "height": 58
+            },
+            {
+              "block": "minecraft:packed_ice",
+              "height": 4
+            },
+            {
+              "block": "minecraft:snow_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_91": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:bedrock",
+              "height": 58
+            },
+            {
+              "block": "minecraft:crying_obsidian",
+              "height": 4
+            },
+            {
+              "block": "minecraft:obsidian",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_92": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:bedrock",
+              "height": 58
+            },
+            {
+              "block": "minecraft:crying_obsidian",
+              "height": 4
+            },
+            {
+              "block": "minecraft:obsidian",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_93": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:bedrock",
+              "height": 58
+            },
+            {
+              "block": "minecraft:crying_obsidian",
+              "height": 4
+            },
+            {
+              "block": "minecraft:obsidian",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_94": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:bedrock",
+              "height": 58
+            },
+            {
+              "block": "minecraft:crying_obsidian",
+              "height": 4
+            },
+            {
+              "block": "minecraft:obsidian",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_95": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:bedrock",
+              "height": 58
+            },
+            {
+              "block": "minecraft:crying_obsidian",
+              "height": 4
+            },
+            {
+              "block": "minecraft:obsidian",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_96": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:bedrock",
+              "height": 58
+            },
+            {
+              "block": "minecraft:crying_obsidian",
+              "height": 4
+            },
+            {
+              "block": "minecraft:obsidian",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_97": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:bedrock",
+              "height": 58
+            },
+            {
+              "block": "minecraft:crying_obsidian",
+              "height": 4
+            },
+            {
+              "block": "minecraft:obsidian",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_98": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:bedrock",
+              "height": 58
+            },
+            {
+              "block": "minecraft:crying_obsidian",
+              "height": 4
+            },
+            {
+              "block": "minecraft:obsidian",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_99": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:bedrock",
+              "height": 58
+            },
+            {
+              "block": "minecraft:crying_obsidian",
+              "height": 4
+            },
+            {
+              "block": "minecraft:obsidian",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    },
+    "aincrad:floor_100": {
+      "type": "aincrad:floor",
+      "generator": {
+        "type": "minecraft:flat",
+        "settings": {
+          "biome": "minecraft:plains",
+          "features": false,
+          "lakes": false,
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:bedrock",
+              "height": 58
+            },
+            {
+              "block": "minecraft:crying_obsidian",
+              "height": 4
+            },
+            {
+              "block": "minecraft:obsidian",
+              "height": 1
+            }
+          ],
+          "structure_overrides": []
+        }
+      }
+    }
+  }
+}

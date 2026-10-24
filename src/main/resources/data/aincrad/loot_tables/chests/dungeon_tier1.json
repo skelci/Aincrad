@@ -1,5 +1,4 @@
 {
-  "type": "minecraft:chest",
   "pools": [
     {
       "rolls": 3,
@@ -7,19 +6,90 @@
         {
           "type": "minecraft:item",
           "name": "aincrad:sword_iron",
+          "weight": 15
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:axe_iron",
           "weight": 10
         },
         {
           "type": "minecraft:item",
           "name": "aincrad:armor_iron_helmet",
-          "weight": 5
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_iron_chestplate",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_iron_leggings",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_iron_boots",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_leather_helmet",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_leather_chestplate",
+          "weight": 6
         },
         {
           "type": "minecraft:item",
           "name": "aincrad:crystal_sword_rough",
+          "weight": 10
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_armor_rough",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_vitality_rough",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_agility_rough",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_magic_rough",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_shield_rough",
+          "weight": 5
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:sword_iron",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_iron_chestplate",
           "weight": 3
         }
       ]
     }
-  ]
+  ],
+  "type": "minecraft:chest"
 }

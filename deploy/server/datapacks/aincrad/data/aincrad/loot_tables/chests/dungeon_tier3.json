@@ -1,0 +1,100 @@
+{
+  "pools": [
+    {
+      "rolls": 3,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:sword_adamantite",
+          "weight": 15
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:axe_adamantite",
+          "weight": 10
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_adamantite_helmet",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_adamantite_chestplate",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_adamantite_leggings",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_adamantite_boots",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:sword_steel",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_sword_perfect",
+          "weight": 10
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_armor_perfect",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_vitality_perfect",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_agility_perfect",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_magic_perfect",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_shield_perfect",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_sword_polished",
+          "weight": 3
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:sword_adamantite",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:armor_adamantite_chestplate",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "aincrad:crystal_sword_perfect",
+          "weight": 2
+        }
+      ]
+    }
+  ],
+  "type": "minecraft:chest"
+}
