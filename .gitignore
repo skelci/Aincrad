@@ -12,3 +12,4 @@ deploy/server/logs/
 bin/
 deploy/server/data/
 deploy/server/paper.yml
+deploy/server/plugins/

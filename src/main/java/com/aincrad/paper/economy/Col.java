@@ -14,6 +14,13 @@ public final class Col {
         this.amount = amount;
     }
 
+    private Col(long amount, boolean signed) {
+        this.amount = amount;
+    }
+
+    /** Ledger amounts can be negative (withdrawals); public construction may not. */
+    public static Col ofSigned(long amount) { return new Col(amount, true); }
+
     public long getAmount() { return amount; }
     public boolean isZero() { return amount == 0; }
 
@@ -26,7 +33,7 @@ public final class Col {
     }
 
     public Col multiply(int factor) { return new Col(this.amount * factor); }
-    public Col negate() { return new Col(-this.amount); }
+    public Col negate() { return Col.ofSigned(-this.amount); }
 
     public String format() { return format(this.amount); }
 

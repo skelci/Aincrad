@@ -13,7 +13,7 @@ services:
       - ./data:/server/data
       - ./datapacks:/server/world/datapacks:ro
       - ./mods:/server/mods:ro
-      - ./plugins:/server/plugins:ro
+      - ./plugins:/server/plugins
     stdin_open: true
     tty: true
     deploy:
