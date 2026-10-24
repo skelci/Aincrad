@@ -12,14 +12,14 @@ public class BossHealthBar extends HudElement {
 
     private boolean bossTargeted;
     private String bossName = "The Gleam Eyes";
-    private int maxHp = 10000;
-    private int currentHp = 7800;
-    private int totalPhases = 3;
-    private int currentPhase = 2;
-    private float enrageTimer;
-    private float displayedHp;
-    private String nextAbility = "Fire Breath";
-    private int partyDps = 1247;
+        private int maxHp = 10000;
+        private int currentHp = 10000;
+        private int totalPhases = 3;
+        private int currentPhase = 1;
+        private float enrageTimer;
+        private float displayedHp = 1.0f;
+        private String nextAbility = "Fire Breath";
+        private int partyDps = 0;
 
     public BossHealthBar() {
         super(-BAR_WIDTH / 2, 30, BAR_WIDTH, BAR_HEIGHT + 40);
@@ -45,8 +45,8 @@ public class BossHealthBar extends HudElement {
         int panelW = width;
         int panelH = height;
 
-        extractor.fill(panelX, panelY, panelX + panelW, panelY + panelH, HudPalette.PANEL_BG);
-        extractor.outline(panelX, panelY, panelX + panelW - 1, panelY + panelH - 1, HudPalette.PANEL_BORDER);
+        extractor.fill(panelX, panelY, panelX + panelW, panelY + panelH, 0xCC000000);
+        extractor.outline(panelX, panelY, panelX + panelW - 1, panelY + panelH - 1, 0x44FFFFFF);
 
         String nameText = "Floor 15 Boss: " + bossName;
         extractor.text(font, nameText, panelX + panelW / 2 - font.width(nameText) / 2, panelY + 2, HudPalette.TEXT_PRIMARY);

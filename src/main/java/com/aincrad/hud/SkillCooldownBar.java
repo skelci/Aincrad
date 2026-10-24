@@ -47,11 +47,23 @@ public class SkillCooldownBar extends HudElement {
             int slotX = startX + i * (SLOT_SIZE + SLOT_SPACING);
             int slotY = y;
 
-            extractor.fill(slotX, slotY, slotX + SLOT_SIZE, slotY + SLOT_SIZE, HudPalette.PANEL_BG);
-            extractor.outline(slotX, slotY, slotX + SLOT_SIZE - 1, slotY + SLOT_SIZE - 1, HudPalette.PANEL_BORDER);
+            extractor.fill(slotX, slotY, slotX + SLOT_SIZE, slotY + SLOT_SIZE, 0xCC000000);
+            extractor.outline(slotX, slotY, slotX + SLOT_SIZE - 1, slotY + SLOT_SIZE - 1, 0x44FFFFFF);
 
-            int iconColor = (i == 7) ? 0xFFAA66FF : 0xFF66AAFF;
+            int iconColor;
+            int iconColor2;
+            switch (i) {
+                case 0 -> { iconColor = 0xFF4488FF; iconColor2 = 0xFF88CCFF; } // Sword
+                case 1 -> { iconColor = 0xFF44DD88; iconColor2 = 0xFF88FFCC; } // Heal
+                case 2 -> { iconColor = 0xFFDDDD44; iconColor2 = 0xFFFFDD88; } // Dash
+                case 3 -> { iconColor = 0xFFFF4444; iconColor2 = 0xFFFF8888; } // Fire
+                case 4 -> { iconColor = 0xFF8888FF; iconColor2 = 0xFFAAAADD; } // Guard
+                case 5 -> { iconColor = 0xFFFF8844; iconColor2 = 0xFFFFAA66; } // Buff
+                case 6 -> { iconColor = 0xFF44FF44; iconColor2 = 0xFF88FF88; } // Debuff
+                default -> { iconColor = 0xFFAA66FF; iconColor2 = 0xFFCC88FF; } // Swap
+            }
             extractor.fill(slotX + 4, slotY + 4, slotX + SLOT_SIZE - 4, slotY + SLOT_SIZE - 4, iconColor);
+            extractor.fillGradient(slotX + 4, slotY + 4, slotX + SLOT_SIZE - 4, slotY + SLOT_SIZE - 4, iconColor, iconColor2);
 
             String hotkey = String.valueOf(i + 1);
             extractor.text(font, hotkey, slotX + 2, slotY + 2, HudPalette.TEXT_PRIMARY, true);

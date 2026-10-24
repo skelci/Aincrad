@@ -25,23 +25,27 @@ public class PartyFrames extends HudElement {
         this.anchor = Anchor.TOP_LEFT;
         this.displayedHp = new float[MAX_MEMBERS];
         this.displayedMp = new float[MAX_MEMBERS];
-        this.names = new String[]{"Kirito", "Asuna", "Klein", "Agil", "Silica", "Lisbeth"};
-        this.levels = new int[]{42, 40, 38, 39, 37, 36};
-        this.roles = new String[]{"Tank", "Healer", "Tank", "DPS", "DPS", "DPS"};
-        this.partySize = 6;
+        this.names = new String[MAX_MEMBERS];
+        this.levels = new int[MAX_MEMBERS];
+        this.roles = new String[MAX_MEMBERS];
+        this.partySize = 1;
+        names[0] = "";
+        levels[0] = 1;
+        roles[0] = "DPS";
         for (int i = 0; i < MAX_MEMBERS; i++) {
-            displayedHp[i] = 0.8f;
-            displayedMp[i] = 0.6f;
+            displayedHp[i] = 1.0f;
+            displayedMp[i] = 1.0f;
         }
     }
 
     @Override
     public void update() {
-        for (int i = 0; i < partySize; i++) {
-            float targetHp = 0.5f + (i * 0.08f);
-            float targetMp = 0.4f + (i * 0.1f);
-            displayedHp[i] = lerp(displayedHp[i], targetHp, LERP_FACTOR);
-            displayedMp[i] = lerp(displayedMp[i], targetMp, LERP_FACTOR);
+        Minecraft client = Minecraft.getInstance();
+        if (client.player != null) {
+            names[0] = client.player.getName().getString();
+            levels[0] = client.player.experienceLevel;
+            displayedHp[0] = lerp(displayedHp[0], client.player.getMaxHealth() > 0 ? client.player.getHealth() / client.player.getMaxHealth() : 0, LERP_FACTOR);
+            displayedMp[0] = lerp(displayedMp[0], 0.45f, LERP_FACTOR);
         }
     }
 

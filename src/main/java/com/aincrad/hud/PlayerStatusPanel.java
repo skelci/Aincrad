@@ -24,7 +24,7 @@ public class PlayerStatusPanel extends HudElement {
 
     public PlayerStatusPanel() {
         super(10, 10, BAR_WIDTH + PADDING * 2,
-              NAME_HEIGHT + LEVEL_HEIGHT + (BAR_HEIGHT + BAR_SPACING) * 3 + BUFF_ROW_HEIGHT + PADDING * 2);
+              NAME_HEIGHT + LEVEL_HEIGHT + (BAR_HEIGHT + BAR_SPACING) * 3 + PADDING * 2);
         this.anchor = Anchor.TOP_LEFT;
         this.displayedHp = 1.0f;
         this.displayedMp = 1.0f;
@@ -41,8 +41,8 @@ public class PlayerStatusPanel extends HudElement {
         if (player != null) {
             float maxHp = player.getMaxHealth();
             targetHp = maxHp > 0 ? player.getHealth() / maxHp : 0.0f;
-            targetMp = 0.45f;
-            targetSt = 0.72f;
+            targetMp = (float) com.aincrad.client.HudStats.manaRatio();
+            targetSt = player.getFoodData().getFoodLevel() / 20.0f;
         } else {
             targetHp = 0.0f; targetMp = 0.0f; targetSt = 0.0f;
         }
@@ -63,7 +63,7 @@ public class PlayerStatusPanel extends HudElement {
         Font font = client.font;
         LocalPlayer player = client.player;
         String playerName = player != null ? player.getName().getString() : "Player";
-        if (player != null) level = player.experienceLevel;
+        level = Math.max(1, com.aincrad.client.HudStats.level);
 
         int panelX = x, panelY = y, panelW = width, panelH = height;
         extractor.fill(panelX, panelY, panelX + panelW, panelY + panelH, HudPalette.PANEL_BG);
@@ -85,8 +85,8 @@ public class PlayerStatusPanel extends HudElement {
         int hpBarX = contentX + font.width(hpLabel) + 4;
         int hpBarW = panelX + panelW - PADDING - hpBarX;
         drawBar(extractor, hpBarX, contentY, hpBarW, BAR_HEIGHT, displayedHp, HudPalette.HP_GRADIENT_START, HudPalette.HP_GRADIENT_END, HudPalette.HP_BACKGROUND);
-        String hpPct = String.format("%.0f%%", displayedHp * 100);
-        extractor.text(font, hpPct, hpBarX + hpBarW - font.width(hpPct) - 2, contentY + 1, HudPalette.TEXT_PRIMARY);
+        String hpText = player != null ? String.format("%.0f/%.0f", player.getHealth(), player.getMaxHealth()) : "0/0";
+        extractor.text(font, hpText, hpBarX + hpBarW - font.width(hpText) - 2, contentY + 1, HudPalette.TEXT_PRIMARY);
         contentY += BAR_HEIGHT + BAR_SPACING;
 
         String mpLabel = "MP";
@@ -94,8 +94,8 @@ public class PlayerStatusPanel extends HudElement {
         int mpBarX = contentX + font.width(mpLabel) + 4;
         int mpBarW = panelX + panelW - PADDING - mpBarX;
         drawBar(extractor, mpBarX, contentY, mpBarW, BAR_HEIGHT, displayedMp, HudPalette.MP_BAR, HudPalette.MP_BAR, HudPalette.MP_BACKGROUND);
-        String mpPct = String.format("%.0f%%", displayedMp * 100);
-        extractor.text(font, mpPct, mpBarX + mpBarW - font.width(mpPct) - 2, contentY + 1, HudPalette.TEXT_PRIMARY);
+        String mpText = com.aincrad.client.HudStats.manaText();
+        extractor.text(font, mpText, mpBarX + mpBarW - font.width(mpText) - 2, contentY + 1, HudPalette.TEXT_PRIMARY);
         contentY += BAR_HEIGHT + BAR_SPACING;
 
         String stLabel = "ST";
@@ -103,11 +103,9 @@ public class PlayerStatusPanel extends HudElement {
         int stBarX = contentX + font.width(stLabel) + 4;
         int stBarW = panelX + panelW - PADDING - stBarX;
         drawBar(extractor, stBarX, contentY, stBarW, BAR_HEIGHT, displayedSt, HudPalette.ST_GRADIENT_START, HudPalette.ST_GRADIENT_END, HudPalette.ST_BACKGROUND);
-        String stPct = String.format("%.0f%%", displayedSt * 100);
-        extractor.text(font, stPct, stBarX + stBarW - font.width(stPct) - 2, contentY + 1, HudPalette.TEXT_PRIMARY);
+        String stText = player != null ? String.format("%d/%d", player.getFoodData().getFoodLevel(), 20) : "0/20";
+        extractor.text(font, stText, stBarX + stBarW - font.width(stText) - 2, contentY + 1, HudPalette.TEXT_PRIMARY);
         contentY += BAR_HEIGHT + BAR_SPACING;
-
-        drawBuffRow(extractor, contentX, contentY);
 
         if (flashTimer > 0) {
             float flashAlpha = (float) flashTimer / FLASH_DURATION;
@@ -123,19 +121,12 @@ public class PlayerStatusPanel extends HudElement {
         extractor.fill(barX, barY, barX + barW, barY + 1, 0x33FFFFFF);
     }
 
-    private void drawBuffRow(GuiGraphicsExtractor extractor, int rowX, int rowY) {
-        for (int i = 0; i < 4; i++) {
-            int slotX = rowX + i * (BUFF_ICON_SIZE + BUFF_SPACING);
-            extractor.fill(slotX, rowY, slotX + BUFF_ICON_SIZE, rowY + BUFF_ICON_SIZE, 0x44000000);
-            extractor.outline(slotX, rowY, slotX + BUFF_ICON_SIZE - 1, rowY + BUFF_ICON_SIZE - 1, 0xFF555555);
-        }
-    }
-
     private void drawBorder(GuiGraphicsExtractor extractor, int px, int py, int pw, int ph) {
-        extractor.horizontalLine(px, px + pw - 1, py, HudPalette.PANEL_BORDER);
-        extractor.horizontalLine(px, px + pw - 1, py + ph - 1, HudPalette.PANEL_BORDER_DARK);
-        extractor.verticalLine(px, py, py + ph - 1, HudPalette.PANEL_BORDER);
-        extractor.verticalLine(px + pw - 1, py, py + ph - 1, HudPalette.PANEL_BORDER_DARK);
+        // Only draw bottom border if there would be effects below bars
+        extractor.horizontalLine(px, px + pw - 1, py, 0x44FFFFFF);
+        extractor.horizontalLine(px, px + pw - 1, py + ph - 1, 0x22000000);
+        extractor.verticalLine(px, py, py + ph - 1, 0x44FFFFFF);
+        extractor.verticalLine(px + pw - 1, py, py + ph - 1, 0x22000000);
     }
 
     private static float lerp(float from, float to, double factor) { return (float)(from + (to - from) * factor); }

@@ -62,7 +62,7 @@ public final class DevTestCommand {
     }
 
     private static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
-        dispatcher.register(Commands.literal("test")
+        dispatcher.register(Commands.literal("adevtest")
             .requires(source -> true)
             .then(Commands.literal("book")
                 .executes(ctx -> giveTestBook(ctx)))

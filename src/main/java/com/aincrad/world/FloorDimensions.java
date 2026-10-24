@@ -27,14 +27,15 @@ public class FloorDimensions {
      * to register each floor's DimensionOptions with the game's registry.
      */
     public static void registerAll() {
+        // MC 26.3 uses data-driven dimension registration via JSON files.
+        // The dimension type and world preset are loaded from:
+        //   data/aincrad/dimension_type/floor.json
+        //   data/aincrad/worldgen/world_preset/aincrad.json
+        // This method validates the keys are properly constructed.
         for (int floor = 1; floor <= FLOOR_COUNT; floor++) {
             ResourceKey<Level> worldKey = getFloorKey(floor);
             ResourceKey<DimensionType> dimensionKey = getDimensionKey(floor);
 
-            // In a full implementation, DimensionOptions would be created and registered:
-            // DimensionOptions options = new DimensionOptions(dimensionType, chunkGenerator);
-            // Registry.register(BuiltinRegistries.DIMENSION, worldKey.getValue(), options);
-            // For now, we validate the keys are properly constructed.
             if (worldKey == null || dimensionKey == null) {
                 throw new IllegalStateException("Failed to create registry keys for floor " + floor);
             }
