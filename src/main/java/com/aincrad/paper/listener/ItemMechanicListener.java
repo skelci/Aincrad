@@ -57,6 +57,13 @@ public class ItemMechanicListener implements Listener {
         ItemStack hand = player.getInventory().getItemInMainHand();
         ItemDefs.Def weapon = ItemDefs.resolve(hand);
 
+        if (weapon != null && weapon.damage() > 0
+                && weapon.levelReq() > com.aincrad.paper.progression.ProgressionManager.getInstance()
+                        .getProgression(player.getUniqueId()).getLevel()) {
+            event.setDamage(1.0);
+            return;
+        }
+
         double base = event.getDamage();
         double mult = attackBuff(player);
 
@@ -76,6 +83,20 @@ public class ItemMechanicListener implements Listener {
 
         if (weapon != null) {
             consumeDurability(player, hand, 1);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onEquipAttempt(org.bukkit.event.inventory.EquipItemEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        ItemDefs.Def def = ItemDefs.resolve(event.getItemStack());
+        if (def == null || def.defense() <= 0) return;
+        int level = com.aincrad.paper.progression.ProgressionManager.getInstance()
+                .getProgression(player.getUniqueId()).getLevel();
+        if (level < def.levelReq()) {
+            event.setCancelled(true);
+            player.sendMessage("\u00a7c" + def.name() + " requires level " + def.levelReq()
+                    + " (you are " + level + ")");
         }
     }
 

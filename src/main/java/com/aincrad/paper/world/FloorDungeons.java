@@ -88,19 +88,26 @@ public final class FloorDungeons implements Listener {
 
     private void build(World w, Point p) {
         int cx = p.x(), cz = p.z();
+        int base = G;
+        for (int dx = -5; dx <= 9; dx++)
+            for (int dz = -5; dz <= 5; dz++)
+                base = Math.max(base, w.getHighestBlockYAt(cx + dx, cz + dz));
         for (int dx = -5; dx <= 9; dx++) {
             for (int dz = -5; dz <= 5; dz++) {
-                w.getBlockAt(cx + dx, G + 1, cz + dz).setType(Material.AIR, false);
-                w.getBlockAt(cx + dx, G, cz + dz).setType(Material.SMOOTH_STONE, false);
+                for (int y = base + 1; y <= base + 14; y++)
+                    w.getBlockAt(cx + dx, y, cz + dz).setType(Material.AIR, false);
+                w.getBlockAt(cx + dx, base - 1, cz + dz).setType(Material.STONE, false);
+                w.getBlockAt(cx + dx, base, cz + dz).setType(Material.SMOOTH_STONE, false);
             }
         }
-        hut(w, cx, cz);
-        shaft(w, cx + 6, cz);
+        hut(w, cx, cz, base);
+        shaft(w, cx + 6, cz, base);
         hall(w, cx, cz);
+        w.getBlockAt(cx + 8, base + 2, cz).setType(Material.GOLD_BLOCK, false);
         w.getBlockAt(cx, G + 6, cz).setType(Material.GOLD_BLOCK, false);
     }
 
-    private void hut(World w, int cx, int cz) {
+    private void hut(World w, int cx, int cz, int base) {
         for (int dx = -3; dx <= 3; dx++) {
             for (int dz = -3; dz <= 3; dz++) {
                 boolean wall = Math.abs(dx) == 3 || Math.abs(dz) == 3;
@@ -109,30 +116,30 @@ public final class FloorDungeons implements Listener {
                 for (int y = 1; y <= 5; y++) {
                     if (door && (y == 1 || y == 2)) continue;
                     Material m = y >= 4 ? Material.CRACKED_STONE_BRICKS : Material.STONE_BRICKS;
-                    set(w, cx + dx, G + y, cz + dz, m);
+                    set(w, cx + dx, base + y, cz + dz, m);
                 }
             }
         }
         for (int dx = -3; dx <= 3; dx++) {
             for (int dz = -3; dz <= 3; dz++) {
-                set(w, cx + dx, G + 6, cz + dz,
+                set(w, cx + dx, base + 6, cz + dz,
                         (Math.abs(dx) + Math.abs(dz)) % 2 == 0
                                 ? Material.STONE_BRICKS : Material.CRACKED_STONE_BRICKS);
             }
         }
-        set(w, cx, G + 1, cz - 2, Material.REDSTONE_LAMP);
-        set(w, cx - 2, G + 1, cz - 2, Material.REDSTONE_LAMP);
-        set(w, cx + 2, G + 1, cz - 2, Material.REDSTONE_LAMP);
-        set(w, cx, G + 1, cz + 1, Material.LANTERN);
-        set(w, cx, G + 2, cz + 1, TownKit.chain());
-        set(w, cx - 2, G + 1, cz + 3, Material.SKELETON_SKULL);
-        set(w, cx + 2, G + 1, cz + 3, Material.WITHER_SKELETON_SKULL);
-        set(w, cx + 6, G + 1, cz - 2, Material.LANTERN);
-        set(w, cx + 8, G + 1, cz, Material.OAK_SIGN);
+        set(w, cx, base + 1, cz - 2, Material.REDSTONE_LAMP);
+        set(w, cx - 2, base + 1, cz - 2, Material.REDSTONE_LAMP);
+        set(w, cx + 2, base + 1, cz - 2, Material.REDSTONE_LAMP);
+        set(w, cx, base + 1, cz + 1, Material.LANTERN);
+        set(w, cx, base + 2, cz + 1, TownKit.chain());
+        set(w, cx - 2, base + 1, cz + 3, Material.SKELETON_SKULL);
+        set(w, cx + 2, base + 1, cz + 3, Material.WITHER_SKELETON_SKULL);
+        set(w, cx + 6, base + 1, cz - 2, Material.LANTERN);
+        set(w, cx + 8, base + 1, cz, Material.OAK_SIGN);
     }
 
-    private void shaft(World w, int sx, int sz) {
-        for (int y = G; y >= DEEP; y--) {
+    private void shaft(World w, int sx, int sz, int base) {
+        for (int y = base; y >= DEEP; y--) {
             for (int dx = 0; dx <= 2; dx++) {
                 for (int dz = 0; dz <= 2; dz++) {
                     set(w, sx + dx, y, sz + dz, Material.AIR);

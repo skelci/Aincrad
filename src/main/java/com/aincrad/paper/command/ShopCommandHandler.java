@@ -17,6 +17,8 @@ import java.util.Locale;
 public class ShopCommandHandler implements CommandExecutor {
 
     public static long priceOf(ItemDefs.Def def) {
+        Long food = ItemDefs.foodPrice(def.id());
+        if (food != null) return food;
         double base = def.damage() * 9 + def.defense() * 7 + 15;
         long v = (long) (base * def.rarity().multiplier * (1.0 + def.levelReq() * 0.18) / 5) * 5;
         return Math.max(25, v);

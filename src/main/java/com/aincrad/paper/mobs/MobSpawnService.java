@@ -386,6 +386,16 @@ public class MobSpawnService implements Listener {
     private transient LivingEntity mob;
 
     @EventHandler
+    public void onJockeySpawn(org.bukkit.event.entity.EntitySpawnEvent event) {
+        if (!(event.getEntity() instanceof org.bukkit.entity.LivingEntity lv)) return;
+        org.bukkit.entity.Entity v = lv.getVehicle();
+        if (v == null) return;
+        boolean rider = lv instanceof org.bukkit.entity.AbstractSkeleton
+                || (lv instanceof org.bukkit.entity.Zombie z && z.isBaby());
+        if (rider && !(v instanceof org.bukkit.entity.Player)) lv.remove();
+    }
+
+    @EventHandler
     public void onMobDeath(EntityDeathEvent event) {
         LivingEntity mob = event.getEntity();
         this.mob = mob;
@@ -407,6 +417,12 @@ public class MobSpawnService implements Listener {
         killer.sendActionBar(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
                 .legacyAmpersand().deserialize("&a+" + (int) xp + " XP &7| &e+" + col + " Col"));
 
+        String food = foodDrop(id);
+        if (food != null && random.nextDouble() < 0.85) {
+            var fs = ItemDefs.create(food, 1);
+            if (fs != null) mob.getWorld().dropItemNaturally(mob.getLocation(), fs);
+        }
+
         var nearby = killer.getWorld().getNearbyEntities(killer.getLocation(), 40, 40, 40,
                 Player.class::isInstance);
         for (var e : nearby) {
@@ -424,6 +440,15 @@ public class MobSpawnService implements Listener {
                 mob.getWorld().dropItemNaturally(mob.getLocation(), stack);
             }
         }
+    }
+
+    private static String foodDrop(String id) {
+        if (id == null) return null;
+        if (id.contains("cow")) return "cooked_beef";
+        if (id.contains("wolf")) return "cooked_chicken";
+        if (id.contains("archer") || id.contains("bandit") || id.contains("goblin")) return "bread";
+        if (id.contains("fang") || id.contains("stalker") || id.contains("tiger")) return "bread";
+        return null;
     }
 
     private int parseFloor(String worldName) {

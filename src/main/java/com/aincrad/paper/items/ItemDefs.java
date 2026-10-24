@@ -84,6 +84,24 @@ public final class ItemDefs {
         add("arcane_boots", "Arcane Boots", Material.DIAMOND_BOOTS, Slot.FEET, 0, 4.0, 16, Rarity.RARE);
 
         add("bulwark_shield", "Bulwark Shield", Material.SHIELD, Slot.OTHER, 0, 5.0, 10, Rarity.UNCOMMON);
+
+        add("apple", "Apple", Material.APPLE, Slot.HAND, 0, 0, 1, Rarity.COMMON);
+        add("bread", "Bread", Material.BREAD, Slot.HAND, 0, 0, 1, Rarity.COMMON);
+        add("baked_potato", "Baked Potato", Material.BAKED_POTATO, Slot.HAND, 0, 0, 1, Rarity.COMMON);
+        add("cooked_chicken", "Cooked Chicken", Material.COOKED_CHICKEN, Slot.HAND, 0, 0, 1, Rarity.COMMON);
+        add("cooked_beef", "Cooked Beef", Material.COOKED_BEEF, Slot.HAND, 0, 0, 1, Rarity.COMMON);
+        add("cooked_mutton", "Cooked Mutton", Material.COOKED_MUTTON, Slot.HAND, 0, 0, 1, Rarity.COMMON);
+        add("cooked_salmon", "Cooked Salmon", Material.COOKED_SALMON, Slot.HAND, 0, 0, 1, Rarity.COMMON);
+        add("golden_apple", "Golden Apple", Material.GOLDEN_APPLE, Slot.HAND, 0, 0, 5, Rarity.RARE);
+    }
+
+    private static final Map<String, Long> FOOD_PRICES = Map.of(
+            "apple", 15L, "bread", 20L, "baked_potato", 20L,
+            "cooked_chicken", 30L, "cooked_beef", 45L,
+            "cooked_mutton", 40L, "cooked_salmon", 35L, "golden_apple", 200L);
+
+    public static Long foodPrice(String id) {
+        return FOOD_PRICES.get(id);
     }
 
     public static Def get(String id) {

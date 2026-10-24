@@ -99,11 +99,6 @@ public final class ShopGui implements InventoryHolder {
     }
 
     private void buy(ItemDefs.Def def, int amount) {
-        int level = ProgressionManager.getInstance().getProgression(player.getUniqueId()).getLevel();
-        if (level < def.levelReq()) {
-            player.sendMessage("§cRequires level " + def.levelReq() + " (you are " + level + ")");
-            return;
-        }
         long total = ShopCommandHandler.priceOf(def) * amount;
         try {
             EconomyManager.getInstance().withdraw(player.getUniqueId(), new Col(total), "shop");

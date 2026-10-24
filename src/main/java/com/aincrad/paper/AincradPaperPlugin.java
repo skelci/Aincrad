@@ -69,6 +69,39 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
             return true;
         });
         com.aincrad.paper.skills.SkillGui.registerListener(this);
+        com.aincrad.paper.quest.QuestManager.getInstance().setMaxActiveQuests(1);
+        for (org.bukkit.World w : getServer().getWorlds()) disableStructures(w);
+        getServer().getPluginManager().registerEvents(new org.bukkit.event.Listener() {
+            @org.bukkit.event.EventHandler
+            public void onWorldLoad(org.bukkit.event.world.WorldLoadEvent e) {
+                disableStructures(e.getWorld());
+            }
+        }, this);
+        org.bukkit.command.CommandExecutor stats = (sender, command, label, args) -> {
+            if (!(sender instanceof org.bukkit.entity.Player p)) {
+                sender.sendMessage("Player only");
+                return true;
+            }
+            var prog = com.aincrad.paper.progression.ProgressionManager.getInstance()
+                    .getProgression(p.getUniqueId());
+            double cur = com.aincrad.paper.progression.ProgressionManager.xpForLevel(prog.getLevel());
+            double next = com.aincrad.paper.progression.ProgressionManager.xpForLevel(prog.getLevel() + 1);
+            double have = prog.getXp();
+            sender.sendMessage("§6§lLevel " + prog.getLevel()
+                    + "  §7|  Total XP: §a" + (long) have
+                    + "  §7|  Skill pts: §b" + prog.getSkillPoints()
+                    + "  §7|  Stat pts: §b" + prog.getStatPoints());
+            if (prog.isMaxLevel()) {
+                sender.sendMessage("§dMax level reached.");
+            } else {
+                int pct = (int) Math.max(0, Math.min(100, (have - cur) / (next - cur) * 100));
+                sender.sendMessage("§7Next level in §e" + (long) (next - have)
+                        + " §7XP (§a" + pct + "%§7 of the way)");
+            }
+            return true;
+        };
+        registerCommand("stats", stats);
+        registerCommand("level", stats);
         com.aincrad.paper.skills.ShopGui.registerListener(this);
         new com.aincrad.paper.mobs.MobFrenzy(this);
         com.aincrad.paper.hud.StatsSync.start(this);
@@ -221,6 +254,15 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
 
     public static AincradPaperPlugin getInstance() {
         return instance;
+    }
+
+    private static void disableStructures(org.bukkit.World w) {
+        for (org.bukkit.Structure s : org.bukkit.Structure.getStructures()) {
+            try {
+                w.setGenerateStructure(s, false);
+            } catch (Exception ignored) {
+            }
+        }
     }
 
     private void registerCommand(String name, org.bukkit.command.CommandExecutor executor) {
