@@ -101,6 +101,35 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
         }, 40L, 20L);
         registerCommand("stats", stats);
         registerCommand("level", stats);
+        registerCommand("setlevel", (sender, command, label, args) -> {
+            if (!sender.isOp()) {
+                sender.sendMessage("No permission");
+                return true;
+            }
+            if (args.length < 2) {
+                sender.sendMessage("Usage: /setlevel <player> <level>");
+                return true;
+            }
+            org.bukkit.entity.Player target = getServer().getPlayerExact(args[0]);
+            java.util.UUID id = target != null ? target.getUniqueId() : null;
+            if (id == null) {
+                try {
+                    id = java.util.UUID.fromString(args[0]);
+                } catch (IllegalArgumentException ex) {
+                    sender.sendMessage("Player offline; pass UUID instead: " + args[0]);
+                    return true;
+                }
+            }
+            try {
+                int lvl = Integer.parseInt(args[1]);
+                com.aincrad.paper.progression.ProgressionManager.getInstance().adminSetLevel(id, lvl);
+                com.aincrad.paper.progression.ProgressionPersistence.saveAll();
+                sender.sendMessage("§aSet " + (target != null ? target.getName() : id) + " to level " + lvl);
+            } catch (Exception ex) {
+                sender.sendMessage("§c" + ex.getMessage());
+            }
+            return true;
+        });
         com.aincrad.paper.skills.ShopGui.registerListener(this);
         new com.aincrad.paper.mobs.MobFrenzy(this);
         com.aincrad.paper.hud.StatsSync.start(this);

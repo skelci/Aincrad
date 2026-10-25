@@ -81,6 +81,17 @@ public final class ProgressionManager {
         }
     }
 
+    public void adminSetLevel(UUID playerId, int level) {
+        if (level < 1 || level > PlayerProgression.MAX_LEVEL) {
+            throw new IllegalArgumentException("Level must be 1.." + PlayerProgression.MAX_LEVEL);
+        }
+        PlayerProgression progression = getProgression(playerId);
+        progression.resetXp(xpForLevel(level));
+        progression.setLevel(level);
+        org.bukkit.entity.Player online = org.bukkit.Bukkit.getPlayer(playerId);
+        if (online != null) syncActionBar(online);
+    }
+
     public PlayerProgression initiateNgPlus(UUID playerId) {
         PlayerProgression progression = getProgression(playerId);
         if (progression.getLevel() < PlayerProgression.NG_PLUS_RESET_LEVEL) {
