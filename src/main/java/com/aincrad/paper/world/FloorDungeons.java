@@ -84,17 +84,24 @@ public final class FloorDungeons implements Listener {
         return false;
     }
 
+    private final java.util.Set<Point> built = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
     public void buildAll() {
         for (int i = 0; i < POINTS.size(); i++) {
             Point p = POINTS.get(i);
+            if (!built.add(p)) continue;
             World w = floorWorld(p.floor());
-            if (w == null) continue;
+            if (w == null) {
+                built.remove(p);
+                continue;
+            }
             if (w.getBlockAt(p.x() - 2, FLOOR_Y[0], p.z()).getType() == Material.GOLD_BLOCK) continue;
             try {
                 build(w, p, i);
                 org.bukkit.Bukkit.getLogger().info("[Aincrad] Dungeon built: " + NAMES[i]
                         + " at floor " + p.floor() + " (" + p.x() + ", " + p.z() + ")");
             } catch (Exception e) {
+                built.remove(p);
                 org.bukkit.Bukkit.getLogger().warning("[Aincrad] Dungeon build failed: " + e);
             }
         }
@@ -114,16 +121,17 @@ public final class FloorDungeons implements Listener {
             for (int cZ = (cz - 24) >> 4; cZ <= (cz + 24) >> 4; cZ++)
                 w.loadChunk(cX, cZ, true);
 
-        int base = 64;
-        for (int dx = -12; dx <= 12; dx++)
-            for (int dz = -12; dz <= 12; dz++)
-                base = Math.max(base, w.getHighestBlockYAt(cx + dx, cz + dz));
+        int base = 128;
+        for (int dx = -7; dx <= 7; dx++)
+            for (int dz = -7; dz <= 7; dz++)
+                base = Math.min(base, w.getHighestBlockYAt(cx + dx, cz + dz));
+        base = Math.max(base, 60);
 
         int gx = cx - (GRID * CELL) / 2, gz = cz - 2;
         Palette pal = PALETTES[idx];
         long seed = 7919L * (idx + 1) + 13;
 
-        flatten(w, gx, gz, base);
+        levelHutArea(w, cx, cz, base);
         hut(w, cx, cz, base, idx);
 
         int anchorX = ENTRANCE_X + 3, anchorY = GRID - 4;
@@ -260,13 +268,18 @@ public final class FloorDungeons implements Listener {
 
     private void hut(World w, int cx, int cz, int base, int idx) {
         for (int dx = -4; dx <= 4; dx++)
-            for (int dz = -4; dz <= 4; dz++)
+            for (int dz = -4; dz <= 4; dz++) {
+                set(w, cx + dx, base - 1, cz + dz, Material.STONE);
                 set(w, cx + dx, base, cz + dz, Material.SMOOTH_STONE);
+            }
         for (int y = 1; y <= 3; y++)
             for (int dx = -3; dx <= 3; dx++)
-                for (int dz = -3; dz <= 3; dz++)
-                    if (Math.abs(dx) == 3 || Math.abs(dz) == 3)
+                for (int dz = -3; dz <= 3; dz++) {
+                    boolean door = dz == 3 && Math.abs(dx) <= 1 && y <= 2;
+                    if ((Math.abs(dx) == 3 || Math.abs(dz) == 3) && !door)
                         set(w, cx + dx, base + y, cz + dz, Material.CRACKED_STONE_BRICKS);
+                }
+        set(w, cx, base + 1, cz + 4, Material.LANTERN);
         for (int dx = -3; dx <= 3; dx++)
             for (int dz = -3; dz <= 3; dz++)
                 if (Math.abs(dx) == 3 || Math.abs(dz) == 3)
@@ -286,15 +299,12 @@ public final class FloorDungeons implements Listener {
         }
     }
 
-    private void flatten(World w, int gx, int gz, int base) {
-        for (int dx = -4; dx <= GRID * CELL + 4; dx++)
-            for (int dz = -4; dz <= GRID * CELL + 4; dz++) {
-                int y = w.getHighestBlockYAt(gx + dx, gz + dz);
-                for (int yy = base + 1; yy <= y; yy++)
-                    set(w, gx + dx, yy, gz + dz, Material.AIR);
-                if (y < base)
-                    for (int yy = y + 1; yy <= base; yy++)
-                        set(w, gx + dx, yy, gz + dz, Material.DIRT);
+    private void levelHutArea(World w, int cx, int cz, int base) {
+        for (int dx = -5; dx <= 5; dx++)
+            for (int dz = -5; dz <= 5; dz++) {
+                int y = w.getHighestBlockYAt(cx + dx, cz + dz);
+                for (int yy = base + 1; yy <= Math.min(y, base + 16); yy++)
+                    set(w, cx + dx, yy, cz + dz, Material.AIR);
             }
     }
 
