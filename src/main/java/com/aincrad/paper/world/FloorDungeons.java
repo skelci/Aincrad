@@ -1,36 +1,35 @@
 package com.aincrad.paper.world;
 
+import com.aincrad.paper.AincradPaperPlugin;
 import com.aincrad.paper.items.ItemDefs;
 import com.aincrad.paper.mobs.MobSpawnService;
+import com.aincrad.paper.world.gen.DungeonLayoutGenerator;
+import com.aincrad.paper.world.gen.DungeonLayoutGenerator.Door;
+import com.aincrad.paper.world.gen.DungeonLayoutGenerator.Layout;
+import com.aincrad.paper.world.gen.DungeonLayoutGenerator.Placed;
+import com.aincrad.paper.world.gen.DungeonLayoutGenerator.RoomType;
+import java.util.List;
+import java.util.Map;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.BlockState;
 import org.bukkit.block.Container;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import org.bukkit.persistence.PersistentDataType;
 
 /**
- * Fixed physical dungeons: surface entrance hut, shaft down to a hall with
- * loot room, mob room and boss room. Going underground arms the defenders,
- * once per dungeon per lockout window.
+ * Generated multi-level dungeons on floor 1.
+ * Layouts come from DungeonLayoutGenerator (MystAsc port); three stacked
+ * levels per site: entry, middle, boss. Non-final levels end in a stairs
+ * room whose shaft drops into the next level (the boss pit).
  */
 public final class FloorDungeons implements Listener {
 
-    private static final int G = TownKit.G;
-    private static final int DEEP = 50;
-    private static final long LOCKOUT_MS = 10 * 60 * 1000L;
-
-    private record Point(int x, int z, int floor) {
-    }
+    public record Point(int x, int z, int floor) {}
 
     private static final List<Point> POINTS = List.of(
             new Point(0, -420, 1),
@@ -39,11 +38,39 @@ public final class FloorDungeons implements Listener {
             new Point(0, 460, 1),
             new Point(-440, -220, 1));
 
-    private final Map<Point, Long> lastArmed = new HashMap<>();
-    private final Plugin plugin;
-    private MobSpawnService mobs;
+    private static final int GRID = 11, CELL = 3, LEVELS = 3;
+    private static final int[] FLOOR_Y = {-40, -50, -60};
+    private static final int ENTRANCE_X = 4;
+    private static final long LOCKOUT_MS = 10 * 60_000L;
+    private static final String[] NAMES = {
+            "The Rusty Sword", "Goblin Warrens", "The Flooded Crypt",
+            "Spider's Lair", "Crystal Caverns"};
+    private static final int[] REC_LVL = {3, 6, 9, 11, 13};
 
-    public FloorDungeons(Plugin plugin) {
+    private static final class Palette {
+        final Material wall, floor, accent, glow;
+        Palette(Material wall, Material floor, Material accent, Material glow) {
+            this.wall = wall; this.floor = floor; this.accent = accent; this.glow = glow;
+        }
+    }
+
+    private static final Palette[] PALETTES = {
+            new Palette(Material.MOSSY_STONE_BRICKS, Material.STONE_BRICKS,
+                    Material.IRON_BLOCK, Material.LANTERN),
+            new Palette(Material.ANDESITE, Material.COBBLED_DEEPSLATE,
+                    Material.MOSS_BLOCK, Material.SOUL_LANTERN),
+            new Palette(Material.DARK_PRISMARINE, Material.PRISMARINE_BRICKS,
+                    Material.COPPER_BLOCK, Material.SEA_LANTERN),
+            new Palette(Material.COBBLED_DEEPSLATE, Material.DEEPSLATE_BRICKS,
+                    Material.COBBLESTONE, Material.SOUL_LANTERN),
+            new Palette(Material.QUARTZ_BRICKS, Material.SMOOTH_QUARTZ,
+                    Material.AMETHYST_BLOCK, Material.SHROOMLIGHT)};
+
+    private final AincradPaperPlugin plugin;
+    private MobSpawnService mobs;
+    private final Map<Point, Long> lastArmed = new java.util.concurrent.ConcurrentHashMap<>();
+
+    public FloorDungeons(AincradPaperPlugin plugin) {
         this.plugin = plugin;
     }
 
@@ -52,26 +79,23 @@ public final class FloorDungeons implements Listener {
     }
 
     public static boolean nearDungeon(World w, int x, int z, int radius) {
-        int floor = FloorTerrain.parseFloor(w.getName());
-        for (Point p : POINTS) {
-            if (p.floor() != floor) continue;
+        for (Point p : POINTS)
             if (Math.hypot(x - p.x(), z - p.z()) < radius) return true;
-        }
         return false;
     }
 
     public void buildAll() {
-        for (Point p : POINTS) {
+        for (int i = 0; i < POINTS.size(); i++) {
+            Point p = POINTS.get(i);
             World w = floorWorld(p.floor());
             if (w == null) continue;
-            if (w.getBlockAt(p.x(), G + 6, p.z()).getType() == Material.GOLD_BLOCK) continue;
-            w.getChunkAt(p.x(), p.z()).load(true);
+            if (w.getBlockAt(p.x() - 2, FLOOR_Y[0], p.z()).getType() == Material.GOLD_BLOCK) continue;
             try {
-                build(w, p);
-                plugin.getServer().getLogger().info(
-                        "[Aincrad] Dungeon built at floor " + p.floor() + " (" + p.x() + ", " + p.z() + ")");
+                build(w, p, i);
+                org.bukkit.Bukkit.getLogger().info("[Aincrad] Dungeon built: " + NAMES[i]
+                        + " at floor " + p.floor() + " (" + p.x() + ", " + p.z() + ")");
             } catch (Exception e) {
-                plugin.getServer().getLogger().warning("[Aincrad] Dungeon build failed: " + e);
+                org.bukkit.Bukkit.getLogger().warning("[Aincrad] Dungeon build failed: " + e);
             }
         }
     }
@@ -79,244 +103,250 @@ public final class FloorDungeons implements Listener {
     private World floorWorld(int floor) {
         for (World w : plugin.getServer().getWorlds()) {
             String n = w.getName().toLowerCase();
-            if (n.contains("floor_") && FloorTerrain.parseFloor(n) == floor) {
-                return w;
-            }
+            if (n.contains("floor_") && FloorTerrain.parseFloor(n) == floor) return w;
         }
         return null;
     }
 
-    private void build(World w, Point p) {
-        int minX = (p.x() - 8) >> 4, maxX = (p.x() + 12) >> 4;
-        int minZ = (p.z() - 44) >> 4, maxZ = (p.z() + 8) >> 4;
-        for (int cX = minX; cX <= maxX; cX++)
-            for (int cZ = minZ; cZ <= maxZ; cZ++)
+    private void build(World w, Point p, int idx) {
+        int cx = p.x(), cz = p.z();
+        for (int cX = (cx - 24) >> 4; cX <= (cx + 24) >> 4; cX++)
+            for (int cZ = (cz - 24) >> 4; cZ <= (cz + 24) >> 4; cZ++)
                 w.loadChunk(cX, cZ, true);
 
-        int cx = p.x(), cz = p.z();
-        int base = G;
-        for (int dx = -5; dx <= 9; dx++)
-            for (int dz = -5; dz <= 5; dz++)
+        int base = 64;
+        for (int dx = -12; dx <= 12; dx++)
+            for (int dz = -12; dz <= 12; dz++)
                 base = Math.max(base, w.getHighestBlockYAt(cx + dx, cz + dz));
-        for (int dx = -5; dx <= 9; dx++) {
-            for (int dz = -5; dz <= 5; dz++) {
-                for (int y = base + 1; y <= base + 14; y++)
-                    w.getBlockAt(cx + dx, y, cz + dz).setType(Material.AIR, false);
-                w.getBlockAt(cx + dx, base - 1, cz + dz).setType(Material.STONE, false);
-                w.getBlockAt(cx + dx, base, cz + dz).setType(Material.SMOOTH_STONE, false);
+
+        int gx = cx - (GRID * CELL) / 2, gz = cz - 2;
+        Palette pal = PALETTES[idx];
+        long seed = 7919L * (idx + 1) + 13;
+
+        flatten(w, gx, gz, base);
+        hut(w, cx, cz, base, idx);
+
+        int anchorX = ENTRANCE_X + 3, anchorY = GRID - 4;
+        for (int lvl = 0; lvl < LEVELS; lvl++) {
+            boolean finalLevel = lvl == LEVELS - 1;
+            Layout layout = DungeonLayoutGenerator.generate(
+                    seed + lvl * 104729L, GRID, GRID, DungeonLayoutGenerator.DEFAULT_POOL,
+                    lvl == 0, finalLevel, ENTRANCE_X, anchorX, anchorY, 8);
+            buildLevel(w, layout, gx, gz, FLOOR_Y[lvl], pal);
+
+            Placed fin = layout.find(finalLevel ? RoomType.BOSS : RoomType.STAIRS);
+            anchorX = fin.x();
+            anchorY = fin.y();
+            if (!finalLevel) {
+                int sx = gx + (fin.x() + 1) * CELL, sz = gz + (fin.y() + 1) * CELL;
+                shaft(w, sx, sz, FLOOR_Y[lvl] - 1, FLOOR_Y[lvl + 1]);
             }
+            if (lvl == 0) {
+                Placed e = layout.find(RoomType.ENTRANCE);
+                int[] dim = DungeonLayoutGenerator.rotDim(e.t().w(), e.t().h(), e.rot());
+                int ex = gx + e.x() * CELL + dim[0] * CELL / 2;
+                int ez = gz + e.y() * CELL + dim[1] * CELL / 2;
+                shaft(w, ex, ez, base, FLOOR_Y[0]);
+            }
+            verify(w, layout, gx, gz, FLOOR_Y[lvl], idx);
         }
-        hut(w, cx, cz, base);
-        shaft(w, cx + 6, cz, base);
-        hall(w, cx, cz);
-        tunnel(w, cx, cz);
-        verify(w, cx, cz);
-        w.getBlockAt(cx + 8, base + 2, cz).setType(Material.GOLD_BLOCK, false);
-        w.getBlockAt(cx, G + 6, cz).setType(Material.GOLD_BLOCK, false);
+        set(w, cx - 2, FLOOR_Y[0], cz, Material.GOLD_BLOCK);
     }
 
-    private void hut(World w, int cx, int cz, int base) {
-        for (int dx = -3; dx <= 3; dx++) {
-            for (int dz = -3; dz <= 3; dz++) {
-                boolean wall = Math.abs(dx) == 3 || Math.abs(dz) == 3;
-                if (!wall) continue;
-                boolean door = dz == 3 && Math.abs(dx) <= 1;
-                for (int y = 1; y <= 5; y++) {
-                    if (door && (y == 1 || y == 2)) continue;
-                    Material m = y >= 4 ? Material.CRACKED_STONE_BRICKS : Material.STONE_BRICKS;
-                    set(w, cx + dx, base + y, cz + dz, m);
+    private void buildLevel(World w, Layout layout, int gx, int gz, int fy, Palette pal) {
+        for (Placed r : layout.rooms) {
+            int[] dim = DungeonLayoutGenerator.rotDim(r.t().w(), r.t().h(), r.rot());
+            int x0 = gx + r.x() * CELL, z0 = gz + r.y() * CELL;
+            int x1 = x0 + dim[0] * CELL - 1, z1 = z0 + dim[1] * CELL - 1;
+            for (int x = x0; x <= x1; x++)
+                for (int z = z0; z <= z1; z++) {
+                    boolean ring = x == x0 || x == x1 || z == z0 || z == z1;
+                    set(w, x, fy - 1, z, pal.floor);
+                    set(w, x, fy, z, ring ? pal.wall : Material.AIR);
+                    set(w, x, fy + 1, z, ring ? pal.wall : Material.AIR);
+                    set(w, x, fy + 2, z, ring ? pal.wall : Material.AIR);
+                    set(w, x, fy + 3, z, pal.wall);
                 }
-            }
+            decorate(w, r, x0, x1, z0, z1, fy, pal, layout);
         }
-        for (int dx = -3; dx <= 3; dx++) {
-            for (int dz = -3; dz <= 3; dz++) {
-                set(w, cx + dx, base + 6, cz + dz,
-                        (Math.abs(dx) + Math.abs(dz)) % 2 == 0
-                                ? Material.STONE_BRICKS : Material.CRACKED_STONE_BRICKS);
-            }
-        }
-        set(w, cx, base + 1, cz - 2, Material.REDSTONE_LAMP);
-        set(w, cx - 2, base + 1, cz - 2, Material.REDSTONE_LAMP);
-        set(w, cx + 2, base + 1, cz - 2, Material.REDSTONE_LAMP);
-        set(w, cx, base + 1, cz + 1, Material.LANTERN);
-        set(w, cx, base + 2, cz + 1, TownKit.chain());
-        set(w, cx - 2, base + 1, cz + 3, Material.SKELETON_SKULL);
-        set(w, cx + 2, base + 1, cz + 3, Material.WITHER_SKELETON_SKULL);
-        set(w, cx + 6, base + 1, cz - 2, Material.LANTERN);
-        set(w, cx + 8, base + 1, cz, Material.OAK_SIGN);
+        for (var c : layout.conns)
+            openDoor(layout, c, w, gx, gz, fy, pal);
     }
 
-    private void shaft(World w, int sx, int sz, int base) {
-        for (int y = base; y >= DEEP; y--) {
-            for (int dx = 0; dx <= 2; dx++) {
-                for (int dz = 0; dz <= 2; dz++) {
-                    set(w, sx + dx, y, sz + dz, Material.AIR);
-                }
+    private void decorate(World w, Placed r, int x0, int x1, int z0, int z1,
+                          int fy, Palette pal, Layout layout) {
+        int mx = (x0 + x1) / 2, mz = (z0 + z1) / 2;
+        switch (r.t().type()) {
+            case ENTRANCE -> {
+                set(w, mx - 1, fy, mz - 1, pal.glow);
+                set(w, x0 + 1, fy, z1 - 1, Material.RESPAWN_ANCHOR);
+                set(w, x1 - 1, fy, z1 - 1, pal.accent);
             }
-            set(w, sx + 2, y, sz + 2, Material.LADDER);
-            if ((y - DEEP) % 5 == 0) {
-                set(w, sx, y, sz + 1, Material.LANTERN);
+            case PASSING -> {
+                if ((x0 + z0) % 3 == 0) set(w, mx, fy + 2, mz, pal.glow);
+                set(w, x0 + 1, fy + 1, z0 + 1, (x0 + z0) % 2 == 0 ? Material.COBWEB : pal.wall);
+                set(w, x1 - 1, fy + 1, z1 - 1, (x0 + z0) % 2 == 1 ? Material.COBWEB : pal.wall);
             }
-        }
-        set(w, sx - 1, base + 1, sz + 1, Material.LANTERN);
-    }
-
-    /** Guaranteed 3-wide, 2-tall air corridor from shaft bottom into the hall core. */
-    private void tunnel(World w, int cx, int cz) {
-        for (int z = cz + 1; z >= cz - 36; z--) {
-            for (int x = cx + 6; x <= cx + 8; x++) {
-                for (int y = DEEP; y <= DEEP + 1; y++) {
-                    w.getBlockAt(x, y, z).setType(Material.AIR, false);
-                }
-                w.getBlockAt(x, DEEP - 1, z).setType(Material.POLISHED_BLACKSTONE, false);
+            case MONSTER -> {
+                set(w, mx, fy, mz, Material.BONE_BLOCK);
+                set(w, mx, fy + 1, mz, pal.glow);
+                set(w, x0 + 1, fy + 2, z0 + 1, Material.IRON_BARS);
+                set(w, x1 - 1, fy + 2, z1 - 1, Material.IRON_BARS);
             }
-        }
-        for (int z = cz; z >= cz - 34; z -= 6) {
-            w.getBlockAt(cx + 6, DEEP + 1, z).setType(Material.LANTERN, false);
-        }
-    }
-
-    /** Self-diagnostic: walk the intended path and log anything that blocks it. */
-    private void verify(World w, int cx, int cz) {
-        int blocked = 0;
-        for (int y = DEEP; y <= DEEP + 1; y++) {
-            for (int z = cz + 1; z >= cz - 36; z--) {
-                var t = w.getBlockAt(cx + 7, y, z).getType();
-                if (t.isSolid() && t != Material.LANTERN) blocked++;
+            case MINI_BOSS -> {
+                set(w, x0 + 1, fy, z0 + 1, pal.accent);
+                set(w, x1 - 1, fy, z1 - 1, pal.accent);
+                set(w, mx, fy + 2, mz, pal.glow);
             }
-        }
-        var ladder = w.getBlockAt(cx + 8, DEEP, cz + 2).getType();
-        org.bukkit.Bukkit.getLogger().info(
-                "[Aincrad] Dungeon verify " + w.getName() + " (" + cx + "," + cz + "): tunnel-blocked=" + blocked
-                        + " ladder@bottom=" + ladder);
-    }
-
-    private void hall(World w, int cx, int cz) {
-        int hx = cx + 7;
-        int hallZ0 = cz - 36, hallZ1 = cz;
-        for (int z = hallZ0; z <= hallZ1; z++) {
-            for (int x = hx - 2; x <= hx + 2; x++) {
-                boolean wall = x == hx - 2 || x == hx + 2 || z == hallZ0 || z == hallZ1;
-                for (int dy = 0; dy <= 1; dy++) {
-                    set(w, x, DEEP + dy, z, wall ? Material.POLISHED_BLACKSTONE_BRICKS : Material.AIR);
-                }
-                set(w, x, DEEP + 2, z, Material.POLISHED_BLACKSTONE_BRICKS);
-                set(w, x, DEEP - 1, z, Material.POLISHED_BLACKSTONE_BRICKS);
+            case LOOT -> {
+                chest(w, x0 + 1, fy, z0 + 1, loot(palIdx(pal), x0 + z0, true));
+                chest(w, x1 - 1, fy, z0 + 1, loot(palIdx(pal), x0 - z0, false));
+                set(w, mx, fy, mz, pal.accent);
+                set(w, mx, fy + 2, mz, pal.glow);
             }
-        }
-        lootRoom(w, hx, cz - 32);
-        mobRoom(w, hx, cz - 21);
-        bossRoom(w, hx, cz - 10);
-        set(w, hx, DEEP + 1, hallZ1, Material.LANTERN);
-    }
-
-    private void roomCavity(World w, int x, int z, int rad) {
-        for (int dx = -rad; dx <= rad; dx++) {
-            for (int dz = -rad; dz <= rad; dz++) {
-                boolean wall = Math.abs(dx) == rad || Math.abs(dz) == rad;
-                for (int dy = 0; dy <= 2; dy++) {
-                    set(w, x + dx, DEEP + dy, z + dz,
-                            wall ? Material.POLISHED_BLACKSTONE_BRICKS : Material.AIR);
-                }
-                set(w, x + dx, DEEP + 3, z + dz, Material.POLISHED_BLACKSTONE_BRICKS);
-                set(w, x + dx, DEEP - 1, z + dz, Material.POLISHED_BLACKSTONE_BRICKS);
-            }
-        }
-        for (int dx = -rad; dx <= rad; dx++) {
-            set(w, x + dx, DEEP, z - rad, Material.POLISHED_BLACKSTONE);
-            set(w, x + dx, DEEP, z + rad, Material.POLISHED_BLACKSTONE);
-        }
-    }
-
-    private void corridor(World w, int x, int z0, int z1) {
-        for (int z = Math.min(z0, z1); z <= Math.max(z0, z1); z++) {
-            for (int d = -1; d <= 1; d++) {
-                set(w, x + d, DEEP, z, Material.AIR);
-                set(w, x + d, DEEP + 1, z, Material.AIR);
-                set(w, x + d, DEEP - 1, z, Material.POLISHED_BLACKSTONE_BRICKS);
-            }
-        }
-    }
-
-    private void lootRoom(World w, int x, int z) {
-        roomCavity(w, x, z, 4);
-        corridor(w, x, z - 4, z + 4);
-        chest(w, x - 2, DEEP, z - 2, new ItemStack[]{
-                ItemDefs.create(pickLoot(x + z, true), 1),
-                new ItemStack(Material.GOLD_INGOT, 14),
-                new ItemStack(Material.IRON_INGOT, 24)});
-        chest(w, x + 2, DEEP, z - 2, new ItemStack[]{
-                ItemDefs.create(pickLoot(x - z, false), 1),
-                new ItemStack(Material.EXPERIENCE_BOTTLE, 12),
-                new ItemStack(Material.ENDER_PEARL, 3)});
-        set(w, x - 3, DEEP, z, Material.GOLD_BLOCK);
-        set(w, x + 3, DEEP, z, Material.GOLD_BLOCK);
-        set(w, x - 3, DEEP + 1, z, Material.SHROOMLIGHT);
-        set(w, x + 3, DEEP + 1, z, Material.SHROOMLIGHT);
-        set(w, x, DEEP, z + 2, Material.CRAFTING_TABLE);
-    }
-
-    private void mobRoom(World w, int x, int z) {
-        roomCavity(w, x, z, 4);
-        corridor(w, x, z - 4, z + 4);
-        for (int dx = -3; dx <= 3; dx += 6) {
-            for (int dz = -3; dz <= 3; dz += 6) {
-                set(w, x + dx, DEEP + 1, z + dz, Material.IRON_BARS);
-                set(w, x + dx, DEEP + 2, z + dz, Material.COAL_BLOCK);
-            }
-        }
-        set(w, x, DEEP, z, Material.BONE_BLOCK);
-        set(w, x, DEEP + 1, z, Material.LANTERN);
-    }
-
-    private void bossRoom(World w, int x, int z) {
-        roomCavity(w, x, z, 5);
-        corridor(w, x, z - 5, z + 5);
-        for (int dx = -2; dx <= 2; dx++) {
-            for (int dz = -2; dz <= 2; dz++) {
-                set(w, x + dx, DEEP, z + dz,
-                        Math.abs(dx) == 2 || Math.abs(dz) == 2
+            case STAIRS -> set(w, x0 + 1, fy, z1 - 1, pal.glow);
+            case BOSS -> {
+                for (int x = x0 + 2; x <= x1 - 2; x++)
+                    for (int z = z0 + 2; z <= z1 - 2; z++)
+                        set(w, x, fy, z, (x == x0 + 2 || x == x1 - 2 || z == z0 + 2 || z == z1 - 2)
                                 ? Material.RED_CONCRETE : Material.NETHER_BRICKS);
+                set(w, x0 + 1, fy + 2, z0 + 1, Material.SHROOMLIGHT);
+                set(w, x1 - 1, fy + 2, z0 + 1, Material.SHROOMLIGHT);
+                set(w, x0 + 1, fy + 2, z1 - 1, Material.SHROOMLIGHT);
+                set(w, x1 - 1, fy + 2, z1 - 1, Material.SHROOMLIGHT);
             }
         }
-        set(w, x - 4, DEEP + 1, z - 4, Material.SHROOMLIGHT);
-        set(w, x + 4, DEEP + 1, z - 4, Material.SHROOMLIGHT);
-        set(w, x - 4, DEEP + 1, z + 4, Material.SHROOMLIGHT);
-        set(w, x + 4, DEEP + 1, z + 4, Material.SHROOMLIGHT);
-        set(w, x, DEEP, z - 4, Material.CHEST);
+    }
+
+    private int palIdx(Palette pal) {
+        for (int i = 0; i < PALETTES.length; i++) if (PALETTES[i] == pal) return i;
+        return 0;
+    }
+
+    private ItemStack[] loot(int idx, int salt, boolean weapon) {
+        var ids = ItemDefs.idsForLevel(REC_LVL[idx] + 2);
+        String id = ids.isEmpty() ? "anneal_blade"
+                : ids.get(Math.abs(salt * 31 + (weapon ? 7 : 13)) % ids.size());
+        return new ItemStack[] {
+                ItemDefs.create(id, 1),
+                new ItemStack(Material.GOLD_INGOT, 10 + idx * 4),
+                new ItemStack(Material.EXPERIENCE_BOTTLE, 6 + idx * 3)};
+    }
+
+    private void openDoor(Layout layout, DungeonLayoutGenerator.Conn c, World w,
+                          int gx, int gz, int fy, Palette pal) {
+        Placed a = layout.rooms.get(c.a());
+        Placed b = layout.rooms.get(c.b());
+        for (Door ad : a.doors()) {
+            int[] outer = DungeonLayoutGenerator.doorCells(a, ad, true);
+            boolean match = false;
+            for (Door bd : b.doors()) {
+                int[] inner = DungeonLayoutGenerator.doorCells(b, bd, false);
+                if (inner[0] == outer[0] && inner[1] == outer[1]
+                        && inner[2] == outer[2] && inner[3] == outer[3]) {
+                    match = true;
+                    break;
+                }
+            }
+            if (!match) continue;
+            for (int x = outer[0]; x <= outer[2]; x++)
+                for (int z = outer[1]; z <= outer[3]; z++) {
+                    set(w, gx + x, fy, gz + z, Material.AIR);
+                    set(w, gx + x, fy + 1, gz + z, Material.AIR);
+                }
+            set(w, gx + outer[0], fy + 2, gz + outer[1], pal.glow);
+        }
+    }
+
+    private void hut(World w, int cx, int cz, int base, int idx) {
+        for (int dx = -4; dx <= 4; dx++)
+            for (int dz = -4; dz <= 4; dz++)
+                set(w, cx + dx, base, cz + dz, Material.SMOOTH_STONE);
+        for (int y = 1; y <= 3; y++)
+            for (int dx = -3; dx <= 3; dx++)
+                for (int dz = -3; dz <= 3; dz++)
+                    if (Math.abs(dx) == 3 || Math.abs(dz) == 3)
+                        set(w, cx + dx, base + y, cz + dz, Material.CRACKED_STONE_BRICKS);
+        for (int dx = -3; dx <= 3; dx++)
+            for (int dz = -3; dz <= 3; dz++)
+                if (Math.abs(dx) == 3 || Math.abs(dz) == 3)
+                    set(w, cx + dx, base + 4, cz + dz, Material.STONE_BRICKS);
+        set(w, cx, base + 4, cz, Material.GOLD_BLOCK);
+        set(w, cx - 3, base + 1, cz - 3, Material.LANTERN);
+        set(w, cx + 3, base + 1, cz - 3, Material.LANTERN);
+        set(w, cx + 4, base, cz, Material.SMITHING_TABLE);
+    }
+
+    private void shaft(World w, int sx, int sz, int top, int bottom) {
+        for (int y = bottom; y <= top; y++) {
+            set(w, sx, y, sz, Material.AIR);
+            set(w, sx + 1, y, sz, Material.AIR);
+            set(w, sx, y, sz + 1, y % 6 == 0 ? Material.LANTERN : Material.AIR);
+            set(w, sx + 1, y, sz + 1, Material.LADDER);
+        }
+    }
+
+    private void flatten(World w, int gx, int gz, int base) {
+        for (int dx = -4; dx <= GRID * CELL + 4; dx++)
+            for (int dz = -4; dz <= GRID * CELL + 4; dz++) {
+                int y = w.getHighestBlockYAt(gx + dx, gz + dz);
+                for (int yy = base + 1; yy <= y; yy++)
+                    set(w, gx + dx, yy, gz + dz, Material.AIR);
+                if (y < base)
+                    for (int yy = y + 1; yy <= base; yy++)
+                        set(w, gx + dx, yy, gz + dz, Material.DIRT);
+            }
+    }
+
+    private void verify(World w, Layout layout, int gx, int gz, int fy, int idx) {
+        int open = 0, blocked = 0;
+        for (var c : layout.conns) {
+            Placed a = layout.rooms.get(c.a());
+            Placed b = layout.rooms.get(c.b());
+            boolean found = false;
+            for (Door ad : a.doors()) {
+                int[] outer = DungeonLayoutGenerator.doorCells(a, ad, true);
+                for (Door bd : b.doors()) {
+                    int[] inner = DungeonLayoutGenerator.doorCells(b, bd, false);
+                    if (inner[0] != outer[0] || inner[2] != outer[2]
+                            || inner[1] != outer[1] || inner[3] != outer[3]) continue;
+                    if (!w.getBlockAt(gx + outer[0], fy, gz + outer[1]).getType().isSolid()) found = true;
+                }
+            }
+            if (found) open++;
+            else blocked++;
+        }
+        org.bukkit.Bukkit.getLogger().info("[Aincrad] Dungeon " + NAMES[idx]
+                + " fy=" + fy + " rooms=" + layout.rooms.size()
+                + " conns=" + layout.conns.size() + " open=" + open + " blocked=" + blocked);
     }
 
     private void chest(World w, int x, int y, int z, ItemStack[] items) {
         set(w, x, y, z, Material.CHEST);
-        BlockState state = w.getBlockAt(x, y, z).getState();
+        var state = w.getBlockAt(x, y, z).getState();
         if (state instanceof Container container) {
             var inv = container.getInventory();
-            for (int i = 0; i < items.length && i < inv.getSize(); i++) {
+            for (int i = 0; i < items.length && i < inv.getSize(); i++)
                 inv.setItem(i, items[i]);
-            }
             container.update(true, false);
         }
     }
 
-    private String pickLoot(int salt, boolean weapon) {
-        var ids = ItemDefs.idsForLevel(8);
-        if (ids.isEmpty()) return "anneal_blade";
-        return ids.get(Math.abs(salt * 31 + (weapon ? 7 : 13)) % ids.size());
+    private void set(World w, int x, int y, int z, Material m) {
+        w.getBlockAt(x, y, z).setType(m, false);
     }
 
     @EventHandler
     public void onMove(PlayerMoveEvent event) {
         if (event.getTo() == null
                 || (event.getFrom().getBlockX() == event.getTo().getBlockX()
-                && event.getFrom().getBlockZ() == event.getTo().getBlockZ())) {
-            return;
-        }
+                && event.getFrom().getBlockZ() == event.getTo().getBlockZ())) return;
         Player player = event.getPlayer();
-        if (player.getY() > G - 5) return;
+        if (player.getY() > -30) return;
         int floor = FloorTerrain.parseFloor(player.getWorld().getName());
         for (Point p : POINTS) {
             if (p.floor() != floor) continue;
-            if (Math.hypot(player.getX() - p.x(), player.getZ() - p.z()) > 40) continue;
+            if (Math.hypot(player.getX() - p.x(), player.getZ() - p.z()) > 26) continue;
             Long last = lastArmed.get(p);
             long now = System.currentTimeMillis();
             if (last != null && now - last < LOCKOUT_MS) continue;
@@ -331,13 +361,10 @@ public final class FloorDungeons implements Listener {
         if (mobs == null) return;
         World w = player.getWorld();
         for (int i = 0; i < 4; i++) {
-            Location loc = new Location(w, p.x() + 7, DEEP, p.z() - 21 + i * 2);
-            mobs.spawnRandomAt(loc, floor + 1);
+            Location loc = new Location(w, p.x() + 1 + i, FLOOR_Y[0], p.z() - 2);
+            if (loc.getBlock().getType() == Material.AIR) mobs.spawnRandomAt(loc, floor + 1);
         }
-        mobs.spawnGuardian(new Location(w, p.x() + 7, DEEP, p.z() - 10), floor);
-    }
-
-    private void set(World w, int x, int y, int z, Material m) {
-        w.getBlockAt(x, y, z).setType(m, false);
+        Location g = new Location(w, p.x() - 1, FLOOR_Y[0], p.z() - 2);
+        if (g.getBlock().getType() == Material.AIR) mobs.spawnGuardian(g, floor);
     }
 }
