@@ -9,7 +9,7 @@ services:
     dns:
       - 8.8.8.8
       - 1.1.1.1
-    stop_grace_period: 120
+    stop_grace_period: "120s"
     ports:
       - "25566:25565/tcp"
       - "25575:25575/tcp"

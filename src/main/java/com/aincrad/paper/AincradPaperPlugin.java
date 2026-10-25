@@ -34,6 +34,7 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
         com.aincrad.paper.progression.ProgressionPersistence.wire(this);
         skillService.start();
         getServer().getPluginManager().registerEvents(new com.aincrad.paper.listener.ItemMechanicListener(), this);
+        getServer().getPluginManager().registerEvents(new com.aincrad.paper.listener.DamageNumbers(this), this);
         
         // Generate Floor 1 plaza + override spawn (south of fountain, on road)
         getServer().getScheduler().runTaskLater(this, () -> {
