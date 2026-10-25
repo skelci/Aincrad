@@ -95,7 +95,6 @@ public final class FloorDungeons implements Listener {
                 built.remove(p);
                 continue;
             }
-            if (w.getBlockAt(p.x() - 2, FLOOR_Y[0], p.z()).getType() == Material.GOLD_BLOCK) continue;
             try {
                 build(w, p, i);
                 org.bukkit.Bukkit.getLogger().info("[Aincrad] Dungeon built: " + NAMES[i]
@@ -120,6 +119,12 @@ public final class FloorDungeons implements Listener {
         for (int cX = (cx - 24) >> 4; cX <= (cx + 24) >> 4; cX++)
             for (int cZ = (cz - 24) >> 4; cZ <= (cz + 24) >> 4; cZ++)
                 w.loadChunk(cX, cZ, true);
+        var wpc = org.bukkit.persistence.PersistentDataType.BYTE;
+        if (w.getPersistentDataContainer()
+                .has(new org.bukkit.NamespacedKey(plugin, "dungeon_built_" + idx), wpc)) {
+            built.add(p);
+            return;
+        }
 
         int base = 128;
         for (int dx = -7; dx <= 7; dx++)
@@ -159,6 +164,9 @@ public final class FloorDungeons implements Listener {
             verify(w, layout, gx, gz, FLOOR_Y[lvl], idx);
         }
         set(w, cx - 2, FLOOR_Y[0], cz, Material.GOLD_BLOCK);
+        w.getPersistentDataContainer().set(
+                new org.bukkit.NamespacedKey(plugin, "dungeon_built_" + idx),
+                org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
     }
 
     private void buildLevel(World w, Layout layout, int gx, int gz, int fy, Palette pal) {

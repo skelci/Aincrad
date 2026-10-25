@@ -9,6 +9,7 @@ services:
     dns:
       - 8.8.8.8
       - 1.1.1.1
+    stop_grace_period: 120
     ports:
       - "25566:25565/tcp"
       - "25575:25575/tcp"
@@ -16,6 +17,7 @@ services:
       - ./logs:/server/logs
       - ./data:/server/data
       - ./world:/server/world
+      - ./bukkit.yml:/server/bukkit.yml
       - ./world_nether:/server/world_nether
       - ./world_the_end:/server/world_the_end
       - ./datapacks:/server/world/datapacks:ro
