@@ -91,7 +91,7 @@ public final class FloorDungeons implements Listener {
         int minZ = (p.z() - 44) >> 4, maxZ = (p.z() + 8) >> 4;
         for (int cX = minX; cX <= maxX; cX++)
             for (int cZ = minZ; cZ <= maxZ; cZ++)
-                w.getChunkAt(cX, cZ, true);
+                w.loadChunk(cX, cZ, true);
 
         int cx = p.x(), cz = p.z();
         int base = G;
@@ -187,7 +187,7 @@ public final class FloorDungeons implements Listener {
         }
         var ladder = w.getBlockAt(cx + 8, DEEP, cz + 2).getType();
         org.bukkit.Bukkit.getLogger().info(
-                "[Aincrad] Dungeon verify (" + cx + "," + cz + "): tunnel-blocked=" + blocked
+                "[Aincrad] Dungeon verify " + w.getName() + " (" + cx + "," + cz + "): tunnel-blocked=" + blocked
                         + " ladder@bottom=" + ladder);
     }
 

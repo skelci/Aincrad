@@ -290,13 +290,14 @@ public final class FloorTerrain {
 
     static int parseFloor(String name) {
         String n = name.toLowerCase();
-        int colon = n.indexOf(':');
-        if (colon >= 0) n = n.substring(colon + 1);
-        try {
-            return Integer.parseInt(n.replace("floor_", ""));
-        } catch (Exception e) {
-            return 1;
+        int i = n.lastIndexOf("floor_");
+        if (i < 0) return 1;
+        int v = 0, j = i + 6;
+        while (j < n.length() && Character.isDigit(n.charAt(j))) {
+            v = v * 10 + (n.charAt(j) - '0');
+            j++;
         }
+        return j > i + 6 ? v : 1;
     }
 
     private static void set(World w, int x, int y, int z, Material m) {

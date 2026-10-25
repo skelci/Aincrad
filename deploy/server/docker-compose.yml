@@ -22,6 +22,7 @@ services:
       - ./datapacks:/server/world_nether/datapacks:ro
       - ./mods:/server/mods:ro
       - ./plugins:/server/plugins
+      - ./ops.json:/server/ops.json
     stdin_open: true
     tty: true
     deploy:
