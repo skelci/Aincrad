@@ -103,6 +103,11 @@ public final class FloorDungeons implements Listener {
         hut(w, cx, cz, base);
         shaft(w, cx + 6, cz, base);
         hall(w, cx, cz);
+        for (int dx = 0; dx <= 2; dx++) {
+            for (int y = DEEP; y <= DEEP + 1; y++) {
+                w.getBlockAt(cx + 6 + dx, y, cz).setType(Material.AIR, false);
+            }
+        }
         w.getBlockAt(cx + 8, base + 2, cz).setType(Material.GOLD_BLOCK, false);
         w.getBlockAt(cx, G + 6, cz).setType(Material.GOLD_BLOCK, false);
     }
@@ -139,7 +144,7 @@ public final class FloorDungeons implements Listener {
     }
 
     private void shaft(World w, int sx, int sz, int base) {
-        for (int y = base; y >= DEEP; y--) {
+        for (int y = base + 1; y >= DEEP; y--) {
             for (int dx = 0; dx <= 2; dx++) {
                 for (int dz = 0; dz <= 2; dz++) {
                     set(w, sx + dx, y, sz + dz, Material.AIR);
@@ -147,22 +152,12 @@ public final class FloorDungeons implements Listener {
             }
             set(w, sx, y, sz, Material.POLISHED_BLACKSTONE_BRICK_WALL);
             set(w, sx + 2, y, sz + 2, Material.POLISHED_BLACKSTONE_BRICK_WALL);
+            set(w, sx + 2, y, sz + 1, Material.LADDER);
             if ((y - DEEP) % 5 == 0) {
                 set(w, sx, y, sz + 1, Material.LANTERN);
             }
         }
-        set(w, sx + 1, DEEP - 1, sz + 1, Material.SOUL_SAND);
-        for (int y = DEEP; y <= G; y++) {
-            set(w, sx + 1, y, sz + 1, Material.WATER);
-        }
-        for (int dx = 0; dx <= 2; dx++) {
-            for (int dz = 0; dz <= 2; dz++) {
-                if ((dx == 1 && dz == 1) || (dx == 0 && dz == 0) || (dx == 2 && dz == 2)) continue;
-                for (int y = DEEP; y <= DEEP + 3; y++) {
-                    set(w, sx + dx, y, sz + dz, Material.WATER);
-                }
-            }
-        }
+        set(w, sx - 1, base + 1, sz + 1, Material.LANTERN);
     }
 
     private void hall(World w, int cx, int cz) {

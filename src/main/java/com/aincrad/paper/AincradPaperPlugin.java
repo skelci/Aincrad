@@ -31,6 +31,7 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
         mobSpawnService = new com.aincrad.paper.mobs.MobSpawnService(this);
         mobSpawnService.start();
         skillService = new com.aincrad.paper.skills.PaperSkillService(this);
+        com.aincrad.paper.progression.ProgressionPersistence.wire(this);
         skillService.start();
         getServer().getPluginManager().registerEvents(new com.aincrad.paper.listener.ItemMechanicListener(), this);
         
@@ -70,13 +71,6 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
         });
         com.aincrad.paper.skills.SkillGui.registerListener(this);
         com.aincrad.paper.quest.QuestManager.getInstance().setMaxActiveQuests(1);
-        for (org.bukkit.World w : getServer().getWorlds()) disableStructures(w);
-        getServer().getPluginManager().registerEvents(new org.bukkit.event.Listener() {
-            @org.bukkit.event.EventHandler
-            public void onWorldLoad(org.bukkit.event.world.WorldLoadEvent e) {
-                disableStructures(e.getWorld());
-            }
-        }, this);
         org.bukkit.command.CommandExecutor stats = (sender, command, label, args) -> {
             if (!(sender instanceof org.bukkit.entity.Player p)) {
                 sender.sendMessage("Player only");
@@ -259,18 +253,6 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
 
     public static AincradPaperPlugin getInstance() {
         return instance;
-    }
-
-    private static void disableStructures(org.bukkit.World w) {
-        try {
-            Class<?> struct = Class.forName("org.bukkit.Structure");
-            Object[] values = struct.getEnumConstants();
-            if (values == null) return;
-            java.lang.reflect.Method m =
-                    w.getClass().getMethod("setGenerateStructure", struct, boolean.class);
-            for (Object s : values) m.invoke(w, s, false);
-        } catch (Throwable ignored) {
-        }
     }
 
     private void registerCommand(String name, org.bukkit.command.CommandExecutor executor) {

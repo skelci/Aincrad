@@ -19,6 +19,7 @@ services:
       - ./world_nether:/server/world_nether
       - ./world_the_end:/server/world_the_end
       - ./datapacks:/server/world/datapacks:ro
+      - ./datapacks:/server/world_nether/datapacks:ro
       - ./mods:/server/mods:ro
       - ./plugins:/server/plugins
     stdin_open: true

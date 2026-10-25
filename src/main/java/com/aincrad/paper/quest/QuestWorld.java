@@ -29,7 +29,7 @@ public final class QuestWorld {
     private static final Map<String, int[]> ANCHORS = Map.of(
             "The Weeping Stone", new int[]{300, 40},
             "The Broken Seal", new int[]{-330, 235},
-            "Hunter's Ledger", new int[]{8, -362});
+            "Hunter's Ledger", new int[]{10, -16});
 
     private static final Map<String, Material[]> POOLS = Map.of(
             "The Weeping Stone", new Material[]{Material.GLOW_INK_SAC, Material.PRISMARINE_CRYSTALS,

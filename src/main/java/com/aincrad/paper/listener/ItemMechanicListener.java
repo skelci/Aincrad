@@ -87,6 +87,25 @@ public class ItemMechanicListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onFoodLevelGate(org.bukkit.event.player.PlayerInteractEvent event) {
+        var action = event.getAction();
+        if (action != org.bukkit.event.block.Action.RIGHT_CLICK_AIR
+                && action != org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK) return;
+        ItemStack is = event.getItem();
+        if (is == null || !is.getType().isEdible()) return;
+        ItemDefs.Def def = ItemDefs.resolve(is);
+        if (def == null) return;
+        int level = com.aincrad.paper.progression.ProgressionManager.getInstance()
+                .getProgression(event.getPlayer().getUniqueId()).getLevel();
+        if (level < def.levelReq()) {
+            event.setCancelled(true);
+            event.setUseItemInHand(org.bukkit.event.Event.Result.DENY);
+            event.getPlayer().sendMessage("\u00a7c" + def.name() + " requires level "
+                    + def.levelReq() + " (you are " + level + ")");
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onArmorClick(org.bukkit.event.inventory.InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
         var action = event.getAction();
