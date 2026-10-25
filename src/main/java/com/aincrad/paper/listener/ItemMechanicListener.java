@@ -209,6 +209,7 @@ public class ItemMechanicListener implements Listener {
         if (def == null) return;
         ItemMeta meta = stack.getItemMeta();
         if (meta == null) return;
+        if (meta.isUnbreakable()) return;
         var pdc = meta.getPersistentDataContainer();
         int remaining = pdc.getOrDefault(KEY_DUR, PersistentDataType.INTEGER, DURABILITY) - amount;
         if (remaining <= 0) {

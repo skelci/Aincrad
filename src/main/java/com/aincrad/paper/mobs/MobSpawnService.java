@@ -156,7 +156,7 @@ public class MobSpawnService implements Listener {
                 to.setY(0).normalize();
                 double speed = 0.28 + Math.min(0.2, level * 0.015);
                 org.bukkit.util.Vector v = to.multiply(speed);
-                v.setY(creature.isOnGround() && random.nextInt(9) == 0 ? 0.42 : 0.04);
+                v.setY(creature.isOnGround() && random.nextInt(9) == 0 ? 0.42 : 0.0);
                 creature.setVelocity(v);
                 org.bukkit.Location d = target.getLocation();
                 creature.setRotation((float) (Math.toDegrees(Math.atan2(
@@ -249,7 +249,8 @@ public class MobSpawnService implements Listener {
         }
         Attribute speed = resolveAttribute(new String[]{"generic.movement_speed", "movement_speed"});
         if (speed != null && mob.getAttribute(speed) != null) {
-            mob.getAttribute(speed).setBaseValue(mob.getAttribute(speed).getBaseValue() * spec.speed());
+            mob.getAttribute(speed).setBaseValue(
+                    mob.getAttribute(speed).getBaseValue() * Math.max(0.9, spec.speed()));
         }
 
         mob.getPersistentDataContainer().set(KEY_MOB, PersistentDataType.STRING, spec.id());

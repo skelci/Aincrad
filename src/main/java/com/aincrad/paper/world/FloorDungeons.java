@@ -87,6 +87,12 @@ public final class FloorDungeons implements Listener {
     }
 
     private void build(World w, Point p) {
+        int minX = (p.x() - 8) >> 4, maxX = (p.x() + 12) >> 4;
+        int minZ = (p.z() - 44) >> 4, maxZ = (p.z() + 8) >> 4;
+        for (int cX = minX; cX <= maxX; cX++)
+            for (int cZ = minZ; cZ <= maxZ; cZ++)
+                w.getChunkAt(cX, cZ, true);
+
         int cx = p.x(), cz = p.z();
         int base = G;
         for (int dx = -5; dx <= 9; dx++)
@@ -103,11 +109,8 @@ public final class FloorDungeons implements Listener {
         hut(w, cx, cz, base);
         shaft(w, cx + 6, cz, base);
         hall(w, cx, cz);
-        for (int dx = 0; dx <= 2; dx++) {
-            for (int y = DEEP; y <= DEEP + 1; y++) {
-                w.getBlockAt(cx + 6 + dx, y, cz).setType(Material.AIR, false);
-            }
-        }
+        tunnel(w, cx, cz);
+        verify(w, cx, cz);
         w.getBlockAt(cx + 8, base + 2, cz).setType(Material.GOLD_BLOCK, false);
         w.getBlockAt(cx, G + 6, cz).setType(Material.GOLD_BLOCK, false);
     }
@@ -144,20 +147,48 @@ public final class FloorDungeons implements Listener {
     }
 
     private void shaft(World w, int sx, int sz, int base) {
-        for (int y = base + 1; y >= DEEP; y--) {
+        for (int y = base; y >= DEEP; y--) {
             for (int dx = 0; dx <= 2; dx++) {
                 for (int dz = 0; dz <= 2; dz++) {
                     set(w, sx + dx, y, sz + dz, Material.AIR);
                 }
             }
-            set(w, sx, y, sz, Material.POLISHED_BLACKSTONE_BRICK_WALL);
-            set(w, sx + 2, y, sz + 2, Material.POLISHED_BLACKSTONE_BRICK_WALL);
-            set(w, sx + 2, y, sz + 1, Material.LADDER);
+            set(w, sx + 2, y, sz + 2, Material.LADDER);
             if ((y - DEEP) % 5 == 0) {
                 set(w, sx, y, sz + 1, Material.LANTERN);
             }
         }
         set(w, sx - 1, base + 1, sz + 1, Material.LANTERN);
+    }
+
+    /** Guaranteed 3-wide, 2-tall air corridor from shaft bottom into the hall core. */
+    private void tunnel(World w, int cx, int cz) {
+        for (int z = cz + 1; z >= cz - 36; z--) {
+            for (int x = cx + 6; x <= cx + 8; x++) {
+                for (int y = DEEP; y <= DEEP + 1; y++) {
+                    w.getBlockAt(x, y, z).setType(Material.AIR, false);
+                }
+                w.getBlockAt(x, DEEP - 1, z).setType(Material.POLISHED_BLACKSTONE, false);
+            }
+        }
+        for (int z = cz; z >= cz - 34; z -= 6) {
+            w.getBlockAt(cx + 6, DEEP + 1, z).setType(Material.LANTERN, false);
+        }
+    }
+
+    /** Self-diagnostic: walk the intended path and log anything that blocks it. */
+    private void verify(World w, int cx, int cz) {
+        int blocked = 0;
+        for (int y = DEEP; y <= DEEP + 1; y++) {
+            for (int z = cz + 1; z >= cz - 36; z--) {
+                var t = w.getBlockAt(cx + 7, y, z).getType();
+                if (t.isSolid() && t != Material.LANTERN) blocked++;
+            }
+        }
+        var ladder = w.getBlockAt(cx + 8, DEEP, cz + 2).getType();
+        org.bukkit.Bukkit.getLogger().info(
+                "[Aincrad] Dungeon verify (" + cx + "," + cz + "): tunnel-blocked=" + blocked
+                        + " ladder@bottom=" + ladder);
     }
 
     private void hall(World w, int cx, int cz) {

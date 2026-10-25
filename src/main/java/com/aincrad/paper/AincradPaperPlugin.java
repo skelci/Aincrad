@@ -71,6 +71,38 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
         });
         com.aincrad.paper.skills.SkillGui.registerListener(this);
         com.aincrad.paper.quest.QuestManager.getInstance().setMaxActiveQuests(1);
+        com.aincrad.paper.world.TownNpcs.register(this);
+        com.aincrad.paper.quest.QuestWidget.register(this);
+        var skillCmd = getServer().getCommandMap().getCommand("skill");
+        if (skillCmd != null) getServer().getCommandMap().register("skills", skillCmd);
+        registerCommand("quests", (sender, command, label, args) -> {
+            if (sender instanceof org.bukkit.entity.Player p) {
+                com.aincrad.paper.quest.QuestGui.open(p);
+            } else {
+                sender.sendMessage("Player only");
+            }
+            return true;
+        });
+        registerCommand("shop", (sender, command, label, args) -> {
+            if (sender instanceof org.bukkit.entity.Player p) {
+                com.aincrad.paper.skills.ShopGui.open(p);
+            } else {
+                sender.sendMessage("Player only");
+            }
+            return true;
+        });
+        registerCommand("commands", (sender, command, label, args) -> {
+            sender.sendMessage("§6§l— Aincrad commands —");
+            sender.sendMessage("§e/skills §7— skill menu (rank up, bind drives)");
+            sender.sendMessage("§e/stats §7or §e/level §7— level, XP, points");
+            sender.sendMessage("§e/shop §7— buy gear/food; §7shift-click own item inside to sell");
+            sender.sendMessage("§e/quests §7— quest book (accept / track / turn in)");
+            sender.sendMessage("§7NPCs: §eMerchant §7(Market Hall), §eReceptionist §7(Guild Hall)");
+            sender.sendMessage("§7Sidebar shows your active quest progress.");
+            sender.sendMessage("§7Dungeons: surface huts with gold markers — ladder goes down.");
+            sender.sendMessage("§7Skills default keys: F6-F12, -, = (rebind in Controls > Aincrad).");
+            return true;
+        });
         org.bukkit.command.CommandExecutor stats = (sender, command, label, args) -> {
             if (!(sender instanceof org.bukkit.entity.Player p)) {
                 sender.sendMessage("Player only");

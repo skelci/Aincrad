@@ -75,6 +75,34 @@ public class GameListener implements Listener {
         if (com.aincrad.paper.mobs.MobSpawnService.suppressSpawnEvents) return;
         if (isAincradWorld(event.getLocation().getWorld())) {
             event.setCancelled(true);
+            return;
+        }
+        // Town safe zone: no hostile spawns within the walls of Town of Beginnings
+        if (event.getEntity() instanceof org.bukkit.entity.Monster
+                && Math.hypot(event.getLocation().getX(), event.getLocation().getZ()) < 80) {
+            event.setCancelled(true);
+        }
+    }
+
+    private static final java.util.Set<org.bukkit.Material> FORBIDDEN_INTERACT = java.util.EnumSet.of(
+            org.bukkit.Material.CHEST, org.bukkit.Material.TRAPPED_CHEST, org.bukkit.Material.BARREL,
+            org.bukkit.Material.ENDER_CHEST, org.bukkit.Material.FURNACE, org.bukkit.Material.BLAST_FURNACE,
+            org.bukkit.Material.SMOKER, org.bukkit.Material.CAMPFIRE, org.bukkit.Material.SOUL_CAMPFIRE,
+            org.bukkit.Material.ENCHANTING_TABLE, org.bukkit.Material.LOOM, org.bukkit.Material.CARTOGRAPHY_TABLE,
+            org.bukkit.Material.STONECUTTER, org.bukkit.Material.GRINDSTONE, org.bukkit.Material.SMITHING_TABLE,
+            org.bukkit.Material.FLETCHING_TABLE, org.bukkit.Material.BREWING_STAND, org.bukkit.Material.ANVIL,
+            org.bukkit.Material.CHIPPED_ANVIL, org.bukkit.Material.DAMAGED_ANVIL, org.bukkit.Material.JUKEBOX,
+            org.bukkit.Material.COMPOSTER, org.bukkit.Material.BEE_NEST, org.bukkit.Material.BEEHIVE,
+            org.bukkit.Material.CAULDRON, org.bukkit.Material.BOOKSHELF, org.bukkit.Material.CHISELED_BOOKSHELF);
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onForbiddenBlock(org.bukkit.event.player.PlayerInteractEvent event) {
+        if (event.getAction() != org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK) return;
+        org.bukkit.block.Block b = event.getClickedBlock();
+        if (b == null) return;
+        if (FORBIDDEN_INTERACT.contains(b.getType())) {
+            event.setCancelled(true);
+            event.setUseInteractedBlock(org.bukkit.event.Event.Result.DENY);
         }
     }
 

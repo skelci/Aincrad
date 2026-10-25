@@ -106,7 +106,7 @@ public final class FloorTerrain {
 
     private static void wetland(Random r, World w, int cx, int cz) {
         scatter(w, r, cx, cz, 6, Material.DEAD_BUSH);
-        scatter(w, r, cx, cz, 5, Material.SUGAR_CANE);
+        scatter(w, r, cx, cz, 5, Material.FERN);
         if (r.nextInt(5) != 0) return;
         int x = cx + r.nextInt(4) - 2, z = cz + r.nextInt(4) - 2;
         int s0 = surf(w, x, z);

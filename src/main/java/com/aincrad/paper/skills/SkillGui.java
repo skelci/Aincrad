@@ -80,6 +80,10 @@ public final class SkillGui implements InventoryHolder {
             lore.add(LEGACY.deserialize("§7" + def.description()));
             lore.add(LEGACY.deserialize("§b" + def.mpCost() + " MP §8• §cCD " + def.cooldownSec()
                     + "s §8• §aRank " + rank + "/" + def.maxRank()));
+            lore.add(LEGACY.deserialize("§6Power §f" + fmtPower(def.power())
+                    + " §8• §e" + def.usage() + " §8×" + def.usagePerRank() + "§7/rank"));
+            lore.add(LEGACY.deserialize("§dLv " + def.requiredLevel()
+                    + " §8• §7Rank-up: §c" + def.upgradeCost() + " Col"));
             if (!ok) {
                 int lvl = com.aincrad.paper.progression.ProgressionManager.getInstance()
                         .getProgression(player.getUniqueId()).getLevel();
@@ -238,6 +242,10 @@ public final class SkillGui implements InventoryHolder {
         for (int i = 0; i < size; i++) {
             if (inventory.getItem(i) == null) inventory.setItem(i, pane);
         }
+    }
+
+    private static String fmtPower(double p) {
+        return p == Math.floor(p) ? String.valueOf((long) p) : String.format("%.1f", p);
     }
 
     private static ItemStack icon(Material material, String name, List<Component> lore) {

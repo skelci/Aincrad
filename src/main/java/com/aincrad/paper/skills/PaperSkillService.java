@@ -489,6 +489,14 @@ public class PaperSkillService {
                 break;
             }
         }
+        Location feet = to.clone();
+        int raised = 0;
+        while ((feet.getBlock().getType().isSolid()
+                || feet.clone().add(0, 1, 0).getBlock().getType().isSolid()) && raised < 6) {
+            feet.add(0, 1, 0);
+            raised++;
+        }
+        to = raised >= 6 ? from : feet;
         List<LivingEntity> path = new ArrayList<>();
         for (Entity e : player.getNearbyEntities(7, 4, 7)) {
             if (e instanceof LivingEntity mob && e != player) {
