@@ -41,4 +41,4 @@ settings:
   shutdown-message: Server closed
   minimum-api: none
   use-map-color-cache: true
-  player-data-folder: ../data/players
+  player-data-folder: data/players
