@@ -77,6 +77,26 @@ public class AincradCommand implements CommandExecutor, TabCompleter {
                 target.sendMessage("§6[Yua] §f" + sid + " set to rank " + rank + ".");
                 return true;
             }
+            case "lastchange" -> {
+                if (sender instanceof org.bukkit.entity.Player pl && !pl.isOp()) {
+                    sender.sendMessage("§cOp only.");
+                    return true;
+                }
+                if (args.length < 2) {
+                    sender.sendMessage("§cUsage: /aincrad lastchange <text>");
+                    return true;
+                }
+                String text = String.join(" ",
+                        java.util.Arrays.copyOfRange(args, 1, args.length));
+                try {
+                    java.nio.file.Files.writeString(
+                            new java.io.File(plugin.getDataFolder(), "last_change.txt").toPath(), text);
+                    sender.sendMessage("§aSaved last change note.");
+                } catch (Exception e) {
+                    sender.sendMessage("§cFailed: " + e.getMessage());
+                }
+                return true;
+            }
             case "restock" -> {
                 if (args.length < 2 || !sender.hasPermission("aincrad.admin")) {
                     sender.sendMessage("§cUsage: /aincrad restock <0-4>");

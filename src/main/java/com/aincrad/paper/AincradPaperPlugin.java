@@ -370,6 +370,16 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
 
     public com.aincrad.paper.world.FloorBoss getFloorBoss() { return floorBoss; }
 
+    public String getLastChangeNote() {
+        try {
+            java.io.File f = new java.io.File(getDataFolder(), "last_change.txt");
+            if (!f.exists()) return null;
+            return java.nio.file.Files.readString(f.toPath()).trim();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public DataStore getDataStore() {
         return dataStore;
     }

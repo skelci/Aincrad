@@ -31,6 +31,11 @@ public class PlayerListener implements Listener {
         ProgressionManager.getInstance().syncActionBar(player);
         com.aincrad.paper.items.ItemCommands.grantStarterKitIfNew(player);
 
+        String note = plugin.getLastChangeNote();
+        if (note != null && !note.isBlank()) {
+            player.sendMessage("§6[Yua] §7Last update: §f" + note);
+        }
+
         Guild guild = GuildManager.getInstance(plugin.getDataStore()).findGuildOf(player.getUniqueId());
         if (guild != null) {
             player.setPlayerListName("[" + guild.getTag() + "] " + player.getName());
