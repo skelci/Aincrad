@@ -57,6 +57,30 @@ public final class ItemCommands {
                 give(player, id, count);
                 player.sendMessage("§aGave " + count + "x " + ItemDefs.get(id).name() + ".");
             }
+            case "grant" -> {
+                if (sender instanceof Player pl && !pl.isOp()) {
+                    sender.sendMessage("§cOp only.");
+                    return;
+                }
+                if (args.length < 4) {
+                    sender.sendMessage("§cUsage: /aincrad item grant <player> <id> [count]");
+                    return;
+                }
+                org.bukkit.entity.Player target = org.bukkit.Bukkit.getPlayerExact(args[2]);
+                if (target == null) {
+                    sender.sendMessage("§cPlayer not online: " + args[2]);
+                    return;
+                }
+                String gid = args[3].toLowerCase(Locale.ROOT);
+                if (ItemDefs.get(gid) == null) {
+                    sender.sendMessage("§cUnknown item id: " + gid);
+                    return;
+                }
+                int gcount = args.length >= 5 ? parseCount(args[4]) : 1;
+                give(target, gid, gcount);
+                sender.sendMessage("§aGave " + gcount + "x " + ItemDefs.get(gid).name()
+                        + " to " + target.getName());
+            }
             case "kit" -> {
                 if (!(sender instanceof Player player)) {
                     sender.sendMessage("Player only");
