@@ -15,7 +15,7 @@ public class ProgressionCommandHandler {
         ProgressionManager pm = ProgressionManager.getInstance();
         PlayerProgression prog = pm.getProgression(player.getUniqueId());
         sender.sendMessage("§6=== Progression ===");
-        sender.sendMessage("§fLevel: " + prog.getLevel() + (prog.isMaxLevel() ? " (MAX)" : ""));
+        sender.sendMessage("§fLevel: " + prog.getLevel() + (prog.isMaxLevel() ? " (MAX)" : "") + "\n§cStrength: §f" + com.aincrad.paper.progression.ProgressionManager.strengthOf(prog.getLevel()) + " §7(+" + com.aincrad.paper.progression.ProgressionManager.strengthOf(prog.getLevel()) + "% dmg)");
         sender.sendMessage("§fXP: " + String.format("%.1f", prog.getXp()));
         sender.sendMessage("§fProgress: " + String.format("%.1f%%", prog.getProgressToNextLevel() * 100));
         sender.sendMessage("§fSkill Points: " + prog.getSkillPoints());

@@ -78,7 +78,10 @@ public class ItemMechanicListener implements Listener {
         if (weapon != null && weapon.damage() > 0) {
             base = weapon.damage();
         }
-        double damage = base * mult * skillMult;
+        int lvl = com.aincrad.paper.progression.ProgressionManager.getInstance()
+                .getProgression(player.getUniqueId()).getLevel();
+        double damage = base * mult * skillMult
+                * (100.0 + com.aincrad.paper.progression.ProgressionManager.strengthOf(lvl)) / 100.0;
         event.setDamage(damage);
 
         if (weapon != null) {

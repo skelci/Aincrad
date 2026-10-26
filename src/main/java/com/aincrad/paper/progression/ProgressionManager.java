@@ -57,6 +57,41 @@ public final class ProgressionManager {
 
     public void syncActionBar(org.bukkit.entity.Player player) {
         player.setLevel(getProgression(player.getUniqueId()).getLevel());
+        syncStats(player);
+    }
+
+    public static int strengthOf(int level) {
+        return level * 2;
+    }
+
+    public static double bonusHealth(int level) {
+        return level / 5.0;
+    }
+
+    private static final java.util.UUID HP_MOD_ID =
+            java.util.UUID.fromString("0a1ac000-0000-4000-8000-000000000001");
+
+    public void syncStats(org.bukkit.entity.Player player) {
+        int level = getProgression(player.getUniqueId()).getLevel();
+        org.bukkit.attribute.AttributeInstance instance = null;
+        for (String name : new String[]{"MAX_HEALTH", "GENERIC_MAX_HEALTH"}) {
+            try {
+                var a = org.bukkit.attribute.Attribute.valueOf(name);
+                instance = player.getAttribute(a);
+                if (instance != null) break;
+            } catch (Throwable ignored) {
+            }
+        }
+        if (instance == null) return;
+        for (var m : instance.getModifiers())
+            if (HP_MOD_ID.equals(m.getUniqueId())) instance.removeModifier(m);
+        double bonus = bonusHealth(level);
+        if (bonus > 0) {
+            instance.addModifier(new org.bukkit.attribute.AttributeModifier(
+                    HP_MOD_ID, "aincrad:level_health", bonus,
+                    org.bukkit.attribute.AttributeModifier.Operation.ADD_NUMBER,
+                    org.bukkit.inventory.EquipmentSlotGroup.ANY));
+        }
     }
 
     private int processLevelUps(PlayerProgression progression) {
@@ -69,6 +104,13 @@ public final class ProgressionManager {
             progression.addStatPoints(PlayerProgression.STAT_POINTS_PER_LEVEL);
             checkMilestones(progression, oldLevel, progression.getLevel());
             levelsGained++;
+            org.bukkit.entity.Player p = org.bukkit.Bukkit.getPlayer(progression.getPlayerId());
+            if (p != null) {
+                syncStats(p);
+                p.sendMessage("§aLevel " + progression.getLevel() + " §7(+2 STR, HP +"
+                        + String.format(java.util.Locale.ROOT, "%.2f",
+                                bonusHealth(progression.getLevel()) - bonusHealth(oldLevel)) + ")");
+            }
         }
         return levelsGained;
     }
