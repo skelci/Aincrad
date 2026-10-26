@@ -64,8 +64,28 @@ public final class ProgressionManager {
         return level * 2;
     }
 
+    /** Base 20 HP + 1.2 per level — same growth ratio as mana (100 base + 6/level). */
     public static double bonusHealth(int level) {
-        return level / 5.0;
+        return level * 1.2;
+    }
+
+    private static org.bukkit.attribute.AttributeInstance healthInstance(
+            org.bukkit.entity.Player player) {
+        for (String key : new String[]{"generic.max_health", "max_health"}) {
+            org.bukkit.attribute.Attribute a = org.bukkit.Registry.ATTRIBUTE.get(
+                    org.bukkit.NamespacedKey.minecraft(key));
+            if (a != null) {
+                var inst = player.getAttribute(a);
+                if (inst != null) return inst;
+            }
+        }
+        return null;
+    }
+
+    /** Actual in-game max HP (attribute value), null if attribute unavailable. */
+    public static Double currentMaxHealth(org.bukkit.entity.Player p) {
+        var inst = healthInstance(p);
+        return inst == null ? null : inst.getValue();
     }
 
     private static final java.util.UUID HP_MOD_ID =
@@ -73,15 +93,7 @@ public final class ProgressionManager {
 
     public void syncStats(org.bukkit.entity.Player player) {
         int level = getProgression(player.getUniqueId()).getLevel();
-        org.bukkit.attribute.AttributeInstance instance = null;
-        for (String name : new String[]{"MAX_HEALTH", "GENERIC_MAX_HEALTH"}) {
-            try {
-                var a = org.bukkit.attribute.Attribute.valueOf(name);
-                instance = player.getAttribute(a);
-                if (instance != null) break;
-            } catch (Throwable ignored) {
-            }
-        }
+        org.bukkit.attribute.AttributeInstance instance = healthInstance(player);
         if (instance == null) return;
         for (var m : instance.getModifiers())
             if (HP_MOD_ID.equals(m.getUniqueId())) instance.removeModifier(m);

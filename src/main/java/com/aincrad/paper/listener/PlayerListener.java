@@ -79,6 +79,12 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler
+    public void onPlayerRespawn(org.bukkit.event.player.PlayerRespawnEvent event) {
+        com.aincrad.paper.progression.ProgressionManager.getInstance()
+                .syncActionBar(event.getPlayer());
+    }
+
+    @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         com.aincrad.paper.skills.PaperSkillService.forget(event.getPlayer().getUniqueId());
         var player = event.getPlayer();

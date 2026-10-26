@@ -114,8 +114,12 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
             double cur = com.aincrad.paper.progression.ProgressionManager.xpForLevel(prog.getLevel());
             double next = com.aincrad.paper.progression.ProgressionManager.xpForLevel(prog.getLevel() + 1);
             double have = prog.getXp();
+            Double maxHp = com.aincrad.paper.progression.ProgressionManager
+                    .currentMaxHealth(p);
             sender.sendMessage("§6§lLevel " + prog.getLevel()
                     + "  §7|  Total XP: §a" + (long) have
+                    + "  §7|  Max HP: §c" + (maxHp == null ? "n/a"
+                            : String.format(java.util.Locale.ROOT, "%.1f", maxHp))
                     + "  §7|  Skill pts: §b" + prog.getSkillPoints()
                     + "  §7|  Stat pts: §b" + prog.getStatPoints());
             if (prog.isMaxLevel()) {
