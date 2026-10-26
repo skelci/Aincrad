@@ -56,6 +56,18 @@ public class AincradCommand implements CommandExecutor, TabCompleter {
                 } else sender.sendMessage("Player only");
             }
             case "floor" -> handleFloor(sender, args);
+            case "restock" -> {
+                if (args.length < 2 || !sender.hasPermission("aincrad.admin")) {
+                    sender.sendMessage("§cUsage: /aincrad restock <0-4>");
+                    return true;
+                }
+                var fd = plugin.getFloorDungeons();
+                var fw = org.bukkit.Bukkit.getWorld("floor_1");
+                if (fd == null || fw == null) { sender.sendMessage("§cfloor_1 not loaded"); return true; }
+                fd.restock(fw, Integer.parseInt(args[1]));
+                sender.sendMessage("§aRestocked dungeon " + args[1]);
+                return true;
+            }
             case "boss" -> {
                 if (!sender.hasPermission("aincrad.admin")) {
                     sender.sendMessage("§cAdmin only");

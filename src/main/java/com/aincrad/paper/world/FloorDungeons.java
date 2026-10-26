@@ -70,6 +70,87 @@ public final class FloorDungeons implements Listener {
     private final java.util.List<Object[]> bossTracked =
             java.util.Collections.synchronizedList(new java.util.ArrayList<>());
 
+    private boolean stockTaskArmed;
+
+    private void armEntryStock() {
+        if (stockTaskArmed) return;
+        stockTaskArmed = true;
+        org.bukkit.Bukkit.getScheduler().runTaskTimer(plugin, this::entryStock, 60L, 40L);
+    }
+
+    private void entryStock() {
+        if (mobs == null) return;
+        for (org.bukkit.entity.Player p
+                : org.bukkit.Bukkit.getOnlinePlayers()) {
+            var w = p.getWorld();
+            String wn = w.getName();
+            if (!(wn.equals("floor_1") || wn.endsWith("_floor_1") || wn.endsWith(":floor_1"))
+                    || p.getY() > 61) continue;
+            for (int i = 0; i < POINTS.size(); i++) {
+                Point pt = POINTS.get(i);
+                if (Math.abs(p.getX() - pt.x()) < 170 && Math.abs(p.getZ() - pt.z()) < 170)
+                    stockSite(w, i);
+            }
+        }
+    }
+
+    public void restock(org.bukkit.World w, int idx) {
+        w.getPersistentDataContainer().remove(
+                new org.bukkit.NamespacedKey(plugin, "dungeon_stock9_" + idx));
+        if (mobs != null) mobs.purgeDungeonMobs(w);
+        stockSite(w, idx);
+    }
+
+    private void stockSite(org.bukkit.World w, int idx) {
+        var key = new org.bukkit.NamespacedKey(plugin, "dungeon_stock9_" + idx);
+        if (w.getPersistentDataContainer().has(key,
+                org.bukkit.persistence.PersistentDataType.BYTE)) return;
+        w.getPersistentDataContainer().set(key,
+                org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
+        build(w, POINTS.get(idx), idx, true);
+    }
+
+    private int stockRooms(World w, List<Layout> layouts, int gx, int gz, int idx) {
+        if (mobs == null) return 0;
+        int n = 0;
+        java.util.Random rnd = new java.util.Random(4242L + idx * 7919L);
+        for (int lvl = 0; lvl < layouts.size(); lvl++) {
+            int fy = FLOOR_Y[lvl];
+            for (Placed r : layouts.get(lvl).rooms) {
+                RoomType t = r.t().type();
+                int count = switch (t) {
+                    case ENTRANCE -> 0;
+                    case MONSTER -> 4;
+                    case LOOT -> 3;
+                    case STAIRS, PASSING -> 1;
+                    case MINI_BOSS -> 2;
+                    case BOSS -> 3;
+                };
+                if (count == 0) continue;
+                int[] dim = DungeonLayoutGenerator.rotDim(r.t().w(), r.t().h(), r.rot());
+                int x0 = gx + r.x() * PITCH, z0 = gz + r.y() * PITCH;
+                int x1 = x0 + dim[0] * CELL - 1, z1 = z0 + dim[1] * CELL - 1;
+                for (int i = 0; i < count; i++) {
+                    int px = x0 + 2 + rnd.nextInt(Math.max(1, x1 - x0 - 3));
+                    int pz = z0 + 2 + rnd.nextInt(Math.max(1, z1 - z0 - 3));
+                    if (w.getBlockAt(px, fy + 1, pz).getType() == Material.AIR
+                            && w.getBlockAt(px, fy, pz).getType().isSolid()) {
+                        mobs.spawnDungeonMob(new Location(w, px + 0.5, fy + 1, pz + 0.5), lvl + 1);
+                        n++;
+                    }
+                }
+                if (t == RoomType.MINI_BOSS || t == RoomType.BOSS) {
+                    int mx = (x0 + x1) / 2, mz = (z0 + z1) / 2;
+                    Location loc = new Location(w, mx + 0.5, fy + 1, mz + 0.5);
+                    String bn = NAMES[idx] + (t == RoomType.BOSS ? " Overlord" : " Champion");
+                    trackBoss(mobs.spawnDungeonBoss(loc, lvl + 1, bn), bn);
+                    n++;
+                }
+            }
+        }
+        return n;
+    }
+
     private void trackBoss(java.util.UUID id, String name) {
         if (id == null) return;
         org.bukkit.boss.BossBar bar = org.bukkit.Bukkit.createBossBar(
@@ -111,6 +192,7 @@ public final class FloorDungeons implements Listener {
 
     public void setMobService(MobSpawnService service) {
         this.mobs = service;
+        if (service != null) armEntryStock();
     }
 
     public static boolean nearDungeon(World w, int x, int z, int radius) {
@@ -154,6 +236,10 @@ public final class FloorDungeons implements Listener {
     // ------------------------------------------------------------------
 
     private void build(World w, Point p, int idx) {
+        build(w, p, idx, false);
+    }
+
+    private void build(World w, Point p, int idx, boolean stockOnly) {
         int cx = p.x(), cz = p.z();
         for (int cX = (cx - 120) >> 4; cX <= (cx + 120) >> 4; cX++)
             for (int cZ = (cz - 120) >> 4; cZ <= (cz + 120) >> 4; cZ++)
@@ -162,7 +248,7 @@ public final class FloorDungeons implements Listener {
         if (w.getPersistentDataContainer()
                 .has(new org.bukkit.NamespacedKey(plugin, "dungeon_built4_" + idx), wpc)) {
             built.add(p);
-            return;
+            if (!stockOnly) return;
         }
 
         if (mobs != null) mobs.purgeDungeonMobs(w);
@@ -191,6 +277,14 @@ public final class FloorDungeons implements Listener {
         int ezRel = e.y() * PITCH + edim[1] * CELL / 2;
         int gx = cx - exRel, gz = cz - ezRel;
         int ex = cx, ez = cz;
+
+        if (stockOnly) {
+            int n = stockRooms(w, layouts, gx, gz, idx);
+            w.playSound(new Location(w, cx + 0.5, FLOOR_Y[0] + 2.0, cz + 0.5),
+                    org.bukkit.Sound.ENTITY_ENDER_DRAGON_GROWL, 3f, 0.75f);
+            plugin.getLogger().info("Dungeon stocked: " + NAMES[idx] + " (" + n + " mobs)");
+            return;
+        }
 
         int base = 128;
         for (int dx = -7; dx <= 7; dx++)
@@ -395,11 +489,9 @@ public final class FloorDungeons implements Listener {
                     set(w, mx - 3 + i * 2, fy + 1, mz - 3, Material.LANTERN);
                     set(w, mx - 3 + i * 2, fy + 1, mz + 3, Material.LANTERN);
                 }
-                populate(w, rnd, x0, x1, z0, z1, fy, 1, lvl);
             }
             case PASSING -> {
                 set(w, mx, fy + 1, mz, pal.glow);
-                populate(w, rnd, x0, x1, z0, z1, fy, 1 + rnd.nextInt(2), lvl);
             }
             case MONSTER -> {
                 set(w, mx, fy, mz, Material.BONE_BLOCK);
@@ -416,7 +508,6 @@ public final class FloorDungeons implements Listener {
                         set(w, c[0], fy + 1, c[1], Material.BONE_BLOCK);
                         if (rnd.nextInt(100) < 50) set(w, c[0], fy + 2, c[1], Material.CALCITE);
                     }
-                populate(w, rnd, x0, x1, z0, z1, fy, 3 + rnd.nextInt(3), lvl);
             }
             case MINI_BOSS -> {
                 for (int x = mx - 2; x <= mx + 2; x++)
@@ -431,12 +522,6 @@ public final class FloorDungeons implements Listener {
                 set(w, mx, fy, mz, Material.GOLD_BLOCK);
                 set(w, mx, top, mz, pal.glow);
                 chest(w, mx, fy + 1, mz, loot(palIdx(pal), x0 + z1, true));
-                if (mobs != null) {
-                    trackBoss(mobs.spawnDungeonBoss(new Location(w, mx + 0.5, fy + 1, mz + 0.5),
-                            lvl, NAMES[palIdx(pal)] + " Champion"),
-                            NAMES[palIdx(pal)] + " Champion");
-                }
-                populate(w, rnd, x0, x1, z0, z1, fy, 4, lvl);
             }
             case LOOT -> {
                 for (int x = mx - 1; x <= mx + 1; x++)
@@ -452,7 +537,6 @@ public final class FloorDungeons implements Listener {
                     for (int dz = -1; dz <= 1; dz += 2)
                         if (rnd.nextInt(100) < 70) set(w, mx + dx * 3, fy + 1, mz + dz * 3,
                                 Material.BOOKSHELF);
-                populate(w, rnd, x0, x1, z0, z1, fy, 1 + rnd.nextInt(2), lvl);
             }
             case STAIRS -> {
                 set(w, x0 + 2, fy + 1, z1 - 2, pal.glow);
@@ -481,25 +565,6 @@ public final class FloorDungeons implements Listener {
                     set(w, mx, y, mz + 1, Material.IRON_BARS);
                 }
                 chest(w, mx, fy + 1, mz, loot(palIdx(pal), mx + mz, true));
-                if (mobs != null) {
-                    Location loc = new Location(w, mx + 0.5, fy + 1, mz + 0.5);
-                    String bossName = NAMES[palIdx(pal)] + " Overlord";
-                    trackBoss(mobs.spawnDungeonBoss(loc, lvl + 1, bossName), bossName);
-                    populate(w, rnd, x0, x1, z0, z1, fy, 3, lvl);
-                }
-            }
-        }
-    }
-
-    private void populate(World w, java.util.Random rnd, int x0, int x1, int z0, int z1,
-                          int fy, int count, int lvl) {
-        if (mobs == null) return;
-        for (int i = 0; i < count; i++) {
-            int px = x0 + 2 + rnd.nextInt(Math.max(1, x1 - x0 - 3));
-            int pz = z0 + 2 + rnd.nextInt(Math.max(1, z1 - z0 - 3));
-            if (w.getBlockAt(px, fy + 1, pz).getType() == Material.AIR
-                    && w.getBlockAt(px, fy, pz).getType().isSolid()) {
-                mobs.spawnDungeonMob(new Location(w, px + 0.5, fy + 1, pz + 0.5), lvl + 1);
             }
         }
     }

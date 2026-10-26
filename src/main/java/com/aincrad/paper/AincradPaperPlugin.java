@@ -134,6 +134,7 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
         }, 40L, 20L);
         registerCommand("stats", stats);
         registerCommand("level", stats);
+        registerCommand("aincrad", new com.aincrad.paper.command.AincradCommand(this));
         registerCommand("setlevel", (sender, command, label, args) -> {
             if (!sender.isOp()) {
                 sender.sendMessage("No permission");
@@ -357,6 +358,8 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
     public com.aincrad.paper.mobs.MobSpawnService getMobSpawnService() { return mobSpawnService; }
 
     private com.aincrad.paper.world.FloorDungeons floorDungeons;
+
+    public com.aincrad.paper.world.FloorDungeons getFloorDungeons() { return floorDungeons; }
     private com.aincrad.paper.world.FloorBoss floorBoss;
     private com.aincrad.paper.economy.EconomyPersistence economyPersistence;
 
