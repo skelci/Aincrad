@@ -197,7 +197,7 @@ public class MobSpawnService implements Listener {
             for (int i = 0; i < toSpawn; i++) {
                 Player anchor = players.get(random.nextInt(players.size()));
                 Location loc = findSpawnLocation(world, anchor.getLocation());
-                if (loc == null) continue;
+                if (loc == null || loc.getY() < 60) continue;
                 Spec spec = pickSpec(floor);
                 if (spec == null) continue;
                 spawnSpec(spec, loc);
@@ -287,6 +287,7 @@ public class MobSpawnService implements Listener {
             int x = anchor.getBlockX() + (int) (Math.cos(angle) * dist);
             int z = anchor.getBlockZ() + (int) (Math.sin(angle) * dist);
             if (Math.hypot(x, z) < 128) continue;
+            if (com.aincrad.paper.world.FloorDungeons.nearDungeon(world, x, z, 130)) continue;
             int baseY = anchor.getBlockY();
             for (int y = baseY + 4; y >= baseY - 4; y--) {
                 Location feet = new Location(world, x + 0.5, y, z + 0.5);
@@ -311,6 +312,7 @@ public class MobSpawnService implements Listener {
     private void cleanupFarMobs(World world, List<Player> players) {
         for (Entity e : world.getEntities()) {
             if (!e.getPersistentDataContainer().has(KEY_MOB)) continue;
+            if (e.getLocation().getY() < 62) continue;
             if (Math.hypot(e.getLocation().getX(), e.getLocation().getZ()) < 122) {
                 e.remove();
                 continue;

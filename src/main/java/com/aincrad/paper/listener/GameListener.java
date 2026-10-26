@@ -101,6 +101,9 @@ public class GameListener implements Listener {
         org.bukkit.block.Block b = event.getClickedBlock();
         if (b == null) return;
         if (FORBIDDEN_INTERACT.contains(b.getType())) {
+            if (b.getY() < 62) {
+                return;
+            }
             event.setCancelled(true);
             event.setUseInteractedBlock(org.bukkit.event.Event.Result.DENY);
         }

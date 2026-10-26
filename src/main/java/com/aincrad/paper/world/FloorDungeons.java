@@ -8,24 +8,20 @@ import com.aincrad.paper.world.gen.DungeonLayoutGenerator.Door;
 import com.aincrad.paper.world.gen.DungeonLayoutGenerator.Layout;
 import com.aincrad.paper.world.gen.DungeonLayoutGenerator.Placed;
 import com.aincrad.paper.world.gen.DungeonLayoutGenerator.RoomType;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Container;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.persistence.PersistentDataType;
 
 /**
- * Generated multi-level dungeons on floor 1.
- * Layouts come from DungeonLayoutGenerator (MystAsc port); three stacked
- * levels per site: entry, middle, boss. Non-final levels end in a stairs
- * room whose shaft drops into the next level (the boss pit).
+ * Generated multi-level dungeons ("Aincard" sites) on floor 1.
+ * All 3 levels of a site share one seed: rooms line up vertically, the hut
+ * sits exactly over the entrance room, and the stairs room of each level
+ * connects down into the next one. Rooms join via real corridors.
  */
 public final class FloorDungeons implements Listener {
 
@@ -38,10 +34,13 @@ public final class FloorDungeons implements Listener {
             new Point(0, 460, 1),
             new Point(-440, -220, 1));
 
-    private static final int GRID = 9, CELL = 12, LEVELS = 3;
+    private static final int GRID = 9;       // layout cells
+    private static final int CELL = 6;       // blocks per template cell (2-cell room = 12x12, interior 10x10)
+    private static final int PITCH = 13;     // cell pitch: 7-block corridor gaps between rooms
+    private static final int LEVELS = 3;
     private static final int[] FLOOR_Y = {54, 44, 34};
+    private static final int WALL_TOP = 5;   // interior fy..fy+WALL_TOP, ceiling +1
     private static final int ENTRANCE_X = 4;
-    private static final long LOCKOUT_MS = 10 * 60_000L;
     private static final String[] NAMES = {
             "The Rusty Sword", "Goblin Warrens", "The Flooded Crypt",
             "Spider's Lair", "Crystal Caverns"};
@@ -68,7 +67,6 @@ public final class FloorDungeons implements Listener {
 
     private final AincradPaperPlugin plugin;
     private MobSpawnService mobs;
-    private final Map<Point, Long> lastArmed = new java.util.concurrent.ConcurrentHashMap<>();
 
     public FloorDungeons(AincradPaperPlugin plugin) {
         this.plugin = plugin;
@@ -114,149 +112,256 @@ public final class FloorDungeons implements Listener {
         return null;
     }
 
+    // ------------------------------------------------------------------
+    //  build
+    // ------------------------------------------------------------------
+
     private void build(World w, Point p, int idx) {
         int cx = p.x(), cz = p.z();
-        for (int cX = (cx - 68) >> 4; cX <= (cx + 68) >> 4; cX++)
-            for (int cZ = (cz - 68) >> 4; cZ <= (cz + 68) >> 4; cZ++)
+        for (int cX = (cx - 72) >> 4; cX <= (cx + 72) >> 4; cX++)
+            for (int cZ = (cz - 72) >> 4; cZ <= (cz + 72) >> 4; cZ++)
                 w.loadChunk(cX, cZ, true);
         var wpc = org.bukkit.persistence.PersistentDataType.BYTE;
         if (w.getPersistentDataContainer()
-                .has(new org.bukkit.NamespacedKey(plugin, "dungeon_built_" + idx), wpc)) {
+                .has(new org.bukkit.NamespacedKey(plugin, "dungeon_built2_" + idx), wpc)) {
             built.add(p);
             return;
         }
 
-        int base = 128;
-        for (int dx = -7; dx <= 7; dx++)
-            for (int dz = -7; dz <= 7; dz++)
-                base = Math.min(base, w.getHighestBlockYAt(cx + dx, cz + dz));
-        base = Math.max(base, 60);
-
-        int gx = cx - (GRID * CELL) / 2, gz = cz - 2;
+        int gx = cx - (GRID - 1) * PITCH / 2 - 2 * CELL;
+        int gz = cz - (GRID - 1) * PITCH / 2 - 2 * CELL;
         Palette pal = PALETTES[idx];
-        long seed = 7919L * (idx + 1) + 13;
+        long seed = 7919L * (idx + 1) + 13;   // same seed -> aligned layouts
 
-        levelHutArea(w, cx, cz, base);
-        hut(w, cx, cz, base, idx);
-
+        List<Layout> layouts = new ArrayList<>();
         int anchorX = ENTRANCE_X + 3, anchorY = GRID - 4;
         for (int lvl = 0; lvl < LEVELS; lvl++) {
             boolean finalLevel = lvl == LEVELS - 1;
             Layout layout = DungeonLayoutGenerator.generate(
-                    seed + lvl * 104729L, GRID, GRID, DungeonLayoutGenerator.DEFAULT_POOL,
+                    seed, GRID, GRID, DungeonLayoutGenerator.DEFAULT_POOL,
                     lvl == 0, finalLevel, ENTRANCE_X, anchorX, anchorY, 8);
-            buildLevel(w, layout, gx, gz, FLOOR_Y[lvl], pal);
-
+            layouts.add(layout);
             Placed fin = layout.find(finalLevel ? RoomType.BOSS : RoomType.STAIRS);
-            anchorX = fin.x();
-            anchorY = fin.y();
-            if (!finalLevel) {
-                int sx = gx + (fin.x() + 1) * CELL, sz = gz + (fin.y() + 1) * CELL;
-                shaft(w, sx, sz, FLOOR_Y[lvl] - 1, FLOOR_Y[lvl + 1]);
+            if (fin != null) {
+                anchorX = fin.x();
+                anchorY = fin.y();
             }
-            if (lvl == 0) {
-                Placed e = layout.find(RoomType.ENTRANCE);
-                int[] dim = DungeonLayoutGenerator.rotDim(e.t().w(), e.t().h(), e.rot());
-                int ex = gx + e.x() * CELL + dim[0] * CELL / 2;
-                int ez = gz + e.y() * CELL + dim[1] * CELL / 2;
-                shaft(w, ex, ez, base, FLOOR_Y[0]);
-            }
-            verify(w, layout, gx, gz, FLOOR_Y[lvl], idx);
         }
-        set(w, cx - 2, FLOOR_Y[0], cz, Material.GOLD_BLOCK);
+
+        // hut + entrance shaft exactly over the entrance room center
+        Placed e = layouts.get(0).find(RoomType.ENTRANCE);
+        int[] edim = DungeonLayoutGenerator.rotDim(e.t().w(), e.t().h(), e.rot());
+        int ex = gx + e.x() * PITCH + edim[0] * CELL / 2;
+        int ez = gz + e.y() * PITCH + edim[1] * CELL / 2;
+
+        int base = 128;
+        for (int dx = -7; dx <= 7; dx++)
+            for (int dz = -7; dz <= 7; dz++)
+                base = Math.min(base, w.getHighestBlockYAt(ex + dx, ez + dz));
+        base = Math.max(base, 60);
+
+        levelHutArea(w, ex, ez, base);
+        hut(w, ex, ez, base, idx);
+
+        for (int lvl = 0; lvl < LEVELS; lvl++) {
+            buildLevel(w, layouts.get(lvl), gx, gz, FLOOR_Y[lvl], pal, idx, lvl);
+        }
+
+        // entrance shaft: hut floor -> entrance room
+        shaft(w, ex, ez, base, FLOOR_Y[0], pal);
+        set(w, ex, FLOOR_Y[0] + WALL_TOP, ez, pal.glow);
+
+        // vertical links: fin (stairs/boss) room of level L down to fin room of L+1
+        for (int lvl = 0; lvl < LEVELS - 1; lvl++) {
+            Placed fa = layouts.get(lvl).find(lvl == LEVELS - 1 ? RoomType.BOSS : RoomType.STAIRS);
+            Placed fb = layouts.get(lvl + 1).find(lvl + 1 == LEVELS - 1 ? RoomType.BOSS : RoomType.STAIRS);
+            if (fa == null || fb == null) continue;
+            int[] da = DungeonLayoutGenerator.rotDim(fa.t().w(), fa.t().h(), fa.rot());
+            int[] db = DungeonLayoutGenerator.rotDim(fb.t().w(), fb.t().h(), fb.rot());
+            int fax = gx + fa.x() * PITCH + da[0] * CELL / 2;
+            int faz = gz + fa.y() * PITCH + da[1] * CELL / 2;
+            int fbx = gx + fb.x() * PITCH + db[0] * CELL / 2;
+            int fbz = gz + fb.y() * PITCH + db[1] * CELL / 2;
+            shaft(w, fax, faz, FLOOR_Y[lvl], FLOOR_Y[lvl + 1], pal);
+            if (fax != fbx || faz != fbz) {
+                corridor(w, fax, faz, fbx, fbz, FLOOR_Y[lvl + 1], pal);
+            }
+            set(w, fax, FLOOR_Y[lvl], faz, Material.GOLD_BLOCK);
+        }
+
+        for (int lvl = 0; lvl < LEVELS; lvl++) {
+            verify(w, layouts.get(lvl), gx, gz, FLOOR_Y[lvl], idx);
+        }
         w.getPersistentDataContainer().set(
-                new org.bukkit.NamespacedKey(plugin, "dungeon_built_" + idx),
+                new org.bukkit.NamespacedKey(plugin, "dungeon_built2_" + idx),
                 org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
     }
 
-    private void buildLevel(World w, Layout layout, int gx, int gz, int fy, Palette pal) {
-        for (Placed r : layout.rooms) {
+    private void buildLevel(World w, Layout layout, int gx, int gz, int fy,
+                            Palette pal, int idx, int lvl) {
+        int[] conns = new int[layout.rooms.size()];
+        for (var c : layout.conns) {
+            conns[c.a()]++;
+            conns[c.b()]++;
+        }
+
+        // shell pass (skip some passing rooms -> open corridor junctions)
+        for (int ri = 0; ri < layout.rooms.size(); ri++) {
+            Placed r = layout.rooms.get(ri);
             int[] dim = DungeonLayoutGenerator.rotDim(r.t().w(), r.t().h(), r.rot());
-            int x0 = gx + r.x() * CELL, z0 = gz + r.y() * CELL;
+            int x0 = gx + r.x() * PITCH, z0 = gz + r.y() * PITCH;
             int x1 = x0 + dim[0] * CELL - 1, z1 = z0 + dim[1] * CELL - 1;
+            java.util.Random rr = new java.util.Random(977L * idx + 131L * lvl + ri * 17);
+            if (r.t().type() == RoomType.PASSING && conns[ri] >= 2 && rr.nextInt(100) < 35) {
+                // open junction: floor + partial walls, no roof
+                for (int x = x0; x <= x1; x++)
+                    for (int z = z0; z <= z1; z++) {
+                        set(w, x, fy - 1, z, pal.floor);
+                        for (int y = fy; y <= fy + 2; y++)
+                            set(w, x, y, z, Material.AIR);
+                        set(w, x, fy + 3, z, Material.AIR);
+                    }
+                continue;
+            }
             for (int x = x0; x <= x1; x++)
                 for (int z = z0; z <= z1; z++) {
                     boolean ring = x == x0 || x == x1 || z == z0 || z == z1;
                     set(w, x, fy - 1, z, pal.floor);
-                    for (int y = fy; y <= fy + 3; y++)
+                    for (int y = fy; y <= fy + WALL_TOP; y++)
                         set(w, x, y, z, ring ? pal.wall : Material.AIR);
-                    set(w, x, fy + 4, z, pal.wall);
+                    set(w, x, fy + WALL_TOP + 1, z, pal.wall);
                 }
         }
-        for (var c : layout.conns)
+
+        // doors + corridors between rooms that face each other
+        for (var c : layout.conns) {
             openDoor(layout, c, w, gx, gz, fy, pal);
-        for (Placed r : layout.rooms) {
+        }
+
+        // decorate + populate
+        for (int ri = 0; ri < layout.rooms.size(); ri++) {
+            Placed r = layout.rooms.get(ri);
             int[] dim = DungeonLayoutGenerator.rotDim(r.t().w(), r.t().h(), r.rot());
-            int x0 = gx + r.x() * CELL, z0 = gz + r.y() * CELL;
+            int x0 = gx + r.x() * PITCH, z0 = gz + r.y() * PITCH;
             decorate(w, r, x0, x0 + dim[0] * CELL - 1, z0, z0 + dim[1] * CELL - 1, fy, pal,
-                    layout, idxOf(pal) * 31 + r.x() * 7 + r.y() * 13);
+                    991L * idx + 61L * lvl + x0 * 7 + z0 * 13, lvl);
         }
     }
 
-    private int idxOf(Palette pal) {
-        return palIdx(pal);
-    }
+    // ------------------------------------------------------------------
+    //  decoration
+    // ------------------------------------------------------------------
 
     private void decorate(World w, Placed r, int x0, int x1, int z0, int z1,
-                          int fy, Palette pal, Layout layout, long seed) {
+                          int fy, Palette pal, long seed, int lvl) {
         java.util.Random rnd = new java.util.Random(seed);
         int mx = (x0 + x1) / 2, mz = (z0 + z1) / 2;
         int iw = x1 - x0 - 1, id = z1 - z0 - 1;
-
-        for (int x = x0 + 1; x <= x1 - 1; x++)
-            for (int z = z0 + 1; z <= z1 - 1; z++)
-                if (rnd.nextInt(100) < 6) set(w, x, fy, z, mossy(pal.floor));
-        for (int t = 0; t < 2; t++) {
-            int px = rnd.nextBoolean() ? x0 + 1 : x1 - 1;
-            int pz = rnd.nextInt(id) + z0 + 1;
-            if (rnd.nextInt(100) < 45) set(w, px, fy + 3, pz, Material.COBWEB);
-            int pz2 = rnd.nextBoolean() ? z0 + 1 : z1 - 1;
-            int px2 = rnd.nextInt(iw) + x0 + 1;
-            if (rnd.nextInt(100) < 45) set(w, px2, fy + 3, pz2, Material.COBWEB);
+        if (iw < 4 || id < 4) {
+            return; // open junction corridors get no props
         }
-        boolean corners = iw >= 8 && id >= 8;
-        if (corners && r.t().type() != RoomType.BOSS) {
-            for (int[] c : new int[][]{{x0 + 1, z0 + 1}, {x1 - 1, z0 + 1},
-                    {x0 + 1, z1 - 1}, {x1 - 1, z1 - 1}}) {
-                if (rnd.nextInt(100) < 35) set(w, c[0], fy, c[1], pal.glow);
-                if (rnd.nextInt(100) < 55) {
-                    set(w, c[0], fy + 1, c[1], Material.STONE_BRICK_WALL);
-                    set(w, c[0], fy + 2, c[1], Material.STONE_BRICK_WALL);
+        int top = fy + WALL_TOP;
+
+        // --- floor pattern (varies per room) ---
+        int pattern = rnd.nextInt(6);
+        for (int x = x0 + 1; x <= x1 - 1; x++)
+            for (int z = z0 + 1; z <= z1 - 1; z++) {
+                switch (pattern) {
+                    case 0: if (rnd.nextInt(100) < 7) set(w, x, fy, z, mossy(pal.floor)); break;
+                    case 1: if ((x + z) % 2 == 0 && rnd.nextInt(100) < 22)
+                                set(w, x, fy, z, mossy(pal.floor)); break;
+                    case 2:
+                        boolean border = x == x0 + 1 || x == x1 - 1 || z == z0 + 1 || z == z1 - 1;
+                        if (border) set(w, x, fy, z, pal.accent);
+                        else if (rnd.nextInt(100) < 5) set(w, x, fy, z, mossy(pal.floor));
+                        break;
+                    case 3: if (Math.abs(x - z) % 4 == 0 && rnd.nextInt(100) < 40)
+                                set(w, x, fy, z, mossy(pal.floor)); break;
+                    case 4:
+                        int rx = x - x0 - 1, rz = z - z0 - 1;
+                        if (rnd.nextInt(100) < (rx < 2 || rz < 2 ? 20 : 8))
+                            set(w, x, fy, z, Material.COBBLESTONE);
+                        break;
+                    default: break;
                 }
             }
+        if (pattern == 2 && iw >= 6 && id >= 6) {
+            set(w, mx, fy, mz, pal.glow);
         }
-        if (corners && iw >= 10 && id >= 10)
-            for (int[] c : new int[][]{{mx, z0 + 1}, {mx, z1 - 1}, {x0 + 1, mz}, {x1 - 1, mz}})
-                if (rnd.nextInt(100) < 60) {
-                    set(w, c[0], fy, c[1], pal.accent);
-                    set(w, c[0], fy + 1, c[1], Material.LANTERN);
-                }
 
+        // --- cobwebs high in corners + edges ---
+        for (int[] c : new int[][]{{x0 + 1, z0 + 1}, {x1 - 1, z0 + 1},
+                {x0 + 1, z1 - 1}, {x1 - 1, z1 - 1}, {mx, z0 + 1}, {mx, z1 - 1},
+                {x0 + 1, mz}, {x1 - 1, mz}}) {
+            if (rnd.nextInt(100) < 40) set(w, c[0], top, c[1], Material.COBWEB);
+            if (rnd.nextInt(100) < 20) set(w, c[0], top - 1, c[1], Material.COBWEB);
+        }
+
+        // --- wall sconces every 4 blocks, both heights ---
+        for (int x = x0 + 2; x <= x1 - 2; x += 4) {
+            if (rnd.nextInt(100) < 75) {
+                set(w, x, fy + 3, z0 + 1, pal.glow);
+                set(w, x, fy + 3, z1 - 1, pal.glow);
+            }
+        }
+        for (int z = z0 + 2; z <= z1 - 2; z += 4)
+            if (rnd.nextInt(100) < 75) {
+                set(w, x0 + 1, fy + 3, z, pal.glow);
+                set(w, x1 - 1, fy + 3, z, pal.glow);
+            }
+
+        // --- hanging chains with lamps at mid ceiling ---
+        if (iw >= 8 && id >= 8 && rnd.nextInt(100) < 70)
+            for (int[] c : new int[][]{{mx, mz}, {x0 + 3, z0 + 3}, {x1 - 3, z1 - 3}}) {
+                if (rnd.nextInt(100) < 55) {
+                    set(w, c[0], top - 1, c[1], Material.LANTERN);
+                    set(w, c[0], top, c[1], chain());
+                }
+            }
+
+        // --- random grunge props ---
+        int extras = 2 + rnd.nextInt(4);
+        for (int i = 0; i < extras; i++) {
+            int px = x0 + 1 + rnd.nextInt(iw);
+            int pz = z0 + 1 + rnd.nextInt(id);
+            switch (rnd.nextInt(9)) {
+                case 0 -> set(w, px, fy + 1, pz, randomMushroom(rnd));
+                case 1 -> { if (rnd.nextInt(100) < 60) set(w, px, fy + 1, pz, Material.DEAD_BUSH); }
+                case 2 -> set(w, px, fy + 1, pz, rnd.nextBoolean()
+                        ? Material.GRAVEL : Material.COBBLESTONE_WALL);
+                case 3 -> set(w, px, fy + 1, pz, Material.BARREL);
+                case 4 -> set(w, px, fy + 1, pz, Material.ROOTED_DIRT);
+                case 5 -> set(w, px, fy + 1, pz, Material.SCAFFOLDING);
+                case 6 -> {
+                    set(w, px, fy + 1, pz, Material.COARSE_DIRT);
+                    if (rnd.nextInt(100) < 40) set(w, px, fy + 2, pz, Material.COBWEB);
+                }
+                case 7 -> set(w, px, fy + 1, pz, Material.POINTED_DRIPSTONE);
+                default -> { }
+            }
+        }
+
+        // --- type flavor ---
         switch (r.t().type()) {
             case ENTRANCE -> {
-                for (int x = mx - 1; x <= mx + 1; x++)
-                    for (int z = mz - 1; z <= mz + 1; z++)
-                        set(w, x, fy, z, pal.accent);
+                for (int x = mx - 2; x <= mx + 2; x++)
+                    for (int z = mz - 2; z <= mz + 2; z++)
+                        if (Math.abs(x - mx) == 2 || Math.abs(z - mz) == 2)
+                            set(w, x, fy, z, pal.accent);
                 set(w, mx, fy, mz, pal.glow);
                 set(w, x0 + 2, fy, z1 - 2, Material.RESPAWN_ANCHOR);
                 set(w, x1 - 2, fy, z1 - 2, Material.SMITHING_TABLE);
                 set(w, x0 + 2, fy, z0 + 2, Material.BARREL);
                 set(w, x1 - 2, fy, z0 + 2, Material.COMPOSTER);
-                Material chain = org.bukkit.Material.matchMaterial("IRON_CHAIN") != null
-                        ? org.bukkit.Material.matchMaterial("IRON_CHAIN")
-                        : org.bukkit.Material.matchMaterial("CHAIN");
-                if (chain != null) set(w, mx, fy + 2, mz, chain);
-                set(w, mx, fy + 3, mz, pal.glow);
+                for (int i = 0; i < 4; i++) {
+                    set(w, mx - 3 + i * 2, fy + 1, mz - 3, Material.LANTERN);
+                    set(w, mx - 3 + i * 2, fy + 1, mz + 3, Material.LANTERN);
+                }
+                populate(w, rnd, x0, x1, z0, z1, fy, 1, lvl);
             }
             case PASSING -> {
-                for (int i = 0; i < 3; i++) {
-                    int px = x0 + 2 + rnd.nextInt(Math.max(1, iw - 3));
-                    int pz = z0 + 2 + rnd.nextInt(Math.max(1, id - 3));
-                    set(w, px, fy, pz, rnd.nextInt(100) < 50
-                            ? Material.COBBLESTONE : mossy(pal.floor));
-                    if (rnd.nextInt(100) < 30) set(w, px, fy + 1, pz, Material.COBWEB);
-                }
-                set(w, mx, fy, mz, pal.glow);
+                set(w, mx, fy + 1, mz, pal.glow);
+                populate(w, rnd, x0, x1, z0, z1, fy, 1 + rnd.nextInt(2), lvl);
             }
             case MONSTER -> {
                 set(w, mx, fy, mz, Material.BONE_BLOCK);
@@ -270,62 +375,110 @@ public final class FloorDungeons implements Listener {
                 for (int[] c : new int[][]{{x0 + 2, z0 + 2}, {x1 - 2, z1 - 2},
                         {x0 + 2, z1 - 2}, {x1 - 2, z0 + 2}})
                     if (rnd.nextInt(100) < 60) {
-                        set(w, c[0], fy, c[1], Material.BONE_BLOCK);
-                        set(w, c[0], fy + 1, c[1], Material.BONE_MEAL);
+                        set(w, c[0], fy + 1, c[1], Material.BONE_BLOCK);
+                        if (rnd.nextInt(100) < 50) set(w, c[0], fy + 2, c[1], Material.CALCITE);
                     }
+                populate(w, rnd, x0, x1, z0, z1, fy, 3 + rnd.nextInt(3), lvl);
             }
             case MINI_BOSS -> {
                 for (int x = mx - 2; x <= mx + 2; x++)
                     for (int z = mz - 2; z <= mz + 2; z++)
                         if (Math.abs(x - mx) == 2 || Math.abs(z - mz) == 2)
                             set(w, x, fy, z, pal.accent);
-                set(w, mx - 2, fy, mz - 2, pal.glow);
-                set(w, mx + 2, fy, mz - 2, pal.glow);
-                set(w, mx - 2, fy, mz + 2, pal.glow);
-                set(w, mx + 2, fy, mz + 2, pal.glow);
-                set(w, mx, fy + 3, mz, pal.glow);
+                for (int[] c : new int[][]{{mx - 2, mz - 2}, {mx + 2, mz - 2},
+                        {mx - 2, mz + 2}, {mx + 2, mz + 2}}) {
+                    set(w, c[0], fy + 1, c[1], pal.glow);
+                    set(w, c[0], fy + 2, c[1], Material.STONE_BRICK_WALL);
+                }
+                set(w, mx, fy, mz, Material.GOLD_BLOCK);
+                set(w, mx, top, mz, pal.glow);
+                chest(w, mx, fy + 1, mz, loot(palIdx(pal), x0 + z1, true));
+                populate(w, rnd, x0, x1, z0, z1, fy, 3, lvl);
             }
             case LOOT -> {
                 for (int x = mx - 1; x <= mx + 1; x++)
                     for (int z = mz - 1; z <= mz + 1; z++)
                         set(w, x, fy, z, pal.accent);
                 set(w, mx, fy + 2, mz, pal.glow);
-                chest(w, x0 + 2, fy, z0 + 2, loot(palIdx(pal), x0 + z0, true));
-                chest(w, x1 - 2, fy, z0 + 2, loot(palIdx(pal), x0 - z0, false));
-                chest(w, x0 + 2, fy, z1 - 2, loot(palIdx(pal), x0 * z0, false));
-                chest(w, x1 - 2, fy, z1 - 2, loot(palIdx(pal), x0 + z1, true));
+                chest(w, x0 + 2, fy + 1, z0 + 2, loot(palIdx(pal), x0 + z0, true));
+                chest(w, x1 - 2, fy + 1, z0 + 2, loot(palIdx(pal), x0 - z0, false));
+                chest(w, x0 + 2, fy + 1, z1 - 2, loot(palIdx(pal), x0 * z0, false));
+                chest(w, x1 - 2, fy + 1, z1 - 2, loot(palIdx(pal), x0 + z1, true));
                 set(w, mx, fy + 1, mz, Material.ENCHANTING_TABLE);
+                for (int dx = -1; dx <= 1; dx += 2)
+                    for (int dz = -1; dz <= 1; dz += 2)
+                        if (rnd.nextInt(100) < 70) set(w, mx + dx * 3, fy + 1, mz + dz * 3,
+                                Material.BOOKSHELF);
+                populate(w, rnd, x0, x1, z0, z1, fy, 1 + rnd.nextInt(2), lvl);
             }
             case STAIRS -> {
-                set(w, x0 + 2, fy, z1 - 2, pal.glow);
-                set(w, x1 - 2, fy, z0 + 1, pal.glow);
+                set(w, x0 + 2, fy + 1, z1 - 2, pal.glow);
+                set(w, x1 - 2, fy + 1, z0 + 1, pal.glow);
+                set(w, mx, fy, mz, Material.GOLD_BLOCK);
             }
             case BOSS -> {
                 for (int x = x0 + 2; x <= x1 - 2; x++)
                     for (int z = z0 + 2; z <= z1 - 2; z++)
-                        set(w, x, fy, z, (x == x0 + 2 || x == x1 - 2 || z == z0 + 2 || z == z1 - 2)
-                                ? Material.RED_CONCRETE : Material.NETHER_BRICKS);
+                        set(w, x, fy, z, (Math.abs(x - mx) + Math.abs(z - mz) <= 2)
+                                ? Material.GOLD_BLOCK
+                                : (x == x0 + 2 || x == x1 - 2 || z == z0 + 2 || z == z1 - 2
+                                        ? Material.RED_CONCRETE : Material.NETHER_BRICKS));
                 for (int[] c : new int[][]{{x0 + 2, z0 + 2}, {x1 - 2, z0 + 2},
                         {x0 + 2, z1 - 2}, {x1 - 2, z1 - 2}}) {
-                    set(w, c[0], fy, c[1], Material.POLISHED_BLACKSTONE);
-                    set(w, c[0], fy + 1, c[1], Material.CAMPFIRE);
+                    for (int y = fy + 1; y <= fy + 3; y++)
+                        set(w, c[0], y, c[1], Material.RED_NETHER_BRICKS);
+                    set(w, c[0], fy + 4, c[1], Material.SOUL_CAMPFIRE);
                 }
                 set(w, mx, fy, mz, Material.CRYING_OBSIDIAN);
-                set(w, mx, fy + 3, mz, Material.SHROOMLIGHT);
+                set(w, mx, top, mz, Material.SHROOMLIGHT);
                 for (int y = fy + 1; y <= fy + 2; y++) {
                     set(w, mx - 1, y, mz, Material.IRON_BARS);
                     set(w, mx + 1, y, mz, Material.IRON_BARS);
                     set(w, mx, y, mz - 1, Material.IRON_BARS);
                     set(w, mx, y, mz + 1, Material.IRON_BARS);
                 }
+                chest(w, mx, fy + 1, mz, loot(palIdx(pal), mx + mz, true));
+                if (mobs != null) {
+                    Location loc = new Location(w, mx + 0.5, fy + 1, mz + 0.5);
+                    mobs.spawnGuardian(loc, lvl + 1);
+                    populate(w, rnd, x0, x1, z0, z1, fy, 3, lvl);
+                }
             }
         }
+    }
+
+    private void populate(World w, java.util.Random rnd, int x0, int x1, int z0, int z1,
+                          int fy, int count, int lvl) {
+        if (mobs == null) return;
+        for (int i = 0; i < count; i++) {
+            int px = x0 + 2 + rnd.nextInt(Math.max(1, x1 - x0 - 3));
+            int pz = z0 + 2 + rnd.nextInt(Math.max(1, z1 - z0 - 3));
+            if (w.getBlockAt(px, fy + 1, pz).getType() == Material.AIR
+                    && w.getBlockAt(px, fy, pz).getType().isSolid()) {
+                mobs.spawnRandomAt(new Location(w, px + 0.5, fy + 1, pz + 0.5), lvl + 1);
+            }
+        }
+    }
+
+    private Material chain() {
+        Material m = Material.matchMaterial("IRON_CHAIN");
+        return m != null ? m : Material.LANTERN;
+    }
+
+    private Material randomMushroom(java.util.Random rnd) {
+        return switch (rnd.nextInt(4)) {
+            case 0 -> Material.RED_MUSHROOM;
+            case 1 -> Material.BROWN_MUSHROOM;
+            case 2 -> Material.CRIMSON_FUNGUS;
+            default -> Material.WARPED_FUNGUS;
+        };
     }
 
     private Material mossy(Material m) {
         if (m == Material.STONE_BRICKS) return Material.MOSSY_STONE_BRICKS;
         if (m == Material.COBBLED_DEEPSLATE) return Material.MOSSY_COBBLESTONE;
         if (m == Material.PRISMARINE_BRICKS) return Material.DARK_PRISMARINE;
+        if (m == Material.STONE) return Material.MOSSY_COBBLESTONE;
         return m;
     }
 
@@ -341,108 +494,129 @@ public final class FloorDungeons implements Listener {
         return new ItemStack[] {
                 ItemDefs.create(id, 1),
                 new ItemStack(Material.GOLD_INGOT, 10 + idx * 4),
-                new ItemStack(Material.EXPERIENCE_BOTTLE, 6 + idx * 3)};
+                new ItemStack(Material.EXPERIENCE_BOTTLE, 6 + idx * 3),
+                new ItemStack(Material.BREAD, 4 + idx),
+                weapon ? new ItemStack(Material.IRON_BLOCK, 2 + idx)
+                        : new ItemStack(Material.COOKED_BEEF, 3 + idx)};
     }
+
+    // ------------------------------------------------------------------
+    //  doors + corridors
+    // ------------------------------------------------------------------
 
     private void openDoor(Layout layout, DungeonLayoutGenerator.Conn c, World w,
                           int gx, int gz, int fy, Palette pal) {
         Placed a = layout.rooms.get(c.a());
         Placed b = layout.rooms.get(c.b());
+        int[] wa = DungeonLayoutGenerator.rotDim(a.t().w(), a.t().h(), a.rot());
+        int[] wb = DungeonLayoutGenerator.rotDim(b.t().w(), b.t().h(), b.rot());
+        int ax0 = gx + a.x() * PITCH, az0 = gz + a.y() * PITCH;
+        int ax1 = ax0 + wa[0] * CELL - 1, az1 = az0 + wa[1] * CELL - 1;
+        int bx0 = gx + b.x() * PITCH, bz0 = gz + b.y() * PITCH;
+        int bx1 = bx0 + wb[0] * CELL - 1, bz1 = bz0 + wb[1] * CELL - 1;
+
         for (Door ad : a.doors()) {
             int[] outer = DungeonLayoutGenerator.doorCells(a, ad, true);
-            int[] inner = null;
             for (Door bd : b.doors()) {
                 int[] ic = DungeonLayoutGenerator.doorCells(b, bd, false);
-                if (ic[0] == outer[0] && ic[1] == outer[1]
-                        && ic[2] == outer[2] && ic[3] == outer[3]) {
-                    inner = ic;
-                    break;
+                if (ic[0] != outer[0] || ic[1] != outer[1]
+                        || ic[2] != outer[2] || ic[3] != outer[3]) continue;
+                int[] A = doorPoint(ax0, az0, ax1, az1, ad);
+                int[] B = doorPoint(bx0, bz0, bx1, bz1, bd);
+                corridor(w, A[0], A[1], B[0], B[1], fy, pal);
+                doorFrame(w, A, fy, pal);
+                doorFrame(w, B, fy, pal);
+                return;
+            }
+        }
+    }
+
+    /** Door center block on a room face + outward normal. */
+    private int[] doorPoint(int x0, int z0, int x1, int z1, Door d) {
+        int along = (d.start() + 1) * CELL;
+        return switch (d.side()) {
+            case 0 -> new int[]{x0 + along, z0, 0, -1};
+            case 1 -> new int[]{x1, z0 + along, 1, 0};
+            case 2 -> new int[]{x0 + along, z1, 0, 1};
+            default -> new int[]{x0, z0 + along, -1, 0};
+        };
+    }
+
+    private void doorFrame(World w, int[] A, int fy, Palette pal) {
+        boolean vertical = A[2] != 0;
+        int x = A[0], z = A[1];
+        for (int d = -1; d <= 1; d++)
+            for (int y = fy; y <= fy + 3; y++) {
+                if (vertical) set(w, x, y, z + d, Material.AIR);
+                else set(w, x + d, y, z, Material.AIR);
+            }
+        set(w, x - A[2], fy, z - A[3], pal.accent);
+        set(w, x - A[2], fy + 1, z - A[3], pal.accent);
+        set(w, x, fy + 4, z, pal.glow);
+    }
+
+
+    /** 3-wide, 5-tall L corridor between two points on floor fy. */
+    private void corridor(World w, int x1, int z1, int x2, int z2, int fy, Palette pal) {
+        int steps = 0;
+        int x = x1, z = z1;
+        while (x != x2 && steps++ < 400) {
+            x += Integer.signum(x2 - x);
+            carveNode(w, x, z, fy, pal, steps);
+        }
+        steps = 0;
+        while (z != z2 && steps++ < 400) {
+            z += Integer.signum(z2 - z);
+            carveNode(w, x, z, fy, pal, steps);
+        }
+    }
+
+    private void carveNode(World w, int x, int z, int fy, Palette pal, int i) {
+        for (int dx = -1; dx <= 1; dx++)
+            for (int dz = -1; dz <= 1; dz++) {
+                set(w, x + dx, fy - 1, z + dz, pal.floor);
+                for (int y = fy; y <= fy + 4; y++)
+                    set(w, x + dx, y, z + dz, Material.AIR);
+                set(w, x + dx, fy + 5, z + dz, pal.wall);
+            }
+        if (i % 6 == 0) {
+            set(w, x, fy + 4, z, chain());
+            set(w, x, fy + 3, z, pal.glow);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    //  shaft, hut, verify
+    // ------------------------------------------------------------------
+
+    private void shaft(World w, int sx, int sz, int top, int bottom, Palette pal) {
+        for (int y = bottom; y <= top; y++) {
+            for (int dx = -1; dx <= 1; dx++)
+                for (int dz = -1; dz <= 1; dz++)
+                    set(w, sx + dx, y, sz + dz, Material.AIR);
+            for (int dx = -1; dx <= 1; dx++)
+                for (int dz = -1; dz <= 1; dz++)
+                    set(w, sx + dx, y - 1, sz + dz, pal.floor);
+            for (int y2 = y; y2 <= y + 1 && y2 <= top; y2++) { }
+            set(w, sx + 1, y, sz + 1, Material.LADDER);
+            if (y % 6 == 0) set(w, sx - 1, y, sz - 1, Material.SEA_LANTERN);
+        }
+        for (int y = bottom; y <= top; y++)
+            for (int dx = -1; dx <= 1; dx++)
+                for (int dz = -1; dz <= 1; dz++) {
+                    if (Math.abs(dx) == 1 || Math.abs(dz) == 1)
+                        set(w, sx + dx, y, sz + dz, pal.wall);
                 }
-            }
-            if (inner == null) continue;
-            int ux0 = Math.min(outer[0], inner[0]), uz0 = Math.min(outer[1], inner[1]);
-            int ux1 = Math.max(outer[2], inner[2]), uz1 = Math.max(outer[3], inner[3]);
-            int[] wa = DungeonLayoutGenerator.rotDim(a.t().w(), a.t().h(), a.rot());
-            int ax0 = a.x(), ax1 = a.x() + wa[0] - 1, az0 = a.y(), az1 = a.y() + wa[1] - 1;
-            if (ux0 > ax1) {
-                int xc = gx + (ax1 + 1) * CELL;
-                int zc = gz + (uz0 + uz1 + 1) * CELL / 2;
-                carveDoorV(w, xc, zc, fy, pal);
-            } else if (ux1 < ax0) {
-                int xc = gx + ax0 * CELL;
-                int zc = gz + (uz0 + uz1 + 1) * CELL / 2;
-                carveDoorV(w, xc, zc, fy, pal);
-            } else if (uz0 > az1) {
-                int zc = gz + (az1 + 1) * CELL;
-                int xc = gx + (ux0 + ux1 + 1) * CELL / 2;
-                carveDoorH(w, xc, zc, fy, pal);
-            } else if (uz1 < az0) {
-                int zc = gz + az0 * CELL;
-                int xc = gx + (ux0 + ux1 + 1) * CELL / 2;
-                carveDoorH(w, xc, zc, fy, pal);
-            }
-        }
-    }
-
-    private void carveDoorV(World w, int xc, int zc, int fy, Palette pal) {
-        for (int z = zc - 2; z <= zc + 2; z++)
-            for (int y = fy; y <= fy + 2; y++) {
-                set(w, xc - 1, y, z, Material.AIR);
-                set(w, xc, y, z, Material.AIR);
-                set(w, xc + 1, y, z, Material.AIR);
-            }
-        doorFrame(w, xc, fy, zc, true, pal);
-    }
-
-    private void carveDoorH(World w, int xc, int zc, int fy, Palette pal) {
-        for (int x = xc - 2; x <= xc + 2; x++)
-            for (int y = fy; y <= fy + 2; y++) {
-                set(w, x, y, zc - 1, Material.AIR);
-                set(w, x, y, zc, Material.AIR);
-                set(w, x, y, zc + 1, Material.AIR);
-            }
-        doorFrame(w, xc, fy, zc, false, pal);
-    }
-
-    private int[] doorCenter(Layout layout, DungeonLayoutGenerator.Conn c) {
-        Placed a = layout.rooms.get(c.a());
-        Placed b = layout.rooms.get(c.b());
-        for (Door ad : a.doors()) {
-            int[] outer = DungeonLayoutGenerator.doorCells(a, ad, true);
-            for (Door bd : b.doors()) {
-                int[] inner = DungeonLayoutGenerator.doorCells(b, bd, false);
-                if (inner[0] != outer[0] || inner[1] != outer[1]
-                        || inner[2] != outer[2] || inner[3] != outer[3]) continue;
-                int ux0 = Math.min(outer[0], inner[0]), uz0 = Math.min(outer[1], inner[1]);
-                int ux1 = Math.max(outer[2], inner[2]), uz1 = Math.max(outer[3], inner[3]);
-                int[] wa = DungeonLayoutGenerator.rotDim(a.t().w(), a.t().h(), a.rot());
-                int ax0 = a.x(), ax1 = a.x() + wa[0] - 1, az0 = a.y(), az1 = a.y() + wa[1] - 1;
-                if (ux0 > ax1) return new int[]{ax1 + 1, uz0 + uz1 + 1, 1};
-                if (ux1 < ax0) return new int[]{ax0, uz0 + uz1 + 1, 1};
-                if (uz0 > az1) return new int[]{ux0 + ux1 + 1, az1 + 1, 0};
-                if (uz1 < az0) return new int[]{ux0 + ux1 + 1, az0, 0};
-            }
-        }
-        return null;
-    }
-
-    private void doorFrame(World w, int xc, int fy, int zc, boolean vertical, Palette pal) {
-        int h = vertical ? 0 : 0;
-        Material f = pal.accent;
-        if (vertical) {
-            set(w, xc, fy, zc - 3, f);
-            set(w, xc, fy, zc + 3, f);
-            set(w, xc, fy + 1, zc - 3, f);
-            set(w, xc, fy + 1, zc + 3, f);
-            set(w, xc - 1, fy + 3, zc, pal.glow);
-            set(w, xc + 1, fy + 3, zc, pal.glow);
-        } else {
-            set(w, xc - 3, fy, zc, f);
-            set(w, xc + 3, fy, zc, f);
-            set(w, xc - 3, fy + 1, zc, f);
-            set(w, xc + 3, fy + 1, zc, f);
-            set(w, xc, fy + 3, zc - 1, pal.glow);
-            set(w, xc, fy + 3, zc + 1, pal.glow);
+        // re-carve the core after the walls
+        for (int y = bottom; y <= top; y++) {
+            for (int dx = -1; dx <= 1; dx++)
+                for (int dz = -1; dz <= 1; dz++)
+                    set(w, sx + dx, y, sz + dz, Material.AIR);
+            set(w, sx + 1, y, sz + 1, Material.LADDER);
+            if (y % 6 == 0) set(w, sx - 1, y, sz - 1, Material.SEA_LANTERN);
+            for (int dx = -1; dx <= 1; dx++)
+                for (int dz = -1; dz <= 1; dz++)
+                    set(w, sx + dx, y - 1, sz + dz, pal.floor);
         }
     }
 
@@ -470,15 +644,6 @@ public final class FloorDungeons implements Listener {
         set(w, cx + 4, base, cz, Material.SMITHING_TABLE);
     }
 
-    private void shaft(World w, int sx, int sz, int top, int bottom) {
-        for (int y = bottom; y <= top; y++) {
-            set(w, sx, y, sz, Material.AIR);
-            set(w, sx + 1, y, sz, Material.AIR);
-            set(w, sx, y, sz + 1, y % 6 == 0 ? Material.LANTERN : Material.AIR);
-            set(w, sx + 1, y, sz + 1, Material.LADDER);
-        }
-    }
-
     private void levelHutArea(World w, int cx, int cz, int base) {
         for (int dx = -5; dx <= 5; dx++)
             for (int dz = -5; dz <= 5; dz++) {
@@ -491,12 +656,22 @@ public final class FloorDungeons implements Listener {
     private void verify(World w, Layout layout, int gx, int gz, int fy, int idx) {
         int open = 0, blocked = 0;
         for (var c : layout.conns) {
-            int[] dc = doorCenter(layout, c);
+            Placed a = layout.rooms.get(c.a());
+            int[] wa = DungeonLayoutGenerator.rotDim(a.t().w(), a.t().h(), a.rot());
             boolean found = false;
-            if (dc != null) {
-                int xc = dc[2] == 1 ? gx + dc[0] * CELL : gx + dc[0] * CELL / 2;
-                int zc = dc[2] == 1 ? gz + dc[1] * CELL / 2 : gz + dc[1] * CELL;
-                found = !w.getBlockAt(xc, fy, zc).getType().isSolid();
+            for (Door ad : a.doors()) {
+                int ax0 = gx + a.x() * PITCH, az0 = gz + a.y() * PITCH;
+                int ax1 = ax0 + wa[0] * CELL - 1, az1 = az0 + wa[1] * CELL - 1;
+                int xc = ad.side() == 1 ? ax1 : ad.side() == 3 ? ax0
+                        : ax0 + (ad.start() + 1) * CELL;
+                int zc = ad.side() == 2 ? az1 : ad.side() == 0 ? az0
+                        : az0 + (ad.start() + 1) * CELL;
+                int xo = ad.side() == 1 ? 1 : ad.side() == 3 ? -1 : 0;
+                int zo = ad.side() == 2 ? 1 : ad.side() == 0 ? -1 : 0;
+                if (!w.getBlockAt(xc + xo, fy, zc + zo).getType().isSolid()) {
+                    found = true;
+                    break;
+                }
             }
             if (found) open++;
             else blocked++;
@@ -519,37 +694,5 @@ public final class FloorDungeons implements Listener {
 
     private void set(World w, int x, int y, int z, Material m) {
         w.getBlockAt(x, y, z).setType(m, false);
-    }
-
-    @EventHandler
-    public void onMove(PlayerMoveEvent event) {
-        if (event.getTo() == null
-                || (event.getFrom().getBlockX() == event.getTo().getBlockX()
-                && event.getFrom().getBlockZ() == event.getTo().getBlockZ())) return;
-        Player player = event.getPlayer();
-        if (player.getY() > 58) return;
-        int floor = FloorTerrain.parseFloor(player.getWorld().getName());
-        for (Point p : POINTS) {
-            if (p.floor() != floor) continue;
-            if (Math.hypot(player.getX() - p.x(), player.getZ() - p.z()) > 26) continue;
-            Long last = lastArmed.get(p);
-            long now = System.currentTimeMillis();
-            if (last != null && now - last < LOCKOUT_MS) continue;
-            lastArmed.put(p, now);
-            armDefenders(player, p, floor);
-        }
-    }
-
-    private void armDefenders(Player player, Point p, int floor) {
-        player.sendActionBar(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
-                .legacyAmpersand().deserialize("&4&lThe dungeon stirs..."));
-        if (mobs == null) return;
-        World w = player.getWorld();
-        for (int i = 0; i < 4; i++) {
-            Location loc = new Location(w, p.x() + 1 + i, FLOOR_Y[0], p.z() - 2);
-            if (loc.getBlock().getType() == Material.AIR) mobs.spawnRandomAt(loc, floor + 1);
-        }
-        Location g = new Location(w, p.x() - 1, FLOOR_Y[0], p.z() - 2);
-        if (g.getBlock().getType() == Material.AIR) mobs.spawnGuardian(g, floor);
     }
 }

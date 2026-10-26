@@ -281,6 +281,12 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
             world.setFullTime(12600L);
             world.setGameRule(org.bukkit.GameRule.DO_DAYLIGHT_CYCLE, false);
             world.setGameRule(org.bukkit.GameRule.DO_WEATHER_CYCLE, false);
+            org.bukkit.GameRule<?> ms = org.bukkit.GameRule.getByName("doMobSpawning");
+            if (ms != null) {
+                @SuppressWarnings("unchecked")
+                org.bukkit.GameRule<Object> gr = (org.bukkit.GameRule<Object>) ms;
+                world.setGameRule(gr, Boolean.FALSE);
+            }
             world.setStorm(false);
         } catch (Throwable ignored) {
             // custom dimensions may lack an independent world clock
