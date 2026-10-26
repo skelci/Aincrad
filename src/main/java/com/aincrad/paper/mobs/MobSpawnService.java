@@ -105,9 +105,102 @@ public class MobSpawnService implements Listener {
         return spawnSpec(spec, loc) > 0;
     }
 
+    public void purgeDungeonMobs(World world) {
+        for (Entity e : world.getEntities()) {
+            if (e.getPersistentDataContainer().has(KEY_MOB)
+                    && e.getLocation().getY() < 62 && e instanceof LivingEntity) {
+                e.remove();
+            }
+        }
+    }
+
     public int spawnRandomAt(Location loc, int floor) {
         Spec spec = pickSpec(Math.max(1, floor));
         return spec == null ? -1 : spawnSpec(spec, loc);
+    }
+
+    /** Hostile-only dungeon mob, tiered by depth level (1..3). */
+    public int spawnDungeonMob(Location loc, int floor) {
+        org.bukkit.entity.EntityType[] low = {org.bukkit.entity.EntityType.ZOMBIE,
+                org.bukkit.entity.EntityType.SKELETON, org.bukkit.entity.EntityType.SPIDER,
+                org.bukkit.entity.EntityType.HUSK, org.bukkit.entity.EntityType.CAVE_SPIDER};
+        org.bukkit.entity.EntityType[] mid = {org.bukkit.entity.EntityType.CAVE_SPIDER,
+                org.bukkit.entity.EntityType.PILLAGER, org.bukkit.entity.EntityType.STRAY,
+                org.bukkit.entity.EntityType.WITCH, org.bukkit.entity.EntityType.SKELETON,
+                org.bukkit.entity.EntityType.SPIDER};
+        org.bukkit.entity.EntityType[] hi = {org.bukkit.entity.EntityType.EVOKER,
+                org.bukkit.entity.EntityType.VINDICATOR, org.bukkit.entity.EntityType.WITCH,
+                org.bukkit.entity.EntityType.CAVE_SPIDER, org.bukkit.entity.EntityType.BLAZE,
+                org.bukkit.entity.EntityType.STRAY};
+        org.bukkit.entity.EntityType[] pool = floor <= 1 ? low : floor == 2 ? mid : hi;
+        org.bukkit.entity.EntityType type = pool[random.nextInt(pool.length)];
+        int lvl = 2 + floor * 2 + random.nextInt(3);
+        suppressSpawnEvents = true;
+        Entity spawned;
+        try {
+            spawned = loc.getWorld().spawnEntity(loc, type);
+        } finally {
+            suppressSpawnEvents = false;
+        }
+        if (!(spawned instanceof LivingEntity mob)) {
+            spawned.remove();
+            return -1;
+        }
+        mob.customName(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+                .legacyAmpersand().deserialize("&cLv" + lvl + " &f" + niceName(type)));
+        mob.setCustomNameVisible(true);
+        buff(mob, 18 + 13.0 * floor, 3.0 + 1.5 * floor, 1.0);
+        mob.getPersistentDataContainer().set(KEY_MOB, PersistentDataType.STRING, "dungeon");
+        mob.getPersistentDataContainer().set(KEY_MOB_LEVEL, PersistentDataType.INTEGER, lvl);
+        return 1;
+    }
+
+    /** Real dungeon boss: ravager, huge HP, glowing, custom name. */
+    public java.util.UUID spawnDungeonBoss(Location loc, int floor, String name) {
+        suppressSpawnEvents = true;
+        Entity spawned;
+        try {
+            spawned = loc.getWorld().spawnEntity(loc, org.bukkit.entity.EntityType.RAVAGER);
+        } finally {
+            suppressSpawnEvents = false;
+        }
+        if (!(spawned instanceof LivingEntity boss)) {
+            spawned.remove();
+            return null;
+        }
+        boss.customName(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+                .legacyAmpersand().deserialize("&4&l☠ " + name + " &r"));
+        boss.setCustomNameVisible(true);
+        boss.setGlowing(true);
+        buff(boss, 220 + 90.0 * floor, 6.0 + 2.5 * floor, 1.12);
+        boss.getPersistentDataContainer().set(KEY_MOB, PersistentDataType.STRING, "dungeon_boss");
+        boss.getPersistentDataContainer().set(KEY_MOB_LEVEL, PersistentDataType.INTEGER, floor);
+        loc.getWorld().playSound(loc, org.bukkit.Sound.ENTITY_RAVAGER_ROAR, 2f, 0.8f);
+        return boss.getUniqueId();
+    }
+
+    private void buff(LivingEntity mob, double hp, double dmg, double spd) {
+        Attribute mh = resolveAttribute(new String[]{"generic.max_health", "max_health"});
+        if (mh != null && mob.getAttribute(mh) != null) {
+            mob.getAttribute(mh).setBaseValue(hp);
+            mob.setHealth(mob.getAttribute(mh).getValue());
+        }
+        Attribute ad = resolveAttribute(new String[]{"generic.attack_damage", "attack_damage"});
+        if (ad != null && mob.getAttribute(ad) != null) {
+            mob.getAttribute(ad).setBaseValue(dmg);
+        }
+        Attribute sp = resolveAttribute(new String[]{"generic.movement_speed", "movement_speed"});
+        if (sp != null && mob.getAttribute(sp) != null) {
+            mob.getAttribute(sp).setBaseValue(mob.getAttribute(sp).getBaseValue() * spd);
+        }
+    }
+
+    private String niceName(org.bukkit.entity.EntityType type) {
+        String n = type.name().toLowerCase().replace('_', ' ');
+        StringBuilder sb = new StringBuilder();
+        for (String word : n.split(" "))
+            sb.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1)).append(' ');
+        return sb.toString().trim();
     }
 
     public void spawnGuardian(Location loc, int floor) {

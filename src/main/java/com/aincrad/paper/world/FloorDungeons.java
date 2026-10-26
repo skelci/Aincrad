@@ -67,6 +67,43 @@ public final class FloorDungeons implements Listener {
 
     private final AincradPaperPlugin plugin;
     private MobSpawnService mobs;
+    private final java.util.List<Object[]> bossTracked =
+            java.util.Collections.synchronizedList(new java.util.ArrayList<>());
+
+    private void trackBoss(java.util.UUID id, String name) {
+        if (id == null) return;
+        org.bukkit.boss.BossBar bar = org.bukkit.Bukkit.createBossBar(
+                "§4§l☠ " + name, org.bukkit.boss.BarColor.RED,
+                org.bukkit.boss.BarStyle.SOLID);
+        bar.setVisible(false);
+        bossTracked.add(new Object[]{id, bar});
+        org.bukkit.Bukkit.getScheduler().runTaskTimer(plugin, this::tickBossBars, 40L, 30L);
+    }
+
+    private void tickBossBars() {
+        synchronized (bossTracked) {
+            var it = bossTracked.iterator();
+            while (it.hasNext()) {
+                Object[] entry = it.next();
+                org.bukkit.entity.Entity e =
+                        org.bukkit.Bukkit.getEntity((java.util.UUID) entry[0]);
+                org.bukkit.boss.BossBar bar = (org.bukkit.boss.BossBar) entry[1];
+                if (!(e instanceof org.bukkit.entity.LivingEntity lv) || lv.isDead()) {
+                    bar.removeAll();
+                    it.remove();
+                    continue;
+                }
+                bar.setProgress(Math.max(0.0, Math.min(1.0, lv.getHealth() / lv.getMaxHealth())));
+                for (org.bukkit.entity.Player p : org.bukkit.Bukkit.getOnlinePlayers()) {
+                    boolean near = p.getWorld().equals(e.getWorld())
+                            && p.getLocation().distanceSquared(e.getLocation()) < 55 * 55;
+                    boolean seeing = bar.getPlayers().contains(p);
+                    if (near && !seeing) bar.addPlayer(p);
+                    if (!near && seeing) bar.removePlayer(p);
+                }
+            }
+        }
+    }
 
     public FloorDungeons(AincradPaperPlugin plugin) {
         this.plugin = plugin;
@@ -118,18 +155,17 @@ public final class FloorDungeons implements Listener {
 
     private void build(World w, Point p, int idx) {
         int cx = p.x(), cz = p.z();
-        for (int cX = (cx - 72) >> 4; cX <= (cx + 72) >> 4; cX++)
-            for (int cZ = (cz - 72) >> 4; cZ <= (cz + 72) >> 4; cZ++)
+        for (int cX = (cx - 120) >> 4; cX <= (cx + 120) >> 4; cX++)
+            for (int cZ = (cz - 120) >> 4; cZ <= (cz + 120) >> 4; cZ++)
                 w.loadChunk(cX, cZ, true);
         var wpc = org.bukkit.persistence.PersistentDataType.BYTE;
         if (w.getPersistentDataContainer()
-                .has(new org.bukkit.NamespacedKey(plugin, "dungeon_built2_" + idx), wpc)) {
+                .has(new org.bukkit.NamespacedKey(plugin, "dungeon_built4_" + idx), wpc)) {
             built.add(p);
             return;
         }
 
-        int gx = cx - (GRID - 1) * PITCH / 2 - 2 * CELL;
-        int gz = cz - (GRID - 1) * PITCH / 2 - 2 * CELL;
+        if (mobs != null) mobs.purgeDungeonMobs(w);
         Palette pal = PALETTES[idx];
         long seed = 7919L * (idx + 1) + 13;   // same seed -> aligned layouts
 
@@ -151,8 +187,10 @@ public final class FloorDungeons implements Listener {
         // hut + entrance shaft exactly over the entrance room center
         Placed e = layouts.get(0).find(RoomType.ENTRANCE);
         int[] edim = DungeonLayoutGenerator.rotDim(e.t().w(), e.t().h(), e.rot());
-        int ex = gx + e.x() * PITCH + edim[0] * CELL / 2;
-        int ez = gz + e.y() * PITCH + edim[1] * CELL / 2;
+        int exRel = e.x() * PITCH + edim[0] * CELL / 2;
+        int ezRel = e.y() * PITCH + edim[1] * CELL / 2;
+        int gx = cx - exRel, gz = cz - ezRel;
+        int ex = cx, ez = cz;
 
         int base = 128;
         for (int dx = -7; dx <= 7; dx++)
@@ -193,7 +231,7 @@ public final class FloorDungeons implements Listener {
             verify(w, layouts.get(lvl), gx, gz, FLOOR_Y[lvl], idx);
         }
         w.getPersistentDataContainer().set(
-                new org.bukkit.NamespacedKey(plugin, "dungeon_built2_" + idx),
+                new org.bukkit.NamespacedKey(plugin, "dungeon_built4_" + idx),
                 org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
     }
 
@@ -393,7 +431,12 @@ public final class FloorDungeons implements Listener {
                 set(w, mx, fy, mz, Material.GOLD_BLOCK);
                 set(w, mx, top, mz, pal.glow);
                 chest(w, mx, fy + 1, mz, loot(palIdx(pal), x0 + z1, true));
-                populate(w, rnd, x0, x1, z0, z1, fy, 3, lvl);
+                if (mobs != null) {
+                    trackBoss(mobs.spawnDungeonBoss(new Location(w, mx + 0.5, fy + 1, mz + 0.5),
+                            lvl, NAMES[palIdx(pal)] + " Champion"),
+                            NAMES[palIdx(pal)] + " Champion");
+                }
+                populate(w, rnd, x0, x1, z0, z1, fy, 4, lvl);
             }
             case LOOT -> {
                 for (int x = mx - 1; x <= mx + 1; x++)
@@ -440,7 +483,8 @@ public final class FloorDungeons implements Listener {
                 chest(w, mx, fy + 1, mz, loot(palIdx(pal), mx + mz, true));
                 if (mobs != null) {
                     Location loc = new Location(w, mx + 0.5, fy + 1, mz + 0.5);
-                    mobs.spawnGuardian(loc, lvl + 1);
+                    String bossName = NAMES[palIdx(pal)] + " Overlord";
+                    trackBoss(mobs.spawnDungeonBoss(loc, lvl + 1, bossName), bossName);
                     populate(w, rnd, x0, x1, z0, z1, fy, 3, lvl);
                 }
             }
@@ -455,7 +499,7 @@ public final class FloorDungeons implements Listener {
             int pz = z0 + 2 + rnd.nextInt(Math.max(1, z1 - z0 - 3));
             if (w.getBlockAt(px, fy + 1, pz).getType() == Material.AIR
                     && w.getBlockAt(px, fy, pz).getType().isSolid()) {
-                mobs.spawnRandomAt(new Location(w, px + 0.5, fy + 1, pz + 0.5), lvl + 1);
+                mobs.spawnDungeonMob(new Location(w, px + 0.5, fy + 1, pz + 0.5), lvl + 1);
             }
         }
     }
@@ -579,6 +623,7 @@ public final class FloorDungeons implements Listener {
                     set(w, x + dx, y, z + dz, Material.AIR);
                 set(w, x + dx, fy + 5, z + dz, pal.wall);
             }
+        if (i % 3 == 0) set(w, x, fy + 5, z, Material.SEA_LANTERN);
         if (i % 6 == 0) {
             set(w, x, fy + 4, z, chain());
             set(w, x, fy + 3, z, pal.glow);
@@ -592,32 +637,17 @@ public final class FloorDungeons implements Listener {
     private void shaft(World w, int sx, int sz, int top, int bottom, Palette pal) {
         for (int y = bottom; y <= top; y++) {
             for (int dx = -1; dx <= 1; dx++)
-                for (int dz = -1; dz <= 1; dz++)
-                    set(w, sx + dx, y, sz + dz, Material.AIR);
-            for (int dx = -1; dx <= 1; dx++)
-                for (int dz = -1; dz <= 1; dz++)
-                    set(w, sx + dx, y - 1, sz + dz, pal.floor);
-            for (int y2 = y; y2 <= y + 1 && y2 <= top; y2++) { }
-            set(w, sx + 1, y, sz + 1, Material.LADDER);
-            if (y % 6 == 0) set(w, sx - 1, y, sz - 1, Material.SEA_LANTERN);
-        }
-        for (int y = bottom; y <= top; y++)
-            for (int dx = -1; dx <= 1; dx++)
                 for (int dz = -1; dz <= 1; dz++) {
-                    if (Math.abs(dx) == 1 || Math.abs(dz) == 1)
-                        set(w, sx + dx, y, sz + dz, pal.wall);
+                    boolean ring = Math.abs(dx) == 1 || Math.abs(dz) == 1;
+                    set(w, sx + dx, y, sz + dz, ring ? pal.wall : Material.AIR);
                 }
-        // re-carve the core after the walls
-        for (int y = bottom; y <= top; y++) {
-            for (int dx = -1; dx <= 1; dx++)
-                for (int dz = -1; dz <= 1; dz++)
-                    set(w, sx + dx, y, sz + dz, Material.AIR);
             set(w, sx + 1, y, sz + 1, Material.LADDER);
             if (y % 6 == 0) set(w, sx - 1, y, sz - 1, Material.SEA_LANTERN);
-            for (int dx = -1; dx <= 1; dx++)
-                for (int dz = -1; dz <= 1; dz++)
-                    set(w, sx + dx, y - 1, sz + dz, pal.floor);
         }
+        for (int dx = -1; dx <= 1; dx++)
+            for (int dz = -1; dz <= 1; dz++)
+                set(w, sx + dx, bottom - 1, sz + dz, pal.floor);
+        set(w, sx + 1, top, sz + 1, Material.LADDER);
     }
 
     private void hut(World w, int cx, int cz, int base, int idx) {
