@@ -176,6 +176,15 @@ public class PaperSkillService {
         return STATES.computeIfAbsent(player.getUniqueId(), k -> new SkillState());
     }
 
+    public boolean setSkillRank(org.bukkit.entity.Player player, String skillId, int rank) {
+        SkillDef def = SKILLS.get(skillId);
+        if (def == null) return false;
+        int r = Math.max(1, Math.min(def.maxRank(), rank));
+        state(player).ranks.put(skillId, r);
+        saveAll();
+        return true;
+    }
+
     public static void unlockSkill(UUID playerId, String skillId) {
         SkillDef def = SKILLS.get(skillId);
         if (def == null) return;

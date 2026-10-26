@@ -37,7 +37,8 @@ public final class TreetopCleaner {
                         var b = w.getBlockAt(x, y, z);
                         Material m = b.getType();
                         if (!PLANTS.contains(m)) continue;
-                        if (w.getBlockAt(x, y - 1, z).getType().toString().contains("LEAVES")) {
+                        boolean onLeaves = w.getBlockAt(x, y - 1, z).getType().toString().contains("LEAVES");
+                        if (onLeaves || m == Material.OAK_SAPLING) {
                             b.setType(Material.AIR, false);
                             removed++;
                         }

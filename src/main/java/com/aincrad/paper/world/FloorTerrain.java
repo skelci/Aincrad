@@ -75,7 +75,6 @@ public final class FloorTerrain {
         scatter(w, r, cx, cz, 12, Material.TALL_GRASS);
         scatter(w, r, cx, cz, 6, Material.POPPY);
         scatter(w, r, cx, cz, 6, Material.DANDELION);
-        scatter(w, r, cx, cz, 3, Material.OAK_SAPLING);
         if (r.nextInt(6) == 0) tree(w, cx + r.nextInt(6) - 3, cz + r.nextInt(6) - 3, r);
     }
 

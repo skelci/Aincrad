@@ -1,0 +1,45 @@
+players:
+  776c3d2a-9b1f-485d-8f3c-95b5038b287d:
+    ranks:
+      horizontal: 5
+      rush: 5
+      heal: 5
+      chaos_streak: 5
+    uses:
+      horizontal: 4
+      healing_prayer: 3
+      heal: 9
+      rush: 10
+    unlocked:
+    - cleave
+    - heal
+    slots:
+    - rush
+    - horizontal
+    - heal
+    - chaos_streak
+    - '~'
+    - '~'
+    - '~'
+    - '~'
+    - '~'
+  52dd5791-fcf9-4bc5-b8c7-9b9345cc1453:
+    ranks:
+      horizontal: 2
+      vertical: 2
+      rush: 2
+    uses:
+      horizontal: 29
+      vertical: 16
+      rush: 5
+    unlocked: []
+    slots:
+    - horizontal
+    - vertical
+    - rush
+    - '~'
+    - '~'
+    - '~'
+    - '~'
+    - '~'
+    - '~'

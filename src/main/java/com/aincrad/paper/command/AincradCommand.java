@@ -56,6 +56,27 @@ public class AincradCommand implements CommandExecutor, TabCompleter {
                 } else sender.sendMessage("Player only");
             }
             case "floor" -> handleFloor(sender, args);
+            case "skillrank" -> {
+                if (sender instanceof org.bukkit.entity.Player pl && !pl.isOp()) {
+                    sender.sendMessage("§cOp only.");
+                    return true;
+                }
+                if (args.length < 4) {
+                    sender.sendMessage("§cUsage: /aincrad skillrank <player> <skill> <rank>");
+                    return true;
+                }
+                org.bukkit.entity.Player target = org.bukkit.Bukkit.getPlayerExact(args[1]);
+                if (target == null) { sender.sendMessage("§cPlayer not online: " + args[1]); return true; }
+                String sid = args[2].toLowerCase();
+                int rank = Integer.parseInt(args[3]);
+                if (!plugin.getSkillService().setSkillRank(target, sid, rank)) {
+                    sender.sendMessage("§cUnknown skill: " + sid);
+                    return true;
+                }
+                sender.sendMessage("§aSet " + sid + " rank " + rank + " for " + target.getName());
+                target.sendMessage("§6[Yua] §f" + sid + " set to rank " + rank + ".");
+                return true;
+            }
             case "restock" -> {
                 if (args.length < 2 || !sender.hasPermission("aincrad.admin")) {
                     sender.sendMessage("§cUsage: /aincrad restock <0-4>");

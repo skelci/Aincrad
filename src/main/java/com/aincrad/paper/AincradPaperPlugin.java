@@ -364,11 +364,11 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
     private com.aincrad.paper.world.FloorDungeons floorDungeons;
 
     public com.aincrad.paper.world.FloorDungeons getFloorDungeons() { return floorDungeons; }
+    public com.aincrad.paper.skills.PaperSkillService getSkillService() { return skillService; }
     private com.aincrad.paper.world.FloorBoss floorBoss;
     private com.aincrad.paper.economy.EconomyPersistence economyPersistence;
 
     public com.aincrad.paper.world.FloorBoss getFloorBoss() { return floorBoss; }
-    public com.aincrad.paper.skills.PaperSkillService getSkillService() { return skillService; }
 
     public DataStore getDataStore() {
         return dataStore;
