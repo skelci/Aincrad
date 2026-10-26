@@ -41,6 +41,17 @@ public class ItemMechanicListener implements Listener {
         return s[0] == 1 ? 1.0 + s[1] : 1.0;
     }
 
+    public static double totalDefense(Player player) {
+        int level = com.aincrad.paper.progression.ProgressionManager.getInstance()
+                .getProgression(player.getUniqueId()).getLevel();
+        double defense = com.aincrad.paper.progression.ProgressionManager.levelDefense(level);
+        for (ItemStack armor : player.getInventory().getArmorContents()) {
+            ItemDefs.Def def = ItemDefs.resolve(armor);
+            if (def != null) defense += def.defense();
+        }
+        return defense;
+    }
+
     private static double defenseBuff(Player p) {
         double[] s = STANCES.get(p.getUniqueId());
         if (s == null) return 1.0;
@@ -178,11 +189,7 @@ public class ItemMechanicListener implements Listener {
                 }
             }
         }
-        double defense = 0;
-        for (ItemStack armor : player.getInventory().getArmorContents()) {
-            ItemDefs.Def def = ItemDefs.resolve(armor);
-            if (def != null) defense += def.defense();
-        }
+        double defense = totalDefense(player);
         double reduced = event.getDamage() * defenseBuff(player) * (100.0 / (100.0 + defense * 2.2));
         event.setDamage(Math.max(0.0, reduced));
 

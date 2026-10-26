@@ -136,7 +136,30 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
                 com.aincrad.paper.listener.ItemMechanicListener.enforceArmor(p);
             }
         }, 40L, 20L);
-        registerCommand("stats", stats);
+        org.bukkit.command.CommandExecutor statsView = (sender, command, label, args) -> {
+            if (!(sender instanceof org.bukkit.entity.Player p)) {
+                sender.sendMessage("Player only");
+                return true;
+            }
+            int lvl = com.aincrad.paper.progression.ProgressionManager.getInstance()
+                    .getProgression(p.getUniqueId()).getLevel();
+            Double maxHp = com.aincrad.paper.progression.ProgressionManager.currentMaxHealth(p);
+            double def = com.aincrad.paper.listener.ItemMechanicListener.totalDefense(p);
+            int str = com.aincrad.paper.progression.ProgressionManager.strengthOf(lvl);
+            double mp = com.aincrad.paper.skills.PaperSkillService.mana(p);
+            double maxMp = com.aincrad.paper.skills.PaperSkillService.maxMana(p);
+            int food = p.getFoodLevel();
+            sender.sendMessage("§6§lStats §7(Lv " + lvl + ")");
+            sender.sendMessage("§cHP: §f" + String.format(java.util.Locale.ROOT, "%.1f", p.getHealth())
+                    + " / " + (maxHp == null ? "n/a" : String.format(java.util.Locale.ROOT, "%.1f", maxHp)));
+            sender.sendMessage("§9Defense: §f" + String.format(java.util.Locale.ROOT, "%.1f", def));
+            sender.sendMessage("§aStrength: §f" + str);
+            sender.sendMessage("§bMP: §f" + String.format(java.util.Locale.ROOT, "%.0f", mp)
+                    + " / " + String.format(java.util.Locale.ROOT, "%.0f", maxMp));
+            sender.sendMessage("§eST: §f" + food + " / 20");
+            return true;
+        };
+        registerCommand("stats", statsView);
         registerCommand("level", stats);
         registerCommand("aincrad", new com.aincrad.paper.command.AincradCommand(this));
         registerCommand("setlevel", (sender, command, label, args) -> {

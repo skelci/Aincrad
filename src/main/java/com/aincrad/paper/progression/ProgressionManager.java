@@ -69,6 +69,11 @@ public final class ProgressionManager {
         return level * 1.2;
     }
 
+    /** Level defense: +1 per level on top of armor defense. */
+    public static double levelDefense(int level) {
+        return level * 1.0;
+    }
+
     private static org.bukkit.attribute.AttributeInstance healthInstance(
             org.bukkit.entity.Player player) {
         for (String key : new String[]{"generic.max_health", "max_health"}) {
