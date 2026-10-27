@@ -24,7 +24,8 @@
           "height": 1
         }
       ],
-      "spikes": false
+      "spikes": false,
+      "structure_overrides": []
     }
   }
 }
