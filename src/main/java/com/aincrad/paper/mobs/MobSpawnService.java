@@ -301,22 +301,19 @@ public class MobSpawnService implements Listener {
         for (World world : plugin.getServer().getWorlds()) {
             String name = world.getName().toLowerCase();
             if (!(name.contains("floor_") || name.contains("aincrad"))) continue;
-            int floor = parseFloor(name);
-            List<Player> players = world.getPlayers();
-            if (players.isEmpty()) continue;
+            purgeAmbientMobs(world);
+            cleanupFarMobs(world, world.getPlayers());
+        }
+    }
 
-            int cap = Math.min(48, 10 + players.size() * 8);
-            int alive = countAincradMobs(world);
-            int toSpawn = Math.min(4, cap - alive);
-            for (int i = 0; i < toSpawn; i++) {
-                Player anchor = players.get(random.nextInt(players.size()));
-                Location loc = findSpawnLocation(world, anchor.getLocation());
-                if (loc == null || loc.getY() < 60) continue;
-                Spec spec = pickSpec(floor);
-                if (spec == null) continue;
-                spawnSpec(spec, loc);
-            }
-            cleanupFarMobs(world, players);
+    /** Removes plugin-spawned town/ambient mobs; dungeon mobs keep their PDC id. */
+    private void purgeAmbientMobs(World world) {
+        for (Entity e : world.getEntities()) {
+            var pdc = e.getPersistentDataContainer();
+            if (!pdc.has(KEY_MOB)) continue;
+            String id = pdc.get(KEY_MOB, PersistentDataType.STRING);
+            if (id == null || id.equals("dungeon") || id.equals("dungeon_boss")) continue;
+            if (e.getLocation().getY() >= 62) e.remove();
         }
     }
 

@@ -250,7 +250,7 @@ public final class FloorBoss implements Listener {
                     sfxDelay(org.bukkit.Sound.ENTITY_WITHER_SPAWN, 0.6f, 1.15f, 12);
                     if (mobService != null) {
                         for (int i = 0; i < 3; i++) {
-                            mobService.spawnRandomAt(boss.getLocation().add(2 - i * 2, 0, 2), 2);
+                            mobService.spawnDungeonMob(boss.getLocation().add(2 - i * 2, 0, 2), 2);
                         }
                     }
                 }
@@ -461,7 +461,7 @@ public final class FloorBoss implements Listener {
                     Location l = boss.getLocation().clone().add(
                             (i - 1.5) * 3, 0, (i % 2 == 0 ? 2 : -2));
                     if (mobService != null) {
-                        mobService.spawnRandomAt(l, bossFloor + 1);
+                        mobService.spawnDungeonMob(l, bossFloor + 1);
                     }
                 }
             }
