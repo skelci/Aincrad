@@ -93,6 +93,8 @@ public final class ItemDefs {
         add("cooked_mutton", "Cooked Mutton", Material.COOKED_MUTTON, Slot.HAND, 0, 0, 1, Rarity.COMMON);
         add("cooked_salmon", "Cooked Salmon", Material.COOKED_SALMON, Slot.HAND, 0, 0, 1, Rarity.COMMON);
         add("golden_apple", "Golden Apple", Material.GOLDEN_APPLE, Slot.HAND, 0, 0, 5, Rarity.RARE);
+
+        add("teleport_crystal", "Teleport Crystal", Material.END_CRYSTAL, Slot.OTHER, 0, 0, 1, Rarity.RARE);
     }
 
     private static final Map<String, Long> FOOD_PRICES = Map.of(
@@ -139,6 +141,10 @@ public final class ItemDefs {
         }
         if (def.defense() > 0) {
             lore.add(Component.text("Defense: " + fmt(def.defense()), NamedTextColor.GRAY)
+                    .decoration(TextDecoration.ITALIC, false));
+        }
+        if (def.id().equals("teleport_crystal")) {
+            lore.add(Component.text("Right-click: teleport to this floor's spawn (30 MP)", NamedTextColor.AQUA)
                     .decoration(TextDecoration.ITALIC, false));
         }
         lore.add(Component.text("Requires Lv " + def.levelReq(), NamedTextColor.DARK_GRAY)

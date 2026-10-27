@@ -115,6 +115,20 @@ public class MobSpawnService implements Listener {
         }
     }
 
+    public int purgeDungeonMobsNear(org.bukkit.World world, double x, double z, double radius) {
+        int removed = 0;
+        for (Entity e : world.getEntities()) {
+            if (!e.getPersistentDataContainer().has(KEY_MOB)) continue;
+            if (e.getLocation().getY() >= 62) continue;
+            if (Math.abs(e.getLocation().getX() - x) <= radius
+                    && Math.abs(e.getLocation().getZ() - z) <= radius) {
+                e.remove();
+                removed++;
+            }
+        }
+        return removed;
+    }
+
     public int spawnRandomAt(Location loc, int floor) {
         Spec spec = pickSpec(Math.max(1, floor));
         return spec == null ? -1 : spawnSpec(spec, loc);
@@ -408,6 +422,20 @@ public class MobSpawnService implements Listener {
         int count = 0;
         for (Entity e : world.getEntities()) {
             if (!e.getPersistentDataContainer().has(KEY_MOB)) continue;
+            if (e.getLocation().getY() >= 62) continue;
+            if (Math.abs(e.getLocation().getX() - x) <= radius
+                    && Math.abs(e.getLocation().getZ() - z) <= radius) count++;
+        }
+        return count;
+    }
+
+    public int countRegularDungeonMobsNear(org.bukkit.World world, double x, double z, double radius) {
+        int count = 0;
+        for (Entity e : world.getEntities()) {
+            var pdc = e.getPersistentDataContainer();
+            if (!pdc.has(KEY_MOB)) continue;
+            String id = pdc.get(KEY_MOB, PersistentDataType.STRING);
+            if (id == null || id.equals("dungeon_boss")) continue;
             if (e.getLocation().getY() >= 62) continue;
             if (Math.abs(e.getLocation().getX() - x) <= radius
                     && Math.abs(e.getLocation().getZ() - z) <= radius) count++;

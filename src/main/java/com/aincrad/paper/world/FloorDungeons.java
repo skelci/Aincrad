@@ -107,7 +107,7 @@ public final class FloorDungeons implements Listener {
             for (int i = 0; i < POINTS.size(); i++) {
                 Point pt = POINTS.get(i);
                 if (Math.abs(p.getX() - pt.x()) < 170 && Math.abs(p.getZ() - pt.z()) < 170) {
-                    stockSite(w, i);
+                    if (!stockSite(w, i)) insideZone.remove(p.getUniqueId());
                 }
             }
         }
@@ -116,20 +116,33 @@ public final class FloorDungeons implements Listener {
     public void restock(org.bukkit.World w, int idx) {
         w.getPersistentDataContainer().remove(
                 new org.bukkit.NamespacedKey(plugin, "dungeon_stock9_" + idx));
-        if (mobs != null) mobs.purgeDungeonMobs(w);
+        w.getPersistentDataContainer().remove(
+                new org.bukkit.NamespacedKey(plugin, "dungeon_stock_ok_" + idx));
+        Point pt = POINTS.get(idx);
+        if (mobs != null) mobs.purgeDungeonMobsNear(w, pt.x(), pt.z(), 260);
         stockSite(w, idx);
     }
 
-    private void stockSite(org.bukkit.World w, int idx) {
+    private boolean stockSite(org.bukkit.World w, int idx) {
+        var ok = new org.bukkit.NamespacedKey(plugin, "dungeon_stock_ok_" + idx);
         var key = new org.bukkit.NamespacedKey(plugin, "dungeon_stock9_" + idx);
         Point pt = POINTS.get(idx);
+        if (w.getPersistentDataContainer().has(ok, org.bukkit.persistence.PersistentDataType.BYTE))
+            return true;
         boolean hasMobs = mobs != null
-                && mobs.countDungeonMobsNear(w, pt.x(), pt.z(), 260) > 0;
-        if (hasMobs) return;
+                && mobs.countRegularDungeonMobsNear(w, pt.x(), pt.z(), 260) > 0;
+        if (hasMobs) {
+            w.getPersistentDataContainer().set(ok, org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
+            return true;
+        }
         w.getPersistentDataContainer().remove(key);
+        w.getPersistentDataContainer().remove(ok);
         build(w, pt, idx, true);
-        w.getPersistentDataContainer().set(key,
-                org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
+        if (mobs != null && mobs.countDungeonMobsNear(w, pt.x(), pt.z(), 260) > 0) {
+            w.getPersistentDataContainer().set(ok, org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
+            return true;
+        }
+        return false;
     }
 
     private int stockRooms(World w, List<Layout> layouts, int gx, int gz, int idx) {
@@ -275,7 +288,7 @@ public final class FloorDungeons implements Listener {
             if (!stockOnly) return;
         }
 
-        if (mobs != null) mobs.purgeDungeonMobs(w);
+        if (mobs != null) mobs.purgeDungeonMobsNear(w, cx, cz, 260);
         Palette pal = PALETTES[idx];
         long seed = 7919L * (idx + 1) + 13;   // same seed -> aligned layouts
 

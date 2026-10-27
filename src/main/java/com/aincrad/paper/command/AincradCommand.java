@@ -109,6 +109,18 @@ public class AincradCommand implements CommandExecutor, TabCompleter {
                 sender.sendMessage("§aRestocked dungeon " + args[1]);
                 return true;
             }
+            case "restockall" -> {
+                if (!sender.hasPermission("aincrad.admin")) {
+                    sender.sendMessage("§cUsage: /aincrad restockall");
+                    return true;
+                }
+                var fd = plugin.getFloorDungeons();
+                var fw = fd.worldForFloor(1);
+                if (fd == null || fw == null) { sender.sendMessage("§cfloor_1 not loaded"); return true; }
+                for (int i = 0; i < 5; i++) fd.restock(fw, i);
+                sender.sendMessage("§aRestocked all 5 dungeons.");
+                return true;
+            }
             case "boss" -> {
                 if (!sender.hasPermission("aincrad.admin")) {
                     sender.sendMessage("§cAdmin only");

@@ -154,6 +154,13 @@ public class PaperSkillService {
         return MANA.computeIfAbsent(player.getUniqueId(), k -> maxMana(player));
     }
 
+    public static boolean spendMana(Player player, double amount) {
+        double current = mana(player);
+        if (current < amount) return false;
+        MANA.put(player.getUniqueId(), current - amount);
+        return true;
+    }
+
     public static void forget(UUID id) {
         MANA.remove(id);
         COOLDOWNS.remove(id);
