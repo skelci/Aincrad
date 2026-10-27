@@ -30,6 +30,7 @@ public class MobSpawnService implements Listener {
     public static final NamespacedKey KEY_MOB = new NamespacedKey("aincrad", "mob");
     public static final NamespacedKey KEY_MOB_LEVEL = ItemMechanicListener.KEY_MOB_LEVEL;
     public static final NamespacedKey KEY_MOB_FLOOR = new NamespacedKey("aincrad", "mob_floor");
+    public static final NamespacedKey KEY_MOB_NAME = new NamespacedKey("aincrad", "mob_name");
 
     private record Spec(String id, String displayName, EntityTypeFallback type, int level, double hp,
                         double speed, double weight) {
@@ -152,6 +153,9 @@ public class MobSpawnService implements Listener {
         buff(mob, 18 + 13.0 * floor, 3.0 + 1.5 * floor, 1.0);
         mob.getPersistentDataContainer().set(KEY_MOB, PersistentDataType.STRING, "dungeon");
         mob.getPersistentDataContainer().set(KEY_MOB_LEVEL, PersistentDataType.INTEGER, lvl);
+        mob.getPersistentDataContainer().set(KEY_MOB_NAME, PersistentDataType.STRING,
+                "&cLv" + lvl + " &f" + niceName(type));
+        updateHealthTag(mob, null);
         return 1;
     }
 
@@ -175,6 +179,9 @@ public class MobSpawnService implements Listener {
         buff(boss, 220 + 90.0 * floor, 6.0 + 2.5 * floor, 1.12);
         boss.getPersistentDataContainer().set(KEY_MOB, PersistentDataType.STRING, "dungeon_boss");
         boss.getPersistentDataContainer().set(KEY_MOB_LEVEL, PersistentDataType.INTEGER, floor);
+        boss.getPersistentDataContainer().set(KEY_MOB_NAME, PersistentDataType.STRING,
+                "&4&l☠ " + name + " &r");
+        updateHealthTag(boss, null);
         loc.getWorld().playSound(loc, org.bukkit.Sound.ENTITY_RAVAGER_ROAR, 2f, 0.8f);
         return boss.getUniqueId();
     }
@@ -350,6 +357,9 @@ public class MobSpawnService implements Listener {
         mob.getPersistentDataContainer().set(KEY_MOB_LEVEL, PersistentDataType.INTEGER, spec.level());
         mob.getPersistentDataContainer().set(KEY_MOB_FLOOR, PersistentDataType.INTEGER,
                 Integer.parseInt(spec.id().substring(spec.id().lastIndexOf("@f") + 2)));
+        mob.getPersistentDataContainer().set(KEY_MOB_NAME, PersistentDataType.STRING,
+                "&cLv" + spec.level() + " &f" + spec.displayName());
+        updateHealthTag(mob, null);
         return 1;
     }
 
@@ -438,11 +448,16 @@ public class MobSpawnService implements Listener {
         for (Spec s : SPECS) {
             if (s.id().equals(id)) { spec = s; break; }
         }
-        double max = spec != null ? spec.hp() : 20;
+        Attribute mh = resolveAttribute(new String[]{"generic.max_health", "max_health"});
+        double max = (mh != null && mob.getAttribute(mh) != null)
+                ? mob.getAttribute(mh).getValue() : (spec != null ? spec.hp() : 20);
         double hp = Math.max(0, mob.getHealth());
         String bar = "&c♥ " + (int) Math.ceil(hp) + " &7/ &c" + (int) max;
-        String base = "&cLv" + (spec == null ? "?" : spec.level()) + " &f"
-                + (spec == null ? mob.getName() : spec.displayName());
+        String base = mob.getPersistentDataContainer().get(KEY_MOB_NAME, PersistentDataType.STRING);
+        if (base == null) {
+            base = "&cLv" + (spec == null ? "?" : spec.level()) + " &f"
+                    + (spec == null ? mob.getName() : spec.displayName());
+        }
         mob.customName(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
                 .legacyAmpersand().deserialize(base + " " + bar));
         if (attacker != null && attacker.isOnline()) {
