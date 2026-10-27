@@ -115,6 +115,36 @@ public final class QuestTracker {
         return Collections.unmodifiableMap(cooldowns);
     }
 
+    public Map<String, Integer> completionCounts() {
+        return Collections.unmodifiableMap(completionCounts);
+    }
+
+    public Instant getLastDailyReset() { return lastDailyReset; }
+    public Instant getLastWeeklyReset() { return lastWeeklyReset; }
+    public void setLastDailyReset(Instant t) { lastDailyReset = t; }
+    public void setLastWeeklyReset(Instant t) { lastWeeklyReset = t; }
+
+    public void restoreQuest(Quest quest, List<Integer> progress) {
+        List<QuestObjective> objectives = new ArrayList<>();
+        for (int i = 0; i < quest.objectives().size(); i++) {
+            int p = i < progress.size() ? progress.get(i) : 0;
+            objectives.add(quest.objectives().get(i).withProgress(p));
+        }
+        activeQuests.put(quest.id(), quest.withObjectives(objectives));
+    }
+
+    public void addCompleted(String questId) {
+        completedQuests.add(questId);
+    }
+
+    public void setCooldownInstant(String questId, Instant instant) {
+        cooldowns.put(questId, instant);
+    }
+
+    public void setCompletionCount(String questId, int count) {
+        completionCounts.put(questId, count);
+    }
+
     @Override
     public String toString() {
         return "QuestTracker[player=" + playerId + " active=" + activeQuests.size()

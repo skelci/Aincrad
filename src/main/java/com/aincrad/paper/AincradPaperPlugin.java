@@ -73,6 +73,9 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
         });
         com.aincrad.paper.skills.SkillGui.registerListener(this);
         com.aincrad.paper.quest.QuestManager.getInstance().setMaxActiveQuests(1);
+        com.aincrad.paper.quest.QuestManager qm = com.aincrad.paper.quest.QuestManager.getInstance();
+        qm.loadQuests();
+        getServer().getScheduler().runTaskTimer(this, qm::saveAll, 6000L, 6000L);
         com.aincrad.paper.world.TownNpcs.register(this);
         com.aincrad.paper.quest.QuestWidget.register(this);
         var skillCmd = getServer().getCommandMap().getCommand("skill");
@@ -383,6 +386,7 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
         if (skillService != null) {
             skillService.saveAll();
         }
+        com.aincrad.paper.quest.QuestManager.getInstance().saveAll();
         getLogger().info("Aincrad Paper plugin disabled.");
     }
 

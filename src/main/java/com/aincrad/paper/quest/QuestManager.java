@@ -5,6 +5,11 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import java.io.File;
+import java.io.IOException;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
+
 /**
  * Singleton managing all quest definitions and player progress.
  * Supports hot-reloading quest definitions without restarting the server.
@@ -209,6 +214,89 @@ public final class QuestManager {
     public int getMaxActiveQuests() { return maxActiveQuests; }
     public int getDailyCap() { return dailyCap; }
     public int getWeeklyCap() { return weeklyCap; }
+
+    // ── Persistence ──────────────────────────────────────────────────
+
+    private File questFile() {
+        return new File("data/Aincrad/quests.yml");
+    }
+
+    public void loadQuests() {
+        File f = questFile();
+        if (!f.exists()) return;
+        YamlConfiguration y = YamlConfiguration.loadConfiguration(f);
+        ConfigurationSection players = y.getConfigurationSection("players");
+        if (players == null) return;
+        for (String key : players.getKeys(false)) {
+            UUID id;
+            try {
+                id = UUID.fromString(key);
+            } catch (IllegalArgumentException e) {
+                continue;
+            }
+            QuestTracker t = playerTrackers.computeIfAbsent(id, QuestTracker::new);
+            ConfigurationSection ps = players.getConfigurationSection(key);
+            if (ps == null) continue;
+
+            ConfigurationSection active = ps.getConfigurationSection("active");
+            if (active != null) {
+                for (String qid : active.getKeys(false)) {
+                    Quest q = questDefinitions.get(qid);
+                    if (q == null) continue;
+                    t.restoreQuest(q, active.getIntegerList(qid));
+                }
+            }
+            for (String c : ps.getStringList("completed")) {
+                t.addCompleted(c);
+            }
+            ConfigurationSection cooldowns = ps.getConfigurationSection("cooldowns");
+            if (cooldowns != null) {
+                for (String qid : cooldowns.getKeys(false)) {
+                    t.setCooldownInstant(qid, java.time.Instant.ofEpochMilli(cooldowns.getLong(qid)));
+                }
+            }
+            ConfigurationSection counts = ps.getConfigurationSection("counts");
+            if (counts != null) {
+                for (String qid : counts.getKeys(false)) {
+                    t.setCompletionCount(qid, counts.getInt(qid));
+                }
+            }
+            long daily = ps.getLong("lastDailyReset", 0);
+            long weekly = ps.getLong("lastWeeklyReset", 0);
+            if (daily > 0) t.setLastDailyReset(java.time.Instant.ofEpochMilli(daily));
+            if (weekly > 0) t.setLastWeeklyReset(java.time.Instant.ofEpochMilli(weekly));
+        }
+    }
+
+    public void saveAll() {
+        YamlConfiguration y = new YamlConfiguration();
+        for (Map.Entry<UUID, QuestTracker> entry : playerTrackers.entrySet()) {
+            String base = "players." + entry.getKey();
+            QuestTracker t = entry.getValue();
+
+            for (Quest q : t.activeQuests()) {
+                List<Integer> progress = new ArrayList<>();
+                for (QuestObjective o : q.objectives()) progress.add(o.getCurrent());
+                y.set(base + ".active." + q.id(), progress);
+            }
+            y.set(base + ".completed", new ArrayList<>(t.completedQuests()));
+            for (Map.Entry<String, java.time.Instant> c : t.cooldowns().entrySet()) {
+                y.set(base + ".cooldowns." + c.getKey(), c.getValue().toEpochMilli());
+            }
+            for (Map.Entry<String, Integer> c : t.completionCounts().entrySet()) {
+                y.set(base + ".counts." + c.getKey(), c.getValue());
+            }
+            y.set(base + ".lastDailyReset", t.getLastDailyReset().toEpochMilli());
+            y.set(base + ".lastWeeklyReset", t.getLastWeeklyReset().toEpochMilli());
+        }
+        File f = questFile();
+        if (f.getParentFile() != null) f.getParentFile().mkdirs();
+        try {
+            y.save(f);
+        } catch (IOException ex) {
+            System.err.println("Failed to save quests.yml: " + ex.getMessage());
+        }
+    }
 
     public void reset() {
         questDefinitions.clear();
