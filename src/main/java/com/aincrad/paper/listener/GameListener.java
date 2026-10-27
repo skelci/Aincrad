@@ -101,6 +101,11 @@ public class GameListener implements Listener {
         org.bukkit.block.Block b = event.getClickedBlock();
         if (b == null) return;
         if (FORBIDDEN_INTERACT.contains(b.getType())) {
+            var held = event.getItem();
+            if (held != null) {
+                var def = com.aincrad.paper.items.ItemDefs.resolve(held);
+                if (def != null && def.id().equals("teleport_crystal")) return;
+            }
             if (b.getY() < 62) {
                 return;
             }

@@ -119,24 +119,28 @@ public class ItemMechanicListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     public void onTeleportCrystal(org.bukkit.event.player.PlayerInteractEvent event) {
         var action = event.getAction();
         if (action != org.bukkit.event.block.Action.RIGHT_CLICK_AIR
                 && action != org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack is = event.getItem();
-        if (is == null) return;
-        ItemDefs.Def def = ItemDefs.resolve(is);
-        if (def == null || !def.id().equals("teleport_crystal")) return;
         Player player = event.getPlayer();
+        ItemStack is = event.getItem();
+        if (is == null) is = player.getInventory().getItemInMainHand();
+        ItemDefs.Def def = ItemDefs.resolve(is);
+        if (def == null || !def.id().equals("teleport_crystal")) {
+            is = player.getInventory().getItemInOffHand();
+            def = ItemDefs.resolve(is);
+        }
+        if (def == null || !def.id().equals("teleport_crystal")) return;
         event.setCancelled(true);
         event.setUseItemInHand(org.bukkit.event.Event.Result.DENY);
-        if (!com.aincrad.paper.skills.PaperSkillService.spendMana(player, 30)) {
-            player.sendMessage("§cNot enough MP (30 needed).");
+        if (!com.aincrad.paper.skills.PaperSkillService.spendMana(player, 60)) {
+            player.sendMessage("§cNot enough MP (60 needed).");
             return;
         }
         player.teleport(player.getWorld().getSpawnLocation());
-        player.sendMessage("§aTeleported to this floor's spawn (§b-30 MP§a).");
+        player.sendMessage("§aTeleported to this floor's spawn (§b-60 MP§a).");
         player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_ENDERMAN_TELEPORT, 0.9f, 1.1f);
     }
 
