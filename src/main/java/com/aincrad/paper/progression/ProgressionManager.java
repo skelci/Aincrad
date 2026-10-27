@@ -109,6 +109,7 @@ public final class ProgressionManager {
                     org.bukkit.attribute.AttributeModifier.Operation.ADD_NUMBER,
                     org.bukkit.inventory.EquipmentSlotGroup.ANY));
         }
+        PassiveSkills.syncSpeed(player);
     }
 
     private int processLevelUps(PlayerProgression progression) {

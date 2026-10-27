@@ -404,6 +404,17 @@ public class MobSpawnService implements Listener {
         return null;
     }
 
+    public int countDungeonMobsNear(org.bukkit.World world, double x, double z, double radius) {
+        int count = 0;
+        for (Entity e : world.getEntities()) {
+            if (!e.getPersistentDataContainer().has(KEY_MOB)) continue;
+            if (e.getLocation().getY() >= 62) continue;
+            if (Math.abs(e.getLocation().getX() - x) <= radius
+                    && Math.abs(e.getLocation().getZ() - z) <= radius) count++;
+        }
+        return count;
+    }
+
     private int countAincradMobs(World world) {
         int count = 0;
         for (Entity e : world.getEntities()) {

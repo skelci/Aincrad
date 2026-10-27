@@ -164,7 +164,9 @@ public class PaperSkillService {
             UUID id = player.getUniqueId();
             double current = MANA.computeIfAbsent(id, k -> maxMana(player));
             double max = maxMana(player);
-            double next = Math.min(max, current + max * 0.012);
+            int level = ProgressionManager.getInstance().getProgression(id).getLevel();
+            double rate = com.aincrad.paper.progression.PassiveSkills.mpRegenPerSecond(level);
+            double next = Math.min(max, current + max * rate);
             MANA.put(id, next);
             player.setExp((float) (next / max));
         }

@@ -33,6 +33,7 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
         skillService = new com.aincrad.paper.skills.PaperSkillService(this);
         com.aincrad.paper.progression.ProgressionPersistence.wire(this);
         skillService.start();
+        com.aincrad.paper.progression.PassiveSkills.start(this);
         getServer().getPluginManager().registerEvents(new com.aincrad.paper.listener.ItemMechanicListener(), this);
         getServer().getPluginManager().registerEvents(new com.aincrad.paper.listener.DamageNumbers(this), this);
         
@@ -157,6 +158,12 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
             sender.sendMessage("§bMP: §f" + String.format(java.util.Locale.ROOT, "%.0f", mp)
                     + " / " + String.format(java.util.Locale.ROOT, "%.0f", maxMp));
             sender.sendMessage("§eST: §f" + food + " / 20");
+            double hpRegen = com.aincrad.paper.progression.PassiveSkills.hpRegenPerTwoSeconds(lvl);
+            double mpRate = com.aincrad.paper.progression.PassiveSkills.mpRegenPerSecond(lvl) * 100.0;
+            double speedPct = com.aincrad.paper.progression.PassiveSkills.speedBonus(lvl) / 0.1 * 100.0;
+            sender.sendMessage("§dPassives: §fHP +" + String.format(java.util.Locale.ROOT, "%.1f", hpRegen)
+                    + "/2s §7| §bMP +" + String.format(java.util.Locale.ROOT, "%.2f", mpRate)
+                    + "%/s §7| §eSpeed +" + String.format(java.util.Locale.ROOT, "%.0f", speedPct) + "%");
             return true;
         };
         registerCommand("stats", statsView);

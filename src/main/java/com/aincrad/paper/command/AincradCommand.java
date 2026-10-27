@@ -103,7 +103,7 @@ public class AincradCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 var fd = plugin.getFloorDungeons();
-                var fw = org.bukkit.Bukkit.getWorld("floor_1");
+                var fw = fd.worldForFloor(1);
                 if (fd == null || fw == null) { sender.sendMessage("§cfloor_1 not loaded"); return true; }
                 fd.restock(fw, Integer.parseInt(args[1]));
                 sender.sendMessage("§aRestocked dungeon " + args[1]);

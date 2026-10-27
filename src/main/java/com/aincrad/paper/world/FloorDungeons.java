@@ -78,18 +78,37 @@ public final class FloorDungeons implements Listener {
         org.bukkit.Bukkit.getScheduler().runTaskTimer(plugin, this::entryStock, 60L, 40L);
     }
 
+    private final java.util.Set<java.util.UUID> insideZone =
+            java.util.concurrent.ConcurrentHashMap.newKeySet();
+
     private void entryStock() {
         if (mobs == null) return;
         for (org.bukkit.entity.Player p
                 : org.bukkit.Bukkit.getOnlinePlayers()) {
             var w = p.getWorld();
             String wn = w.getName();
-            if (!(wn.equals("floor_1") || wn.endsWith("_floor_1") || wn.endsWith(":floor_1"))
-                    || p.getY() > 61) continue;
+            boolean floor1 = wn.equals("floor_1") || wn.endsWith("_floor_1") || wn.endsWith(":floor_1");
+            if (!floor1 || p.getY() > 61) {
+                insideZone.remove(p.getUniqueId());
+                continue;
+            }
+            boolean near = false;
+            for (Point pt : POINTS) {
+                if (Math.abs(p.getX() - pt.x()) < 170 && Math.abs(p.getZ() - pt.z()) < 170) {
+                    near = true;
+                    break;
+                }
+            }
+            if (!near) {
+                insideZone.remove(p.getUniqueId());
+                continue;
+            }
+            if (!insideZone.add(p.getUniqueId())) continue;
             for (int i = 0; i < POINTS.size(); i++) {
                 Point pt = POINTS.get(i);
-                if (Math.abs(p.getX() - pt.x()) < 170 && Math.abs(p.getZ() - pt.z()) < 170)
+                if (Math.abs(p.getX() - pt.x()) < 170 && Math.abs(p.getZ() - pt.z()) < 170) {
                     stockSite(w, i);
+                }
             }
         }
     }
@@ -103,11 +122,14 @@ public final class FloorDungeons implements Listener {
 
     private void stockSite(org.bukkit.World w, int idx) {
         var key = new org.bukkit.NamespacedKey(plugin, "dungeon_stock9_" + idx);
-        if (w.getPersistentDataContainer().has(key,
-                org.bukkit.persistence.PersistentDataType.BYTE)) return;
+        Point pt = POINTS.get(idx);
+        boolean hasMobs = mobs != null
+                && mobs.countDungeonMobsNear(w, pt.x(), pt.z(), 260) > 0;
+        if (hasMobs) return;
+        w.getPersistentDataContainer().remove(key);
+        build(w, pt, idx, true);
         w.getPersistentDataContainer().set(key,
                 org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
-        build(w, POINTS.get(idx), idx, true);
     }
 
     private int stockRooms(World w, List<Layout> layouts, int gx, int gz, int idx) {
@@ -133,15 +155,15 @@ public final class FloorDungeons implements Listener {
                 for (int i = 0; i < count; i++) {
                     int px = x0 + 2 + rnd.nextInt(Math.max(1, x1 - x0 - 3));
                     int pz = z0 + 2 + rnd.nextInt(Math.max(1, z1 - z0 - 3));
-                    if (w.getBlockAt(px, fy + 1, pz).getType() == Material.AIR
-                            && w.getBlockAt(px, fy, pz).getType().isSolid()) {
-                        mobs.spawnDungeonMob(new Location(w, px + 0.5, fy + 1, pz + 0.5), lvl + 1);
+                    if (w.getBlockAt(px, fy, pz).getType() == Material.AIR
+                            && w.getBlockAt(px, fy - 1, pz).getType().isSolid()) {
+                        mobs.spawnDungeonMob(new Location(w, px + 0.5, fy, pz + 0.5), lvl + 1);
                         n++;
                     }
                 }
                 if (t == RoomType.MINI_BOSS || t == RoomType.BOSS) {
                     int mx = (x0 + x1) / 2, mz = (z0 + z1) / 2;
-                    Location loc = new Location(w, mx + 0.5, fy + 1, mz + 0.5);
+                    Location loc = new Location(w, mx + 0.5, fy, mz + 0.5);
                     String bn = NAMES[idx] + (t == RoomType.BOSS ? " Overlord" : " Champion");
                     trackBoss(mobs.spawnDungeonBoss(loc, lvl + 1, bn), bn);
                     n++;
@@ -222,6 +244,8 @@ public final class FloorDungeons implements Listener {
             }
         }
     }
+
+    public World worldForFloor(int floor) { return floorWorld(floor); }
 
     private World floorWorld(int floor) {
         for (World w : plugin.getServer().getWorlds()) {
