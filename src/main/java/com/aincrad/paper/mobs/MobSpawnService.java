@@ -9,6 +9,7 @@ import com.aincrad.paper.progression.ProgressionManager;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -31,6 +32,7 @@ public class MobSpawnService implements Listener {
     public static final NamespacedKey KEY_MOB_LEVEL = ItemMechanicListener.KEY_MOB_LEVEL;
     public static final NamespacedKey KEY_MOB_FLOOR = new NamespacedKey("aincrad", "mob_floor");
     public static final NamespacedKey KEY_MOB_NAME = new NamespacedKey("aincrad", "mob_name");
+    public static final NamespacedKey KEY_NPC = new NamespacedKey("aincrad", "npc");
 
     private record Spec(String id, String displayName, EntityTypeFallback type, int level, double hp,
                         double speed, double weight) {
@@ -125,6 +127,21 @@ public class MobSpawnService implements Listener {
                 e.remove();
                 removed++;
             }
+        }
+        return removed;
+    }
+
+    /** Removes vanilla living entities but keeps tagged mod mobs and town NPCs. */
+    public int purgeVanillaMobs(World world) {
+        int removed = 0;
+        for (Entity e : world.getEntities()) {
+            if (!(e instanceof LivingEntity)) continue;
+            if (e instanceof Player) continue;
+            if (e instanceof ArmorStand) continue;
+            var pdc = e.getPersistentDataContainer();
+            if (pdc.has(KEY_MOB) || pdc.has(KEY_NPC)) continue;
+            e.remove();
+            removed++;
         }
         return removed;
     }

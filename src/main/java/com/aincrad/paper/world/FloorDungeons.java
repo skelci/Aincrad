@@ -155,11 +155,11 @@ public final class FloorDungeons implements Listener {
                 RoomType t = r.t().type();
                 int count = switch (t) {
                     case ENTRANCE -> 0;
-                    case MONSTER -> 4;
-                    case LOOT -> 3;
-                    case STAIRS, PASSING -> 1;
-                    case MINI_BOSS -> 2;
-                    case BOSS -> 3;
+                    case MONSTER -> 8;
+                    case LOOT -> 6;
+                    case STAIRS, PASSING -> 2;
+                    case MINI_BOSS -> 4;
+                    case BOSS -> 6;
                 };
                 if (count == 0) continue;
                 int[] dim = DungeonLayoutGenerator.rotDim(r.t().w(), r.t().h(), r.rot());
@@ -255,6 +255,16 @@ public final class FloorDungeons implements Listener {
                 built.remove(p);
                 org.bukkit.Bukkit.getLogger().warning("[Aincrad] Dungeon build failed: " + e);
             }
+        }
+    }
+
+    /** Stock every site without waiting for a player to enter. */
+    public void stockAll() {
+        for (int i = 0; i < POINTS.size(); i++) {
+            Point p = POINTS.get(i);
+            World w = floorWorld(p.floor());
+            if (w == null) continue;
+            restock(w, i);
         }
     }
 

@@ -36,6 +36,10 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
         com.aincrad.paper.progression.PassiveSkills.start(this);
         getServer().getPluginManager().registerEvents(new com.aincrad.paper.listener.ItemMechanicListener(), this);
         getServer().getPluginManager().registerEvents(new com.aincrad.paper.listener.DamageNumbers(this), this);
+
+        for (var world : getServer().getWorlds()) {
+            disableNaturalMobSpawning(world);
+        }
         
         // Generate Floor 1 plaza + override spawn (south of fountain, on road)
         getServer().getScheduler().runTaskLater(this, () -> {
@@ -261,6 +265,7 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
 
     @org.bukkit.event.EventHandler
     public void onFloorWorldLoad(org.bukkit.event.world.WorldLoadEvent event) {
+        disableNaturalMobSpawning(event.getWorld());
         if (isFloor1(event.getWorld())) {
             getServer().getScheduler().runTaskLater(this, this::setupFloor1, 40L);
         }
@@ -305,6 +310,7 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
                 configureFloorWorld(world);
                 if (floorDungeons != null) {
                     floorDungeons.buildAll();
+                    floorDungeons.stockAll();
                 }
                 if (floorBoss != null) {
                     floorBoss.buildArena();
@@ -313,18 +319,26 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
             }
     }
 
-    /** SAO floors: eternal dusk, no weather, world border. */
-    private void configureFloorWorld(org.bukkit.World world) {
+    /** Turns off natural mob spawning in a world. */
+    private void disableNaturalMobSpawning(org.bukkit.World world) {
         try {
-            world.setFullTime(12600L);
-            world.setGameRule(org.bukkit.GameRule.DO_DAYLIGHT_CYCLE, false);
-            world.setGameRule(org.bukkit.GameRule.DO_WEATHER_CYCLE, false);
             org.bukkit.GameRule<?> ms = org.bukkit.GameRule.getByName("doMobSpawning");
             if (ms != null) {
                 @SuppressWarnings("unchecked")
                 org.bukkit.GameRule<Object> gr = (org.bukkit.GameRule<Object>) ms;
                 world.setGameRule(gr, Boolean.FALSE);
             }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /** SAO floors: eternal dusk, no weather, world border. */
+    private void configureFloorWorld(org.bukkit.World world) {
+        try {
+            world.setFullTime(12600L);
+            world.setGameRule(org.bukkit.GameRule.DO_DAYLIGHT_CYCLE, false);
+            world.setGameRule(org.bukkit.GameRule.DO_WEATHER_CYCLE, false);
+            disableNaturalMobSpawning(world);
             world.setStorm(false);
         } catch (Throwable ignored) {
             // custom dimensions may lack an independent world clock

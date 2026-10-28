@@ -13,7 +13,8 @@ import java.util.List;
 public class AincradCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> SUBCOMMANDS = List.of(
-            "guild", "party", "quest", "progression", "dungeon", "economy", "item", "mob", "skill", "help"
+            "guild", "party", "quest", "progression", "dungeon", "economy", "item", "mob", "skill",
+            "restock", "restockall", "purgevanilla", "lastchange", "help"
     );
 
     private final AincradPaperPlugin plugin;
@@ -95,6 +96,22 @@ public class AincradCommand implements CommandExecutor, TabCompleter {
                 } catch (Exception e) {
                     sender.sendMessage("§cFailed: " + e.getMessage());
                 }
+                return true;
+            }
+            case "purgevanilla" -> {
+                if (sender instanceof org.bukkit.entity.Player pl && !pl.isOp()) {
+                    sender.sendMessage("§cOp only.");
+                    return true;
+                }
+                if (plugin.getMobSpawnService() == null) {
+                    sender.sendMessage("§cMob service not started");
+                    return true;
+                }
+                int removed = 0;
+                for (org.bukkit.World w : plugin.getServer().getWorlds()) {
+                    removed += plugin.getMobSpawnService().purgeVanillaMobs(w);
+                }
+                sender.sendMessage("§aPurged " + removed + " vanilla mobs.");
                 return true;
             }
             case "restock" -> {
