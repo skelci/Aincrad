@@ -3,6 +3,7 @@ package com.aincrad;
 import com.aincrad.client.HudStats;
 
 import com.aincrad.client.SkillKeys;
+import com.aincrad.client.MapKey;
 import com.aincrad.client.BossFx;
 import com.aincrad.hud.*;
 import net.fabricmc.api.ClientModInitializer;
@@ -14,6 +15,7 @@ public class AincradClient implements ClientModInitializer {
     public void onInitializeClient() {
         AincradMod.LOGGER.info("Aincrad client initialized");
         SkillKeys.register();
+        MapKey.register();
         BossFx.register();
         HudStats.register();
         EntityRendererRegistry.register(EntityTypes.RAVAGER, com.aincrad.client.IlfangRenderer::new);

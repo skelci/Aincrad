@@ -13,12 +13,17 @@ import net.minecraft.world.phys.AABB;
 import java.util.List;
 
 public class Minimap extends HudElement {
-    private static final int MAP_SIZE = 128;
+    private static final int MAP_SIZE = 160;
     private static final int RADIUS = MAP_SIZE / 2;
     private static final int STEP = 2;
     private static final int SAMPLES = MAP_SIZE / STEP;
     private static final long REBUILD_NANOS = 2_000_000_000L;
-    private static final double MOVE_REBUILD = 6.0;
+    private static final double MOVE_REBUILD = 1.0;
+
+    private static final double SHOP_X = -42.5;
+    private static final double SHOP_Z = 1.5;
+    private static final double QUEST_X = 38.5;
+    private static final double QUEST_Z = 5.5;
 
     private final int[] terrain = new int[SAMPLES * SAMPLES];
     private boolean hasTerrain = false;
@@ -41,6 +46,7 @@ public class Minimap extends HudElement {
     public void update() {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null) return;
+        MapTracker.tick(mc);
         double px = mc.player.getX();
         double pz = mc.player.getZ();
         centerY = (int) Math.floor(mc.player.getY());
@@ -182,6 +188,7 @@ public class Minimap extends HudElement {
         }
 
         renderEntities(extractor, mc, mapX, mapY);
+        renderMapMarkers(extractor, mc, mapX, mapY);
 
         int pcx = mapX + RADIUS;
         int pcy = mapY + RADIUS;
@@ -224,6 +231,24 @@ public class Minimap extends HudElement {
             }
         } catch (Exception ignored) {
         }
+    }
+
+    private void renderMapMarkers(GuiGraphicsExtractor extractor, Minecraft mc, int mapX, int mapY) {
+        if (!String.valueOf(mc.level.dimension()).contains("floor_1")) return;
+        drawMarker(extractor, mc, mapX, mapY, SHOP_X, SHOP_Z, 0xFFE8C33A, "S");
+        drawMarker(extractor, mc, mapX, mapY, QUEST_X, QUEST_Z, 0xFF44DDFF, "!");
+    }
+
+    private void drawMarker(GuiGraphicsExtractor extractor, Minecraft mc, int mapX, int mapY,
+                            double wx, double wz, int color, String glyph) {
+        int dx = (int) (wx - centerX);
+        int dz = (int) (wz - centerZ);
+        if (dx * dx + dz * dz >= (RADIUS - 6) * (RADIUS - 6)) return;
+        int sx = mapX + RADIUS + dx;
+        int sy = mapY + RADIUS + dz;
+        extractor.fill(sx - 3, sy - 3, sx + 3, sy + 3, 0xCC000000);
+        extractor.fill(sx - 2, sy - 2, sx + 2, sy + 2, color);
+        extractor.text(mc.font, glyph, sx - 2, sy - 4, 0xFFFFFFFF);
     }
 
     public void toggleSize() {
