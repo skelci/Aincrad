@@ -265,7 +265,24 @@ public final class FloorDungeons implements Listener {
             World w = floorWorld(p.floor());
             if (w == null) continue;
             restock(w, i);
+            stockExterior(w, p, i);
         }
+    }
+
+    private void stockExterior(World w, Point pt, int idx) {
+        if (mobs == null) return;
+        var key = new org.bukkit.NamespacedKey(plugin, "dungeon_ext_" + idx);
+        var wpc = org.bukkit.persistence.PersistentDataType.BYTE;
+        if (w.getPersistentDataContainer().has(key, wpc)) return;
+        int[][] offsets = {{22, 0}, {-22, 0}, {0, 22}, {0, -22}};
+        for (int[] o : offsets) {
+            int x = pt.x() + o[0];
+            int z = pt.z() + o[1];
+            int y = w.getHighestBlockYAt(x, z) + 1;
+            mobs.spawnDungeonMob(new Location(w, x + 0.5, y, z + 0.5), 1);
+        }
+        w.getPersistentDataContainer().set(key, wpc, (byte) 1);
+        plugin.getLogger().info("Dungeon exterior guards stocked: " + NAMES[idx]);
     }
 
     public World worldForFloor(int floor) { return floorWorld(floor); }
