@@ -457,6 +457,32 @@ public class MobSpawnService implements Listener {
         return count;
     }
 
+    public int countDungeonBossesNear(org.bukkit.World world, double x, double z, double radius) {
+        int count = 0;
+        for (Entity e : world.getEntities()) {
+            var pdc = e.getPersistentDataContainer();
+            String id = pdc.get(KEY_MOB, PersistentDataType.STRING);
+            if (!"dungeon_boss".equals(id)) continue;
+            if (e.getLocation().getY() >= 62) continue;
+            if (Math.abs(e.getLocation().getX() - x) <= radius
+                    && Math.abs(e.getLocation().getZ() - z) <= radius) count++;
+        }
+        return count;
+    }
+
+    public int countSurfaceDungeonMobsNear(org.bukkit.World world, double x, double z, double radius) {
+        int count = 0;
+        for (Entity e : world.getEntities()) {
+            var pdc = e.getPersistentDataContainer();
+            String id = pdc.get(KEY_MOB, PersistentDataType.STRING);
+            if (!"dungeon".equals(id)) continue;
+            if (e.getLocation().getY() < 62) continue;
+            if (Math.abs(e.getLocation().getX() - x) <= radius
+                    && Math.abs(e.getLocation().getZ() - z) <= radius) count++;
+        }
+        return count;
+    }
+
     private int countAincradMobs(World world) {
         int count = 0;
         for (Entity e : world.getEntities()) {
@@ -467,8 +493,15 @@ public class MobSpawnService implements Listener {
 
     private void cleanupFarMobs(World world, List<Player> players) {
         for (Entity e : world.getEntities()) {
-            if (!e.getPersistentDataContainer().has(KEY_MOB)) continue;
+            var pdc = e.getPersistentDataContainer();
+            if (!pdc.has(KEY_MOB)) continue;
             if (e.getLocation().getY() < 62) continue;
+            String id = pdc.get(KEY_MOB, PersistentDataType.STRING);
+            if (id != null && id.equals("dungeon")
+                    && com.aincrad.paper.world.FloorDungeons.nearDungeon(
+                            world, (int) e.getLocation().getX(), (int) e.getLocation().getZ(), 130)) {
+                continue;
+            }
             if (Math.hypot(e.getLocation().getX(), e.getLocation().getZ()) < 122) {
                 e.remove();
                 continue;
@@ -572,6 +605,27 @@ public class MobSpawnService implements Listener {
         if (killer == null) return;
         Integer level = mob.getPersistentDataContainer().get(KEY_MOB_LEVEL, PersistentDataType.INTEGER);
         int lvl = level == null ? 1 : level;
+
+        if ("dungeon_boss".equals(id)) {
+            double xp = 300 + lvl * 150.0;
+            long col = 120L + lvl * 80L;
+            ProgressionManager.getInstance().addXp(killer.getUniqueId(), xp);
+            EconomyManager.getInstance().deposit(killer.getUniqueId(), new Col(col), "boss_kill:" + id);
+            progressKillQuests(killer);
+            killer.sendActionBar(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+                    .legacyAmpersand().deserialize("&6BOSS +" + (int) xp + " XP &7| &e+" + col + " Col"));
+            String[] bossDrops = {"demon_crasher", "beast_stinger", "moonlit_blade", "dark_repulser"};
+            int drops = 1 + lvl;
+            for (int i = 0; i < drops; i++) {
+                String drop = bossDrops[random.nextInt(bossDrops.length)];
+                var stack = ItemDefs.create(drop, 1);
+                if (stack != null) mob.getWorld().dropItemNaturally(mob.getLocation(), stack);
+            }
+            var apple = ItemDefs.create("golden_apple", 1);
+            if (apple != null) mob.getWorld().dropItemNaturally(mob.getLocation(), apple);
+            this.mob = null;
+            return;
+        }
 
         double xp = 6 + lvl * 4.0;
         long col = 6L + lvl * 5L;

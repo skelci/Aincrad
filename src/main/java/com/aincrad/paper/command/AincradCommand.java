@@ -14,7 +14,7 @@ public class AincradCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> SUBCOMMANDS = List.of(
             "guild", "party", "quest", "progression", "dungeon", "economy", "item", "mob", "skill",
-            "restock", "restockall", "purgevanilla", "lastchange", "help"
+            "restock", "restockall", "purgevanilla", "mobcount", "lastchange", "help"
     );
 
     private final AincradPaperPlugin plugin;
@@ -95,6 +95,32 @@ public class AincradCommand implements CommandExecutor, TabCompleter {
                     sender.sendMessage("§aSaved last change note.");
                 } catch (Exception e) {
                     sender.sendMessage("§cFailed: " + e.getMessage());
+                }
+                return true;
+            }
+            case "mobcount" -> {
+                if (sender instanceof org.bukkit.entity.Player pl && !pl.isOp()) {
+                    sender.sendMessage("§cOp only.");
+                    return true;
+                }
+                var fd = plugin.getFloorDungeons();
+                var ms = plugin.getMobSpawnService();
+                if (fd == null || ms == null) {
+                    sender.sendMessage("§cNot ready.");
+                    return true;
+                }
+                org.bukkit.World w = fd.worldForFloor(1);
+                if (w == null) {
+                    sender.sendMessage("§cfloor_1 not loaded");
+                    return true;
+                }
+                for (int i = 0; i < 5; i++) {
+                    var p = com.aincrad.paper.world.FloorDungeons.site(i);
+                    int regular = ms.countRegularDungeonMobsNear(w, p.x(), p.z(), 260);
+                    int bosses = ms.countDungeonBossesNear(w, p.x(), p.z(), 260);
+                    int surface = ms.countSurfaceDungeonMobsNear(w, p.x(), p.z(), 60);
+                    sender.sendMessage("§eSite " + i + ": interior=" + regular
+                            + " bosses=" + bosses + " surface=" + surface);
                 }
                 return true;
             }

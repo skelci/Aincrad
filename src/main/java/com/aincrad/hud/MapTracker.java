@@ -89,7 +89,7 @@ public final class MapTracker {
         int wz = cz * 16 + 8;
         int baseY = (int) Math.floor(mc.player.getY());
         BlockPos pos = new BlockPos(wx, baseY, wz);
-        for (int y = baseY + 16; y >= baseY - 16; y--) {
+        for (int y = baseY + 8; y >= baseY - 8; y--) {
             pos = new BlockPos(wx, y, wz);
             if (!mc.level.isLoaded(pos)) continue;
             BlockState st = mc.level.getBlockState(pos);

@@ -38,12 +38,12 @@ public final class QuestManager {
 
         registerQuest(new Quest("f1_warm_steel", "Warm Steel, Cold Morning", QuestType.MAIN, 1, "Guide Asuna",
                 List.of(),
-                List.of(new QuestObjective(K, "Frenzy Cow", 4)),
+                List.of(new QuestObjective(K, "Zombie", 4)),
                 new QuestReward(35, 150, List.of(), 1), Quest.TurnInMethod.UI, false));
         registerQuest(new Quest("f1_ranch_trouble", "Ranch Trouble", QuestType.MAIN, 1, "Guild Receptionist",
                 List.of("f1_warm_steel"),
-                List.of(new QuestObjective(K, "Blood Fang Pig", 4),
-                        new QuestObjective(K, "Mad Fleece", 4)),
+                List.of(new QuestObjective(K, "Pillager", 4),
+                        new QuestObjective(K, "Skeleton", 4)),
                 new QuestReward(55, 200, List.of(), 1), Quest.TurnInMethod.UI, false));
         registerQuest(new Quest("f1_cull_the_foe", "Cull the Foe", QuestType.SIDE, 1, "Guild Receptionist",
                 List.of(),
@@ -63,7 +63,7 @@ public final class QuestManager {
                 new QuestReward(45, 200, List.of(), 1), Quest.TurnInMethod.UI, false));
         registerQuest(new Quest("f1_ilfang_ending", "The End of Ilfang's Road", QuestType.MAIN, 1, "Guide Asuna",
                 List.of("f1_ranch_trouble", "f1_cull_the_foe"),
-                List.of(new QuestObjective(D, "Ilfang", 1)),
+                List.of(new QuestObjective(D, "Overlord", 1)),
                 new QuestReward(180, 800, List.of(), 2), Quest.TurnInMethod.UI, false));
         registerQuest(new Quest("f1_daily_round", "Round the Floor", QuestType.DAILY, 1, "Watchman Corin",
                 List.of(),

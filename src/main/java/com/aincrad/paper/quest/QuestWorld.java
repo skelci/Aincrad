@@ -79,7 +79,8 @@ public final class QuestWorld {
                         spot = create(player.getWorld(), target);
                         if (spot == null) continue;
                         SPOTS.put(target, spot);
-                        player.sendMessage("§7Something about the day feels... pointed. §8(look around the map)");
+                        player.sendMessage("§7Something about the day feels... pointed. §8(look near X="
+                                + spot.location().getBlockX() + " Z=" + spot.location().getBlockZ() + ")");
                     }
                     if (!spot.location().getWorld().equals(player.getWorld())) continue;
                     double dist = player.getLocation().distance(spot.location());
@@ -89,7 +90,7 @@ public final class QuestWorld {
                         spot.location().getWorld().spawnParticle(org.bukkit.Particle.HAPPY_VILLAGER,
                                 spot.location().add(0, 0.4, 0), 2, 0.2, 0.1, 0.2, 0.0);
                     }
-                    if (dist < 2.4) {
+                    if (dist < 6.0) {
                         claim(player, quest, i, target, spot);
                     }
                 }

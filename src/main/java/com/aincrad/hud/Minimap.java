@@ -15,10 +15,10 @@ import java.util.List;
 public class Minimap extends HudElement {
     private static final int MAP_SIZE = 160;
     private static final int RADIUS = MAP_SIZE / 2;
-    private static final int STEP = 4;
+    private static final int STEP = 8;
     private static final int SAMPLES = MAP_SIZE / STEP;
-    private static final long REBUILD_NANOS = 3_000_000_000L;
-    private static final double MOVE_REBUILD = 3.0;
+    private static final long REBUILD_NANOS = 5_000_000_000L;
+    private static final double MOVE_REBUILD = 6.0;
 
     private static final double SHOP_X = -42.5;
     private static final double SHOP_Z = 1.5;
@@ -98,7 +98,7 @@ public class Minimap extends HudElement {
                         continue;
                     }
                     boolean found = false;
-                    for (int y = centerY + 16; y >= centerY - 16; y--) {
+                    for (int y = centerY + 8; y >= centerY - 8; y--) {
                         cursor.setY(y);
                         BlockState st = mc.level.getBlockState(cursor);
                         if (st.isAir()) continue;

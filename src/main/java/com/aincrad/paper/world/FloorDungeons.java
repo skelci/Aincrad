@@ -69,13 +69,21 @@ public final class FloorDungeons implements Listener {
     private MobSpawnService mobs;
     private final java.util.List<Object[]> bossTracked =
             java.util.Collections.synchronizedList(new java.util.ArrayList<>());
+    private final java.util.Map<Integer, Location> bossAnchors = new java.util.HashMap<>();
 
+    private boolean bossGuardArmed;
     private boolean stockTaskArmed;
 
     private void armEntryStock() {
         if (stockTaskArmed) return;
         stockTaskArmed = true;
         org.bukkit.Bukkit.getScheduler().runTaskTimer(plugin, this::entryStock, 60L, 40L);
+    }
+
+    private void armBossGuard() {
+        if (bossGuardArmed) return;
+        bossGuardArmed = true;
+        org.bukkit.Bukkit.getScheduler().runTaskTimer(plugin, this::ensureBosses, 1200L, 1200L);
     }
 
     private final java.util.Set<java.util.UUID> insideZone =
@@ -89,26 +97,30 @@ public final class FloorDungeons implements Listener {
             String wn = w.getName();
             boolean floor1 = wn.equals("floor_1") || wn.endsWith("_floor_1") || wn.endsWith(":floor_1");
             if (!floor1 || p.getY() > 61) {
-                insideZone.remove(p.getUniqueId());
                 continue;
             }
-            boolean near = false;
-            for (Point pt : POINTS) {
-                if (Math.abs(p.getX() - pt.x()) < 170 && Math.abs(p.getZ() - pt.z()) < 170) {
-                    near = true;
-                    break;
-                }
-            }
-            if (!near) {
-                insideZone.remove(p.getUniqueId());
-                continue;
-            }
-            if (!insideZone.add(p.getUniqueId())) continue;
             for (int i = 0; i < POINTS.size(); i++) {
                 Point pt = POINTS.get(i);
                 if (Math.abs(p.getX() - pt.x()) < 170 && Math.abs(p.getZ() - pt.z()) < 170) {
                     if (!stockSite(w, i)) insideZone.remove(p.getUniqueId());
                 }
+            }
+        }
+    }
+
+    private void ensureBosses() {
+        if (mobs == null) return;
+        for (int i = 0; i < POINTS.size(); i++) {
+            Point p = POINTS.get(i);
+            World w = floorWorld(p.floor());
+            Location anchor = bossAnchors.get(i);
+            if (w == null || anchor == null) continue;
+            if (mobs.countDungeonBossesNear(w, p.x(), p.z(), 260) > 0) continue;
+            String bn = NAMES[i] + " Overlord";
+            java.util.UUID id = mobs.spawnDungeonBoss(anchor, 3, bn);
+            if (id != null) {
+                trackBoss(id, bn);
+                plugin.getLogger().info("Dungeon boss respawned: " + bn);
             }
         }
     }
@@ -168,22 +180,51 @@ public final class FloorDungeons implements Listener {
                 for (int i = 0; i < count; i++) {
                     int px = x0 + 2 + rnd.nextInt(Math.max(1, x1 - x0 - 3));
                     int pz = z0 + 2 + rnd.nextInt(Math.max(1, z1 - z0 - 3));
-                    if (w.getBlockAt(px, fy, pz).getType() == Material.AIR
-                            && w.getBlockAt(px, fy - 1, pz).getType().isSolid()) {
-                        mobs.spawnDungeonMob(new Location(w, px + 0.5, fy, pz + 0.5), lvl + 1);
-                        n++;
-                    }
+                    if (spawnRoomMob(w, px, pz, fy, lvl + 1) > 0) n++;
                 }
                 if (t == RoomType.MINI_BOSS || t == RoomType.BOSS) {
-                    int mx = (x0 + x1) / 2, mz = (z0 + z1) / 2;
-                    Location loc = new Location(w, mx + 0.5, fy, mz + 0.5);
+                    Location loc = bossSpot(w, x0, x1, z0, z1, fy, (x0 + x1) / 2, (z0 + z1) / 2);
                     String bn = NAMES[idx] + (t == RoomType.BOSS ? " Overlord" : " Champion");
-                    trackBoss(mobs.spawnDungeonBoss(loc, lvl + 1, bn), bn);
+                    java.util.UUID bossId = mobs.spawnDungeonBoss(loc, lvl + 1, bn);
+                    trackBoss(bossId, bn);
+                    if (t == RoomType.BOSS && bossId != null) {
+                        bossAnchors.put(idx, loc.clone());
+                        w.setChunkForceLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4, true);
+                        plugin.getLogger().info("Dungeon boss spawned: " + bn);
+                    }
                     n++;
                 }
             }
         }
         return n;
+    }
+
+    private int spawnRoomMob(World w, int px, int pz, int fy, int lvl) {
+        int y = fy;
+        if (w.getBlockAt(px, y, pz).getType() != Material.AIR) y++;
+        if (w.getBlockAt(px, y, pz).getType() != Material.AIR) return 0;
+        if (!w.getBlockAt(px, y + 1, pz).getType().isAir()) return 0;
+        if (!w.getBlockAt(px, y - 1, pz).getType().isSolid()) return 0;
+        return mobs.spawnDungeonMob(new Location(w, px + 0.5, y, pz + 0.5), lvl);
+    }
+
+    private Location bossSpot(World w, int x0, int x1, int z0, int z1, int fy, int mx, int mz) {
+        for (int y = fy; y <= fy + 1; y++) {
+            for (int r = 0; r <= 5; r++) {
+                for (int dx = -r; dx <= r; dx++) {
+                    for (int dz = -r; dz <= r; dz++) {
+                        if (Math.abs(dx) + Math.abs(dz) != r) continue;
+                        int x = mx + dx, z = mz + dz;
+                        if (x < x0 + 2 || x > x1 - 2 || z < z0 + 2 || z > z1 - 2) continue;
+                        if (w.getBlockAt(x, y, z).getType() != Material.AIR) continue;
+                        if (w.getBlockAt(x, y + 1, z).getType() != Material.AIR) continue;
+                        if (!w.getBlockAt(x, y - 1, z).getType().isSolid()) continue;
+                        return new Location(w, x + 0.5, y, z + 0.5);
+                    }
+                }
+            }
+        }
+        return new Location(w, mx + 0.5, fy, mz + 0.5);
     }
 
     private void trackBoss(java.util.UUID id, String name) {
@@ -227,7 +268,10 @@ public final class FloorDungeons implements Listener {
 
     public void setMobService(MobSpawnService service) {
         this.mobs = service;
-        if (service != null) armEntryStock();
+        if (service != null) {
+            armEntryStock();
+            armBossGuard();
+        }
     }
 
     public static boolean nearDungeon(World w, int x, int z, int radius) {
@@ -267,22 +311,70 @@ public final class FloorDungeons implements Listener {
             restock(w, i);
             stockExterior(w, p, i);
         }
+        mossifyAll();
     }
 
     private void stockExterior(World w, Point pt, int idx) {
         if (mobs == null) return;
         var key = new org.bukkit.NamespacedKey(plugin, "dungeon_ext_" + idx);
         var wpc = org.bukkit.persistence.PersistentDataType.BYTE;
-        if (w.getPersistentDataContainer().has(key, wpc)) return;
-        int[][] offsets = {{22, 0}, {-22, 0}, {0, 22}, {0, -22}};
+        if (w.getPersistentDataContainer().has(key, wpc)) {
+            int existing = mobs.countSurfaceDungeonMobsNear(w, pt.x(), pt.z(), 60);
+            plugin.getLogger().info("Dungeon exterior check: " + NAMES[idx] + " existing=" + existing);
+            if (existing > 0) return;
+            w.getPersistentDataContainer().remove(key);
+        }
+        int[][] offsets = {
+                {12, 0}, {-12, 0}, {0, 12}, {0, -12},
+                {9, 9}, {9, -9}, {-9, 9}, {-9, -9}
+        };
+        int n = 0;
         for (int[] o : offsets) {
             int x = pt.x() + o[0];
             int z = pt.z() + o[1];
             int y = w.getHighestBlockYAt(x, z) + 1;
-            mobs.spawnDungeonMob(new Location(w, x + 0.5, y, z + 0.5), 1);
+            w.setChunkForceLoaded(x >> 4, z >> 4, true);
+            if (mobs.spawnDungeonMob(new Location(w, x + 0.5, y, z + 0.5), 1) > 0) n++;
         }
-        w.getPersistentDataContainer().set(key, wpc, (byte) 1);
-        plugin.getLogger().info("Dungeon exterior guards stocked: " + NAMES[idx]);
+        if (n > 0) {
+            w.getPersistentDataContainer().set(key, wpc, (byte) 1);
+            plugin.getLogger().info("Dungeon exterior guards stocked: " + NAMES[idx] + " (" + n + ")");
+        }
+    }
+
+    public void mossifyAll() {
+        var wpc = org.bukkit.persistence.PersistentDataType.BYTE;
+        for (int i = 0; i < POINTS.size(); i++) {
+            Point p = POINTS.get(i);
+            World w = floorWorld(p.floor());
+            if (w == null) continue;
+            var done = new org.bukkit.NamespacedKey(plugin, "mossified_" + i);
+            if (w.getPersistentDataContainer().has(done, wpc)) continue;
+            long changed = 0;
+            for (int x = p.x() - 110; x <= p.x() + 110; x++) {
+                for (int z = p.z() - 110; z <= p.z() + 110; z++) {
+                    for (int y = 30; y <= 62; y++) {
+                        Material m = w.getBlockAt(x, y, z).getType();
+                        Material repl = switch (m) {
+                            case COBBLED_DEEPSLATE, DEEPSLATE, COAL_BLOCK -> Material.MOSSY_COBBLESTONE;
+                            case DEEPSLATE_BRICKS, BLACKSTONE, POLISHED_BLACKSTONE,
+                                    BLACK_CONCRETE, OBSIDIAN, CRYING_OBSIDIAN -> Material.MOSSY_STONE_BRICKS;
+                            default -> null;
+                        };
+                        if (repl != null) {
+                            w.getBlockAt(x, y, z).setType(repl, false);
+                            changed++;
+                        }
+                    }
+                }
+            }
+            w.getPersistentDataContainer().set(done, wpc, (byte) 1);
+            plugin.getLogger().info("Dungeon mossified: " + NAMES[i] + " (" + changed + " blocks)");
+        }
+    }
+
+    public static Point site(int i) {
+        return POINTS.get(i);
     }
 
     public World worldForFloor(int floor) { return floorWorld(floor); }
@@ -577,15 +669,15 @@ public final class FloorDungeons implements Listener {
                 for (int x = mx - 2; x <= mx + 2; x++)
                     for (int z = mz - 2; z <= mz + 2; z++)
                         if (Math.abs(x - mx) == 2 || Math.abs(z - mz) == 2)
-                            set(w, x, fy, z, pal.accent);
+                            set(w, x, fy - 1, z, pal.accent);
                 for (int[] c : new int[][]{{mx - 2, mz - 2}, {mx + 2, mz - 2},
                         {mx - 2, mz + 2}, {mx + 2, mz + 2}}) {
                     set(w, c[0], fy + 1, c[1], pal.glow);
                     set(w, c[0], fy + 2, c[1], Material.STONE_BRICK_WALL);
                 }
-                set(w, mx, fy, mz, Material.GOLD_BLOCK);
+                set(w, mx, fy - 1, mz, Material.GOLD_BLOCK);
                 set(w, mx, top, mz, pal.glow);
-                chest(w, mx, fy + 1, mz, loot(palIdx(pal), x0 + z1, true));
+                chest(w, x0 + 2, fy + 1, z0 + 2, loot(palIdx(pal), x0 + z1, true));
             }
             case LOOT -> {
                 for (int x = mx - 1; x <= mx + 1; x++)
@@ -610,7 +702,7 @@ public final class FloorDungeons implements Listener {
             case BOSS -> {
                 for (int x = x0 + 2; x <= x1 - 2; x++)
                     for (int z = z0 + 2; z <= z1 - 2; z++)
-                        set(w, x, fy, z, (Math.abs(x - mx) + Math.abs(z - mz) <= 2)
+                        set(w, x, fy - 1, z, (Math.abs(x - mx) + Math.abs(z - mz) <= 2)
                                 ? Material.GOLD_BLOCK
                                 : (x == x0 + 2 || x == x1 - 2 || z == z0 + 2 || z == z1 - 2
                                         ? Material.RED_CONCRETE : Material.NETHER_BRICKS));
@@ -620,7 +712,7 @@ public final class FloorDungeons implements Listener {
                         set(w, c[0], y, c[1], Material.RED_NETHER_BRICKS);
                     set(w, c[0], fy + 4, c[1], Material.SOUL_CAMPFIRE);
                 }
-                set(w, mx, fy, mz, Material.CRYING_OBSIDIAN);
+                set(w, mx, fy - 1, mz, Material.CRYING_OBSIDIAN);
                 set(w, mx, top, mz, Material.SHROOMLIGHT);
                 for (int y = fy + 1; y <= fy + 2; y++) {
                     set(w, mx - 1, y, mz, Material.IRON_BARS);
@@ -628,7 +720,7 @@ public final class FloorDungeons implements Listener {
                     set(w, mx, y, mz - 1, Material.IRON_BARS);
                     set(w, mx, y, mz + 1, Material.IRON_BARS);
                 }
-                chest(w, mx, fy + 1, mz, loot(palIdx(pal), mx + mz, true));
+                chest(w, x0 + 3, fy + 1, z0 + 3, loot(palIdx(pal), mx + mz, true));
             }
         }
     }
