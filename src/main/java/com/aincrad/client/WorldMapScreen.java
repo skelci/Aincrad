@@ -47,15 +47,16 @@ public final class WorldMapScreen extends Screen {
         extractor.fill(mapX - 2, mapY - 2, mapX + span * cell + 2, mapY + span * cell + 2, 0xFF0E0F14);
         extractor.outline(mapX - 2, mapY - 2, mapX + span * cell + 1, mapY + span * cell + 1, 0xFF8C7A58);
 
+        extractor.fill(mapX, mapY, mapX + span * cell, mapY + span * cell, 0xFF15161C);
         for (int i = 0; i < span; i++) {
             int cx = pcx - half + i;
             for (int j = 0; j < span; j++) {
                 int cz = pcz - half + j;
                 long key = MapTracker.key(cx, cz);
-                int color = MapTracker.has(key) ? MapTracker.color(key) : 0xFF15161C;
+                if (!MapTracker.has(key)) continue;
                 int px = mapX + i * cell;
                 int py = mapY + j * cell;
-                extractor.fill(px, py, px + cell, py + cell, color);
+                extractor.fill(px, py, px + cell, py + cell, MapTracker.color(key));
             }
         }
 

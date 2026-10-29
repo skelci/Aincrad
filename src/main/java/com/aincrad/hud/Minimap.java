@@ -5,19 +5,22 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Minimap extends HudElement {
     private static final int MAP_SIZE = 160;
     private static final int RADIUS = MAP_SIZE / 2;
-    private static final int STEP = 8;
+    private static final int STEP = 10;
     private static final int SAMPLES = MAP_SIZE / STEP;
     private static final long REBUILD_NANOS = 5_000_000_000L;
+    private static final long ENTITY_REFRESH_NANOS = 500_000_000L;
     private static final double MOVE_REBUILD = 6.0;
 
     private static final double SHOP_X = -42.5;
@@ -28,6 +31,7 @@ public class Minimap extends HudElement {
     private final int[] terrain = new int[SAMPLES * SAMPLES];
     private boolean hasTerrain = false;
     private long lastRebuildNanos = 0;
+    private long lastEntityRefreshNanos = 0;
     private double lastCenterX = Double.MAX_VALUE;
     private double lastCenterZ = Double.MAX_VALUE;
     private String lastDim = "";
@@ -36,6 +40,9 @@ public class Minimap extends HudElement {
     private int centerY = 64;
     private String floorName = "Aincrad";
     private int mapSize = MAP_SIZE;
+    private List<EntityDot> entityDots = List.of();
+
+    private record EntityDot(double x, double z, int color) {}
 
     public Minimap() {
         super(10, 10, MAP_SIZE, MAP_SIZE + 30);
@@ -64,6 +71,30 @@ public class Minimap extends HudElement {
             floorName = parseFloorName(dim);
             rebuildTerrain(mc);
         }
+        long now = System.nanoTime();
+        if (now - lastEntityRefreshNanos > ENTITY_REFRESH_NANOS) {
+            refreshEntities(mc);
+            lastEntityRefreshNanos = now;
+        }
+    }
+
+    private void refreshEntities(Minecraft mc) {
+        List<EntityDot> dots = new ArrayList<>();
+        try {
+            double range = RADIUS;
+            AABB box = mc.player.getBoundingBox().inflate(range, 16, range);
+            List<Entity> list = mc.level.getEntities(mc.player, box,
+                    e -> e.isAlive() && e != mc.player && !e.isSpectator() && e instanceof LivingEntity);
+            for (Entity e : list) {
+                int color;
+                if (e instanceof Player) color = 0xFF3FC1FF;
+                else if (e instanceof Monster) color = 0xFFFF4D3D;
+                else color = 0xFFB9E08C;
+                dots.add(new EntityDot(e.getX(), e.getZ(), color));
+            }
+        } catch (Exception ignored) {
+        }
+        entityDots = dots;
     }
 
     private static String parseFloorName(String dim) {
@@ -187,7 +218,7 @@ public class Minimap extends HudElement {
             
         }
 
-        renderEntities(extractor, mc, mapX, mapY);
+        renderEntities(extractor, mapX, mapY);
         renderMapMarkers(extractor, mc, mapX, mapY);
 
         int pcx = mapX + RADIUS;
@@ -207,29 +238,14 @@ public class Minimap extends HudElement {
         extractor.text(font, coords, mapX + RADIUS - font.width(coords) / 2, mapY + MAP_SIZE + 12, HudPalette.TEXT_SECONDARY);
     }
 
-    private void renderEntities(GuiGraphicsExtractor extractor, Minecraft mc, int mapX, int mapY) {
-        try {
-            double range = RADIUS;
-            AABB box = mc.player.getBoundingBox().inflate(range, 16, range);
-            List<Entity> list = mc.level.getEntities(mc.player, box, e -> e.isAlive() && e != mc.player && !e.isSpectator() && !(e instanceof net.minecraft.world.entity.item.ItemEntity));
-            for (Entity e : list) {
-                int dx = (int) (e.getX() - centerX);
-                int dz = (int) (e.getZ() - centerZ);
-                if (dx * dx + dz * dz >= (RADIUS - 3) * (RADIUS - 3)) continue;
-                int color;
-                int size = 1;
-                if (e instanceof Player) {
-                    color = 0xFF3FC1FF;
-                } else if (e instanceof Monster) {
-                    color = 0xFFFF4D3D;
-                } else {
-                    color = 0xFFB9E08C;
-                }
-                int sx = mapX + RADIUS + dx;
-                int sy = mapY + RADIUS + dz;
-                extractor.fill(sx - size, sy - size, sx + size + 1, sy + size + 1, color);
-            }
-        } catch (Exception ignored) {
+    private void renderEntities(GuiGraphicsExtractor extractor, int mapX, int mapY) {
+        for (EntityDot e : entityDots) {
+            int dx = (int) (e.x() - centerX);
+            int dz = (int) (e.z() - centerZ);
+            if (dx * dx + dz * dz >= (RADIUS - 3) * (RADIUS - 3)) continue;
+            int sx = mapX + RADIUS + dx;
+            int sy = mapY + RADIUS + dz;
+            extractor.fill(sx - 1, sy - 1, sx + 2, sy + 2, e.color());
         }
     }
 

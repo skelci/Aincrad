@@ -62,7 +62,6 @@ public class SkillCooldownBar extends HudElement {
                 case 6 -> { iconColor = 0xFF44FF44; iconColor2 = 0xFF88FF88; } // Debuff
                 default -> { iconColor = 0xFFAA66FF; iconColor2 = 0xFFCC88FF; } // Swap
             }
-            extractor.fill(slotX + 4, slotY + 4, slotX + SLOT_SIZE - 4, slotY + SLOT_SIZE - 4, iconColor);
             extractor.fillGradient(slotX + 4, slotY + 4, slotX + SLOT_SIZE - 4, slotY + SLOT_SIZE - 4, iconColor, iconColor2);
 
             String hotkey = String.valueOf(i + 1);
