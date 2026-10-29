@@ -398,8 +398,10 @@ public final class FloorDungeons implements Listener {
     private void build(World w, Point p, int idx, boolean stockOnly) {
         int cx = p.x(), cz = p.z();
         for (int cX = (cx - 120) >> 4; cX <= (cx + 120) >> 4; cX++)
-            for (int cZ = (cz - 120) >> 4; cZ <= (cz + 120) >> 4; cZ++)
+            for (int cZ = (cz - 120) >> 4; cZ <= (cz + 120) >> 4; cZ++) {
                 w.loadChunk(cX, cZ, true);
+                w.setChunkForceLoaded(cX, cZ, true);
+            }
         var wpc = org.bukkit.persistence.PersistentDataType.BYTE;
         if (w.getPersistentDataContainer()
                 .has(new org.bukkit.NamespacedKey(plugin, "dungeon_built4_" + idx), wpc)) {
