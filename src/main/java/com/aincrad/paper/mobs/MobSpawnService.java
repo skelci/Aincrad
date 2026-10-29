@@ -32,6 +32,7 @@ public class MobSpawnService implements Listener {
     public static final NamespacedKey KEY_MOB_LEVEL = ItemMechanicListener.KEY_MOB_LEVEL;
     public static final NamespacedKey KEY_MOB_FLOOR = new NamespacedKey("aincrad", "mob_floor");
     public static final NamespacedKey KEY_MOB_NAME = new NamespacedKey("aincrad", "mob_name");
+    public static final NamespacedKey KEY_MOB_TYPE = new NamespacedKey("aincrad", "mob_type");
     public static final NamespacedKey KEY_NPC = new NamespacedKey("aincrad", "npc");
 
     private record Spec(String id, String displayName, EntityTypeFallback type, int level, double hp,
@@ -154,8 +155,9 @@ public class MobSpawnService implements Listener {
     /** Hostile-only dungeon mob, tiered by depth level (1..3). */
     public int spawnDungeonMob(Location loc, int floor) {
         org.bukkit.entity.EntityType[] low = {org.bukkit.entity.EntityType.ZOMBIE,
-                org.bukkit.entity.EntityType.SKELETON, org.bukkit.entity.EntityType.SPIDER,
-                org.bukkit.entity.EntityType.HUSK, org.bukkit.entity.EntityType.CAVE_SPIDER};
+                org.bukkit.entity.EntityType.SKELETON, org.bukkit.entity.EntityType.PILLAGER,
+                org.bukkit.entity.EntityType.SPIDER, org.bukkit.entity.EntityType.HUSK,
+                org.bukkit.entity.EntityType.CAVE_SPIDER};
         org.bukkit.entity.EntityType[] mid = {org.bukkit.entity.EntityType.CAVE_SPIDER,
                 org.bukkit.entity.EntityType.PILLAGER, org.bukkit.entity.EntityType.STRAY,
                 org.bukkit.entity.EntityType.WITCH, org.bukkit.entity.EntityType.SKELETON,
@@ -186,6 +188,7 @@ public class MobSpawnService implements Listener {
         mob.getPersistentDataContainer().set(KEY_MOB_LEVEL, PersistentDataType.INTEGER, lvl);
         mob.getPersistentDataContainer().set(KEY_MOB_NAME, PersistentDataType.STRING,
                 "&cLv" + lvl + " &f" + niceName(type));
+        mob.getPersistentDataContainer().set(KEY_MOB_TYPE, PersistentDataType.STRING, type.name());
         updateHealthTag(mob, null);
         return 1;
     }
@@ -220,6 +223,7 @@ public class MobSpawnService implements Listener {
         mob.getPersistentDataContainer().set(KEY_MOB_LEVEL, PersistentDataType.INTEGER, lvl);
         mob.getPersistentDataContainer().set(KEY_MOB_NAME, PersistentDataType.STRING,
                 "&cLv" + lvl + " &f" + niceName(type));
+        mob.getPersistentDataContainer().set(KEY_MOB_TYPE, PersistentDataType.STRING, type.name());
         updateHealthTag(mob, null);
         return 1;
     }
@@ -263,6 +267,7 @@ public class MobSpawnService implements Listener {
         boss.getPersistentDataContainer().set(KEY_MOB_LEVEL, PersistentDataType.INTEGER, floor);
         boss.getPersistentDataContainer().set(KEY_MOB_NAME, PersistentDataType.STRING,
                 "&4&l☠ " + name + " &r");
+        boss.getPersistentDataContainer().set(KEY_MOB_TYPE, PersistentDataType.STRING, "RAVAGER");
         updateHealthTag(boss, null);
         loc.getWorld().playSound(loc, org.bukkit.Sound.ENTITY_RAVAGER_ROAR, 2f, 0.8f);
         return boss.getUniqueId();
@@ -615,13 +620,18 @@ public class MobSpawnService implements Listener {
                     var o = objs.get(i);
                     if (o.getType() != com.aincrad.paper.quest.QuestObjective.Type.KILL
                             && o.getType() != com.aincrad.paper.quest.QuestObjective.Type.DEFEAT) continue;
-                    if (!o.getTarget().equalsIgnoreCase("any")
-                            && (mob == null || mob.getCustomName() == null
-                            || !mob.getCustomName().contains(o.getTarget()))) {
-                        continue;
+                    if (!o.getTarget().equalsIgnoreCase("any")) {
+                        String target = o.getTarget().toLowerCase();
+                        String custom = mob == null || mob.getCustomName() == null
+                                ? "" : mob.getCustomName().toLowerCase();
+                        String type = mob == null ? "" : mob.getPersistentDataContainer()
+                                .get(KEY_MOB_TYPE, PersistentDataType.STRING);
+                        boolean byType = type != null && type.equalsIgnoreCase(o.getTarget());
+                        boolean byEntity = mob != null && mob.getType().name().equalsIgnoreCase(o.getTarget());
+                        if (!custom.contains(target) && !byType && !byEntity) continue;
                     }
                     if (tracker.updateProgress(quest.id(), i, 1)
-                            && o.getCurrent() >= o.getRequired()) {
+                            && o.getCurrent() + 1 >= o.getRequired()) {
                         killer.sendMessage("§a✔ Quest objective complete: §f" + quest.name()
                                 + " §7- report at the Guild Hall quest board");
                     }

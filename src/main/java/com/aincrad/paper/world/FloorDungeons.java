@@ -201,12 +201,31 @@ public final class FloorDungeons implements Listener {
     }
 
     private int spawnRoomMob(World w, int px, int pz, int fy, int lvl) {
-        int y = fy;
-        if (w.getBlockAt(px, y, pz).getType() != Material.AIR) y++;
-        if (w.getBlockAt(px, y, pz).getType() != Material.AIR) return 0;
-        if (!w.getBlockAt(px, y + 1, pz).getType().isAir()) return 0;
-        if (!w.getBlockAt(px, y - 1, pz).getType().isSolid()) return 0;
-        return mobs.spawnDungeonMob(new Location(w, px + 0.5, y, pz + 0.5), lvl);
+        for (int r = 0; r <= 4; r++) {
+            for (int dx = -r; dx <= r; dx++) {
+                for (int dz = -r; dz <= r; dz++) {
+                    if (Math.abs(dx) + Math.abs(dz) != r) continue;
+                    int x = px + dx, z = pz + dz;
+                    int y = fy;
+                    if (!clearForMob(w, x, y, z)) continue;
+                    return mobs.spawnDungeonMob(new Location(w, x + 0.5, y, z + 0.5), lvl);
+                }
+            }
+        }
+        return 0;
+    }
+
+    private boolean clearForMob(World w, int x, int y, int z) {
+        if (!w.getBlockAt(x, y, z).getType().isAir()) return false;
+        if (!w.getBlockAt(x, y + 1, z).getType().isAir()) return false;
+        if (!w.getBlockAt(x, y - 1, z).getType().isSolid()) return false;
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                if (!w.getBlockAt(x + dx, y, z + dz).getType().isAir()) return false;
+                if (!w.getBlockAt(x + dx, y + 1, z + dz).getType().isAir()) return false;
+            }
+        }
+        return true;
     }
 
     private Location bossSpot(World w, int x0, int x1, int z0, int z1, int fy, int mx, int mz) {
@@ -271,7 +290,6 @@ public final class FloorDungeons implements Listener {
         this.mobs = service;
         if (service != null) {
             armEntryStock();
-            armBossGuard();
         }
     }
 

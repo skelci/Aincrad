@@ -43,17 +43,19 @@ public final class QuestWorld {
     }
 
     public static String describe(String target) {
+        int[] anchor = ANCHORS.get(target);
+        String where = anchor == null ? "" : " §8(near X=" + anchor[0] + ", Z=" + anchor[1] + ")";
         return switch (target) {
             case "The Weeping Stone" -> "§7\"Beyond the eastern hills, where a thin waterfall veils a leaning"
                     + " grey slab, the water weeps year-round over something carved long ago."
-                    + " Stand before it and take proof of what remains.\"";
+                    + " Stand before it and take proof of what remains.\"" + where;
             case "The Broken Seal" -> "§7\"West of town the wind whistles through a ring of pale birches."
                     + " Deep between their roots a broken seal still hums one stubborn note."
-                    + " Follow the hum.\"";
+                    + " Follow the hum.\"" + where;
             case "Hunter's Ledger" -> "§7\"A hunter drank too deep at the guild last night and stumbled out"
                     + " through the main gate. Whatever fell from his pack is still somewhere among"
-                    + " the flower beds beneath the great arch.\"";
-            default -> "§7Something is waiting to be found. Follow the road and look closely.";
+                    + " the flower beds beneath the great arch.\"" + where;
+            default -> "§7Something is waiting to be found. Follow the road and look closely." + where;
         };
     }
 
@@ -90,7 +92,7 @@ public final class QuestWorld {
                         spot.location().getWorld().spawnParticle(org.bukkit.Particle.HAPPY_VILLAGER,
                                 spot.location().add(0, 0.4, 0), 2, 0.2, 0.1, 0.2, 0.0);
                     }
-                    if (dist < 6.0) {
+                    if (dist < 8.0) {
                         claim(player, quest, i, target, spot);
                     }
                 }
@@ -103,14 +105,30 @@ public final class QuestWorld {
         int[] anchor = ANCHORS.get(target);
         if (anchor == null) return null;
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
-        int x = anchor[0] + rnd.nextInt(-6, 7);
-        int z = anchor[1] + rnd.nextInt(-6, 7);
+        Material[] pool = POOLS.get(target);
+        for (int attempt = 0; attempt < 32; attempt++) {
+            int x = anchor[0] + rnd.nextInt(-14, 15);
+            int z = anchor[1] + rnd.nextInt(-14, 15);
+            world.loadChunk(x >> 4, z >> 4, true);
+            int y = world.getHighestBlockYAt(x, z) + 1;
+            if (y > 300) continue;
+            var at = world.getBlockAt(x, y, z);
+            if (!at.getType().isAir()) continue;
+            var below = world.getBlockAt(x, y - 1, z);
+            Material b = below.getType();
+            if (b == Material.OAK_LEAVES || b == Material.OAK_LOG || b == Material.GLASS
+                    || b == Material.STONE_BRICKS || b == Material.STONE_BRICK_WALL
+                    || b == Material.OAK_PLANKS || b == Material.POLISHED_ANDESITE) continue;
+            Material item = pool[rnd.nextInt(pool.length)];
+            at.setType(item, false);
+            world.setChunkForceLoaded(x >> 4, z >> 4, true);
+            return new Spot(new Location(world, x + 0.5, y + 0.5, z + 0.5), item);
+        }
+        int x = anchor[0], z = anchor[1];
         int y = world.getHighestBlockYAt(x, z) + 1;
         if (y > 300) return null;
+        Material item = pool[rnd.nextInt(pool.length)];
         try {
-            var below = world.getBlockAt(x, y - 1, z);
-            if (below.getType().isAir()) below.setType(Material.STONE_BRICKS, false);
-            Material item = POOLS.get(target)[rnd.nextInt(POOLS.get(target).length)];
             world.getBlockAt(x, y, z).setType(item, false);
             return new Spot(new Location(world, x + 0.5, y + 0.5, z + 0.5), item);
         } catch (Exception e) {
