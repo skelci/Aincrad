@@ -98,6 +98,7 @@ public class MobSpawnService implements Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::tick, 160L, 100L);
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::furyTick, 40L, 3L);
+        plugin.getServer().getScheduler().runTaskTimer(plugin, this::ambientTick, 20L, 80L);
         plugin.getLogger().info("MobSpawnService online with " + SPECS.size() + " mob definitions.");
     }
 
@@ -220,6 +221,41 @@ public class MobSpawnService implements Listener {
         mob.setCustomNameVisible(true);
         buff(mob, 22, 3.0, 1.0);
         mob.getPersistentDataContainer().set(KEY_MOB, PersistentDataType.STRING, "dungeon");
+        mob.getPersistentDataContainer().set(KEY_MOB_LEVEL, PersistentDataType.INTEGER, lvl);
+        mob.getPersistentDataContainer().set(KEY_MOB_NAME, PersistentDataType.STRING,
+                "&cLv" + lvl + " &f" + niceName(type));
+        mob.getPersistentDataContainer().set(KEY_MOB_TYPE, PersistentDataType.STRING, type.name());
+        updateHealthTag(mob, null);
+        return 1;
+    }
+
+    /** Ambient wilderness monster: non-burning, spawned around players away from town/dungeons. */
+    public int spawnAmbientMob(Location loc) {
+        org.bukkit.entity.EntityType[] pool = {
+                org.bukkit.entity.EntityType.PILLAGER,
+                org.bukkit.entity.EntityType.WITCH,
+                org.bukkit.entity.EntityType.SPIDER,
+                org.bukkit.entity.EntityType.CAVE_SPIDER,
+                org.bukkit.entity.EntityType.HUSK
+        };
+        org.bukkit.entity.EntityType type = pool[random.nextInt(pool.length)];
+        int lvl = 2 + random.nextInt(4);
+        suppressSpawnEvents = true;
+        Entity spawned;
+        try {
+            spawned = loc.getWorld().spawnEntity(loc, type);
+        } finally {
+            suppressSpawnEvents = false;
+        }
+        if (!(spawned instanceof LivingEntity mob)) {
+            spawned.remove();
+            return -1;
+        }
+        mob.customName(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+                .legacyAmpersand().deserialize("&cLv" + lvl + " &f" + niceName(type)));
+        mob.setCustomNameVisible(true);
+        buff(mob, 20 + 4.0 * lvl, 2.2 + 0.35 * lvl, 1.0);
+        mob.getPersistentDataContainer().set(KEY_MOB, PersistentDataType.STRING, "ambient");
         mob.getPersistentDataContainer().set(KEY_MOB_LEVEL, PersistentDataType.INTEGER, lvl);
         mob.getPersistentDataContainer().set(KEY_MOB_NAME, PersistentDataType.STRING,
                 "&cLv" + lvl + " &f" + niceName(type));
@@ -370,6 +406,25 @@ public class MobSpawnService implements Listener {
         return best;
     }
 
+    private void ambientTick() {
+        for (Player player : plugin.getServer().getOnlinePlayers()) {
+            if (player.isDead() || player.getGameMode() == org.bukkit.GameMode.CREATIVE) continue;
+            World world = player.getWorld();
+            String name = world.getName().toLowerCase();
+            if (name.contains("nether") || name.contains("the_end")) continue;
+            int px = player.getLocation().getBlockX();
+            int pz = player.getLocation().getBlockZ();
+            if (com.aincrad.paper.world.FloorDungeons.nearDungeon(world, px, pz, 130)) continue;
+            int count = countAmbientMobsNear(world, px, pz, 180);
+            if (count >= 20) continue;
+            int attempts = Math.min(3, 20 - count);
+            for (int i = 0; i < attempts; i++) {
+                Location loc = findSpawnLocation(world, player.getLocation());
+                if (loc != null) spawnAmbientMob(loc);
+            }
+        }
+    }
+
     private void tick() {
         for (World world : plugin.getServer().getWorlds()) {
             String name = world.getName().toLowerCase();
@@ -385,7 +440,7 @@ public class MobSpawnService implements Listener {
             var pdc = e.getPersistentDataContainer();
             if (!pdc.has(KEY_MOB)) continue;
             String id = pdc.get(KEY_MOB, PersistentDataType.STRING);
-            if (id == null || id.equals("dungeon") || id.equals("dungeon_boss")) continue;
+            if (id == null || id.equals("dungeon") || id.equals("dungeon_boss") || id.equals("ambient")) continue;
             if (e.getLocation().getY() >= 62) e.remove();
         }
     }
@@ -482,6 +537,17 @@ public class MobSpawnService implements Listener {
                 if (feet.getBlock().getType().isSolid()) continue;
                 if (feet.clone().add(0, 1, 0).getBlock().getType().isSolid()) continue;
                 if (!below.getBlock().getType().isSolid()) continue;
+                boolean clear = true;
+                for (int dx = -1; dx <= 1 && clear; dx++) {
+                    for (int dz = -1; dz <= 1; dz++) {
+                        if (!feet.clone().add(dx, 0, dz).getBlock().getType().isAir()
+                                || !feet.clone().add(dx, 1, dz).getBlock().getType().isAir()) {
+                            clear = false;
+                            break;
+                        }
+                    }
+                }
+                if (!clear) continue;
                 return feet;
             }
         }
@@ -535,6 +601,27 @@ public class MobSpawnService implements Listener {
             if (e.getLocation().getY() < 62) continue;
             if (Math.abs(e.getLocation().getX() - x) <= radius
                     && Math.abs(e.getLocation().getZ() - z) <= radius) count++;
+        }
+        return count;
+    }
+
+    public int countAmbientMobsNear(org.bukkit.World world, double x, double z, double radius) {
+        int count = 0;
+        for (Entity e : world.getEntities()) {
+            var pdc = e.getPersistentDataContainer();
+            String id = pdc.get(KEY_MOB, PersistentDataType.STRING);
+            if (!"ambient".equals(id)) continue;
+            if (Math.abs(e.getLocation().getX() - x) <= radius
+                    && Math.abs(e.getLocation().getZ() - z) <= radius) count++;
+        }
+        return count;
+    }
+
+    public int countAmbientMobs(org.bukkit.World world) {
+        int count = 0;
+        for (Entity e : world.getEntities()) {
+            String id = e.getPersistentDataContainer().get(KEY_MOB, PersistentDataType.STRING);
+            if ("ambient".equals(id)) count++;
         }
         return count;
     }

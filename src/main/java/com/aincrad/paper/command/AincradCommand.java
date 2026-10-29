@@ -14,7 +14,8 @@ public class AincradCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> SUBCOMMANDS = List.of(
             "guild", "party", "quest", "progression", "dungeon", "economy", "item", "mob", "skill",
-            "restock", "restockall", "purgevanilla", "mobcount", "lastchange", "help"
+            "restock", "restockall", "purgevanilla", "mobcount", "lastchange", "help",
+            "ambient"
     );
 
     private final AincradPaperPlugin plugin;
@@ -122,6 +123,29 @@ public class AincradCommand implements CommandExecutor, TabCompleter {
                     sender.sendMessage("§eSite " + i + ": interior=" + regular
                             + " bosses=" + bosses + " surface=" + surface);
                 }
+                int ambient = 0;
+                for (org.bukkit.World world : plugin.getServer().getWorlds()) {
+                    ambient += ms.countAmbientMobs(world);
+                }
+                sender.sendMessage("§eAmbient world mobs: " + ambient);
+                return true;
+            }
+            case "ambient" -> {
+                if (sender instanceof org.bukkit.entity.Player pl && !pl.isOp()) {
+                    sender.sendMessage("§cOp only.");
+                    return true;
+                }
+                var fd = plugin.getFloorDungeons();
+                var ms = plugin.getMobSpawnService();
+                org.bukkit.World w = fd == null ? null : fd.worldForFloor(1);
+                if (w == null || ms == null) {
+                    sender.sendMessage("§cfloor_1 not loaded.");
+                    return true;
+                }
+                int x = 200, z = 40;
+                int y = w.getHighestBlockYAt(x, z) + 1;
+                int spawned = ms.spawnAmbientMob(new org.bukkit.Location(w, x + 0.5, y, z + 0.5));
+                sender.sendMessage("§eAmbient spawn at " + x + "," + y + "," + z + ": " + spawned);
                 return true;
             }
             case "purgevanilla" -> {
