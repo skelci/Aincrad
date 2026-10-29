@@ -32,12 +32,12 @@ public final class QuestWorld {
             "Hunter's Ledger", new int[]{10, -16});
 
     private static final Map<String, Material[]> POOLS = Map.of(
-            "The Weeping Stone", new Material[]{Material.GLOW_INK_SAC, Material.PRISMARINE_CRYSTALS,
-                    Material.AMETHYST_SHARD},
-            "The Broken Seal", new Material[]{Material.AMETHYST_SHARD, Material.EXPERIENCE_BOTTLE,
-                    Material.SMALL_DRIPLEAF},
-            "Hunter's Ledger", new Material[]{Material.WRITABLE_BOOK, Material.FEATHER,
-                    Material.CLOCK});
+            "The Weeping Stone", new Material[]{Material.GLOWSTONE, Material.PRISMARINE,
+                    Material.AMETHYST_BLOCK},
+            "The Broken Seal", new Material[]{Material.AMETHYST_BLOCK, Material.SMALL_DRIPLEAF,
+                    Material.GLOWSTONE},
+            "Hunter's Ledger", new Material[]{Material.BOOKSHELF, Material.OAK_PLANKS,
+                    Material.CRAFTING_TABLE});
 
     private QuestWorld() {
     }
