@@ -190,6 +190,57 @@ public class MobSpawnService implements Listener {
         return 1;
     }
 
+    /** Surface guard that does not burn in daylight. */
+    public int spawnSurfaceGuard(Location loc) {
+        org.bukkit.entity.EntityType[] pool = {
+                org.bukkit.entity.EntityType.PILLAGER,
+                org.bukkit.entity.EntityType.WITCH,
+                org.bukkit.entity.EntityType.SPIDER,
+                org.bukkit.entity.EntityType.CAVE_SPIDER,
+                org.bukkit.entity.EntityType.HUSK
+        };
+        org.bukkit.entity.EntityType type = pool[random.nextInt(pool.length)];
+        int lvl = 3 + random.nextInt(3);
+        suppressSpawnEvents = true;
+        Entity spawned;
+        try {
+            spawned = loc.getWorld().spawnEntity(loc, type);
+        } finally {
+            suppressSpawnEvents = false;
+        }
+        if (!(spawned instanceof LivingEntity mob)) {
+            spawned.remove();
+            return -1;
+        }
+        mob.customName(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+                .legacyAmpersand().deserialize("&cLv" + lvl + " &f" + niceName(type)));
+        mob.setCustomNameVisible(true);
+        buff(mob, 22, 3.0, 1.0);
+        mob.getPersistentDataContainer().set(KEY_MOB, PersistentDataType.STRING, "dungeon");
+        mob.getPersistentDataContainer().set(KEY_MOB_LEVEL, PersistentDataType.INTEGER, lvl);
+        mob.getPersistentDataContainer().set(KEY_MOB_NAME, PersistentDataType.STRING,
+                "&cLv" + lvl + " &f" + niceName(type));
+        updateHealthTag(mob, null);
+        return 1;
+    }
+
+    public int purgeSurfaceDungeonMobsNear(World world, double x, double z, double radius) {
+        int removed = 0;
+        for (Entity e : world.getEntities()) {
+            var pdc = e.getPersistentDataContainer();
+            if (!pdc.has(KEY_MOB)) continue;
+            String id = pdc.get(KEY_MOB, PersistentDataType.STRING);
+            if (id == null || !id.equals("dungeon")) continue;
+            if (e.getLocation().getY() < 62) continue;
+            if (Math.abs(e.getLocation().getX() - x) <= radius
+                    && Math.abs(e.getLocation().getZ() - z) <= radius) {
+                e.remove();
+                removed++;
+            }
+        }
+        return removed;
+    }
+
     /** Real dungeon boss: ravager, huge HP, glowing, custom name. */
     public java.util.UUID spawnDungeonBoss(Location loc, int floor, String name) {
         suppressSpawnEvents = true;

@@ -78,6 +78,7 @@ public final class FloorDungeons implements Listener {
         if (stockTaskArmed) return;
         stockTaskArmed = true;
         org.bukkit.Bukkit.getScheduler().runTaskTimer(plugin, this::entryStock, 60L, 40L);
+        org.bukkit.Bukkit.getScheduler().runTaskTimer(plugin, this::ensureExterior, 1200L, 1200L);
     }
 
     private void armBossGuard() {
@@ -309,6 +310,7 @@ public final class FloorDungeons implements Listener {
             World w = floorWorld(p.floor());
             if (w == null) continue;
             restock(w, i);
+            if (mobs != null) mobs.purgeSurfaceDungeonMobsNear(w, p.x(), p.z(), 60);
             stockExterior(w, p, i);
         }
         mossifyAll();
@@ -318,11 +320,15 @@ public final class FloorDungeons implements Listener {
         if (mobs == null) return;
         var key = new org.bukkit.NamespacedKey(plugin, "dungeon_ext_" + idx);
         var wpc = org.bukkit.persistence.PersistentDataType.BYTE;
+        int existing = mobs.countSurfaceDungeonMobsNear(w, pt.x(), pt.z(), 60);
+        plugin.getLogger().info("Dungeon exterior check: " + NAMES[idx] + " existing=" + existing);
+        if (existing >= 8) {
+            w.getPersistentDataContainer().set(key, wpc, (byte) 1);
+            return;
+        }
         if (w.getPersistentDataContainer().has(key, wpc)) {
-            int existing = mobs.countSurfaceDungeonMobsNear(w, pt.x(), pt.z(), 60);
-            plugin.getLogger().info("Dungeon exterior check: " + NAMES[idx] + " existing=" + existing);
-            if (existing > 0) return;
             w.getPersistentDataContainer().remove(key);
+            mobs.purgeSurfaceDungeonMobsNear(w, pt.x(), pt.z(), 60);
         }
         int[][] offsets = {
                 {12, 0}, {-12, 0}, {0, 12}, {0, -12},
@@ -334,11 +340,21 @@ public final class FloorDungeons implements Listener {
             int z = pt.z() + o[1];
             int y = w.getHighestBlockYAt(x, z) + 1;
             w.setChunkForceLoaded(x >> 4, z >> 4, true);
-            if (mobs.spawnDungeonMob(new Location(w, x + 0.5, y, z + 0.5), 1) > 0) n++;
+            if (mobs.spawnSurfaceGuard(new Location(w, x + 0.5, y, z + 0.5)) > 0) n++;
         }
         if (n > 0) {
             w.getPersistentDataContainer().set(key, wpc, (byte) 1);
             plugin.getLogger().info("Dungeon exterior guards stocked: " + NAMES[idx] + " (" + n + ")");
+        }
+    }
+
+    private void ensureExterior() {
+        if (mobs == null) return;
+        for (int i = 0; i < POINTS.size(); i++) {
+            Point p = POINTS.get(i);
+            World w = floorWorld(p.floor());
+            if (w == null) continue;
+            stockExterior(w, p, i);
         }
     }
 
