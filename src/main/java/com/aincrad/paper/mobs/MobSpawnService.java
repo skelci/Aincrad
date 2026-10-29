@@ -525,7 +525,7 @@ public class MobSpawnService implements Listener {
     private Location findSpawnLocation(World world, Location anchor) {
         for (int attempt = 0; attempt < 12; attempt++) {
             double angle = random.nextDouble() * Math.PI * 2;
-            double dist = 40 + random.nextDouble() * 70;
+            double dist = 60 + random.nextDouble() * 110;
             int x = anchor.getBlockX() + (int) (Math.cos(angle) * dist);
             int z = anchor.getBlockZ() + (int) (Math.sin(angle) * dist);
             if (Math.hypot(x, z) < 128) continue;
