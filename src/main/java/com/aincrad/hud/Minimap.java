@@ -250,7 +250,7 @@ public class Minimap extends HudElement {
     }
 
     private void renderMapMarkers(GuiGraphicsExtractor extractor, Minecraft mc, int mapX, int mapY) {
-        if (!String.valueOf(mc.level.dimension()).contains("floor_1")) return;
+        if (!lastDim.contains("floor_1")) return;
         drawMarker(extractor, mc, mapX, mapY, SHOP_X, SHOP_Z, 0xFFE8C33A, "S");
         drawMarker(extractor, mc, mapX, mapY, QUEST_X, QUEST_Z, 0xFF44DDFF, "!");
     }
