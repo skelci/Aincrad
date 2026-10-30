@@ -15,6 +15,22 @@ public final class FloorTerrain {
 
     private static final int TOWN_SKIP = 136;
 
+    private static final Material[][] TREE_TYPES = {
+            {Material.OAK_LOG, Material.OAK_LEAVES},
+            {Material.BIRCH_LOG, Material.BIRCH_LEAVES},
+            {Material.SPRUCE_LOG, Material.SPRUCE_LEAVES},
+            {Material.ACACIA_LOG, Material.ACACIA_LEAVES},
+            {Material.JUNGLE_LOG, Material.JUNGLE_LEAVES},
+            {Material.DARK_OAK_LOG, Material.DARK_OAK_LEAVES}
+    };
+
+    private static final Material[] MEADOW_FLOWERS = {
+            Material.POPPY, Material.DANDELION, Material.CORNFLOWER,
+            Material.OXEYE_DAISY, Material.ALLIUM, Material.AZURE_BLUET,
+            Material.PINK_TULIP, Material.WHITE_TULIP, Material.ORANGE_TULIP,
+            Material.RED_TULIP, Material.BLUE_ORCHID
+    };
+
     private FloorTerrain() {
     }
 
@@ -64,18 +80,24 @@ public final class FloorTerrain {
     private static void forest(Random r, World w, int cx, int cz, double harsh) {
         int trees = 3 + r.nextInt(4) - (int) (harsh * 2);
         for (int i = 0; i < trees; i++) {
-            tree(w, cx + r.nextInt(9) - 4, cz + r.nextInt(9) - 4, r);
+            int x = cx + r.nextInt(9) - 4;
+            int z = cz + r.nextInt(9) - 4;
+            if (treeAlreadyAt(w, x, z)) continue;
+            tree(w, x, z, r);
         }
-        scatter(w, r, cx, cz, 6, Material.ROSE_BUSH);
+        scatterMixed(w, r, cx, cz, 6, MEADOW_FLOWERS);
         scatter(w, r, cx, cz, 4, Material.RED_MUSHROOM);
         if (r.nextInt(4) == 0) logPile(w, r, cx, cz);
     }
 
     private static void meadow(Random r, World w, int cx, int cz) {
         scatter(w, r, cx, cz, 12, Material.TALL_GRASS);
-        scatter(w, r, cx, cz, 6, Material.POPPY);
-        scatter(w, r, cx, cz, 6, Material.DANDELION);
-        if (r.nextInt(6) == 0) tree(w, cx + r.nextInt(6) - 3, cz + r.nextInt(6) - 3, r);
+        scatterMixed(w, r, cx, cz, 14, MEADOW_FLOWERS);
+        if (r.nextInt(6) == 0) {
+            int x = cx + r.nextInt(6) - 3;
+            int z = cz + r.nextInt(6) - 3;
+            if (!treeAlreadyAt(w, x, z)) tree(w, x, z, r);
+        }
     }
 
     private static void rocky(Random r, World w, int cx, int cz, double harsh) {
@@ -106,6 +128,8 @@ public final class FloorTerrain {
     private static void wetland(Random r, World w, int cx, int cz) {
         scatter(w, r, cx, cz, 6, Material.DEAD_BUSH);
         scatter(w, r, cx, cz, 5, Material.FERN);
+        scatterMixed(w, r, cx, cz, 6, new Material[]{Material.BLUE_ORCHID,
+                Material.ALLIUM, Material.TALL_GRASS});
         if (r.nextInt(5) != 0) return;
         int x = cx + r.nextInt(4) - 2, z = cz + r.nextInt(4) - 2;
         int s0 = surf(w, x, z);
@@ -125,28 +149,52 @@ public final class FloorTerrain {
 
     private static void tree(World w, int x, int z, Random r) {
         int s0 = surf(w, x, z);
-        int h = 4 + r.nextInt(3);
-        for (int y = 1; y <= h; y++) set(w, x, s0 + y, z, Material.OAK_LOG);
+        int type = r.nextInt(TREE_TYPES.length);
+        Material log = TREE_TYPES[type][0];
+        Material leaves = TREE_TYPES[type][1];
+        int h = switch (type) {
+            case 1, 5 -> 5 + r.nextInt(2);
+            case 2 -> 6 + r.nextInt(3);
+            case 3 -> 4 + r.nextInt(2);
+            case 4 -> 6 + r.nextInt(3);
+            default -> 4 + r.nextInt(3);
+        };
+        for (int y = 1; y <= h; y++) set(w, x, s0 + y, z, log);
         for (int dy = -2; dy <= 0; dy++) {
-            int rad = dy == 0 ? 2 : (dy == -1 ? 2 : 1);
+            int rad = switch (type) {
+                case 2 -> dy == 0 ? 1 : 2;
+                case 3, 4 -> 3;
+                default -> 2;
+            };
             for (int dx = -rad; dx <= rad; dx++) {
                 for (int dz = -rad; dz <= rad; dz++) {
                     if (Math.abs(dx) == rad && Math.abs(dz) == rad && r.nextInt(2) == 0) continue;
                     if (w.getBlockAt(x + dx, s0 + h + 1 + dy, z + dz).getType() == Material.AIR) {
-                        set(w, x + dx, s0 + h + 1 + dy, z + dz, Material.OAK_LEAVES);
+                        set(w, x + dx, s0 + h + 1 + dy, z + dz, leaves);
                     }
                 }
             }
         }
     }
 
+    private static boolean treeAlreadyAt(World w, int x, int z) {
+        int top = surf(w, x, z);
+        for (int y = top; y >= 60; y--) {
+            String n = w.getBlockAt(x, y, z).getType().name();
+            if (n.endsWith("_LOG") || n.endsWith("_LEAVES")) return true;
+        }
+        return false;
+    }
+
     private static void logPile(World w, Random r, int cx, int cz) {
         int x = cx + r.nextInt(7) - 3, z = cz + r.nextInt(7) - 3;
+        if (treeAlreadyAt(w, x, z)) return;
         int s0 = surf(w, x, z);
         int len = 2 + r.nextInt(3);
         boolean ns = r.nextBoolean();
+        Material log = TREE_TYPES[r.nextInt(TREE_TYPES.length)][0];
         for (int i = 0; i < len; i++) {
-            set(w, ns ? x : x + i, s0 + 1, ns ? z + i : z, Material.OAK_LOG);
+            set(w, ns ? x : x + i, s0 + 1, ns ? z + i : z, log);
         }
     }
 
@@ -189,6 +237,12 @@ public final class FloorTerrain {
         }
     }
 
+
+    private static void scatterMixed(World w, Random r, int cx, int cz, int count, Material[] pool) {
+        for (int i = 0; i < count; i++) {
+            scatter(w, r, cx, cz, 1, pool[r.nextInt(pool.length)]);
+        }
+    }
 
     private static final int[][] EXCLUDED = {
             {0, -420}, {380, 180}, {-360, 260}, {0, 460}, {-440, -220},
