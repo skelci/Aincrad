@@ -79,7 +79,7 @@ public class PaperSkillService {
                 "A rising arc that strikes enemies ahead and lifts them slightly.",
                 12, 6, 1, Effect.CONE, 1.7, "HIT", 10, 120, 5, null, Material.STONE_SWORD));
         register(new SkillDef("rush", "Sonic Leap",
-                "Dash forward, damaging everything along the path.",
+                "Dash forward, damaging everything along the path; range grows with each rank.",
                 10, 5, 3, Effect.DASH_CONE, 1.5, "HIT", 8, 150, 5, null, Material.SUGAR));
         register(new SkillDef("cleave", "Cavern Cleave",
                 "Spin 360 degrees, striking every nearby enemy.",
@@ -421,7 +421,7 @@ public class PaperSkillService {
                 recordUsage(player, def, hitCone(player, rankPower(def, rank), 5.5, 0.3));
                 particle(ParticleNames.of("CLOUD", "EXPLOSION_NORMAL"), player.getLocation(), 30);
             }
-            case DASH_CONE -> recordUsage(player, def, dash(player, rankPower(def, rank)));
+            case DASH_CONE -> recordUsage(player, def, dash(player, rankPower(def, rank), dashRange(rank)));
             case AOE -> recordUsage(player, def, hitCone(player, rankPower(def, rank), 4.5, -1.0));
             case HEAL -> {
                 heal(player, rankPower(def, rank));
@@ -495,8 +495,12 @@ public class PaperSkillService {
         return hits;
     }
 
-    private int dash(Player player, double multiplier) {
-        Vector dir = player.getLocation().getDirection().normalize().multiply(5);
+    private static double dashRange(int rank) {
+        return 5.0 + Math.max(0, rank - 1) * 1.5;
+    }
+
+    private int dash(Player player, double multiplier, double distance) {
+        Vector dir = player.getLocation().getDirection().normalize().multiply(distance);
         Location from = player.getLocation().clone();
         Location to = from.clone().add(dir);
         for (int step = 0; step <= 10; step++) {
@@ -516,7 +520,7 @@ public class PaperSkillService {
         }
         to = raised >= 6 ? from : feet;
         List<LivingEntity> path = new ArrayList<>();
-        for (Entity e : player.getNearbyEntities(7, 4, 7)) {
+        for (Entity e : player.getNearbyEntities(distance + 3, 4, distance + 3)) {
             if (e instanceof LivingEntity mob && e != player) {
                 if (mob.getLocation().distance(from) <= to.distance(from) + 1.5
                         || mob.getLocation().distance(to) <= 2.5) {

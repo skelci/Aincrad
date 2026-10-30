@@ -94,7 +94,7 @@ public final class ItemDefs {
         add("cooked_salmon", "Cooked Salmon", Material.COOKED_SALMON, Slot.HAND, 0, 0, 1, Rarity.COMMON);
         add("golden_apple", "Golden Apple", Material.GOLDEN_APPLE, Slot.HAND, 0, 0, 5, Rarity.RARE);
 
-        add("teleport_crystal", "Teleport Crystal", Material.END_CRYSTAL, Slot.OTHER, 0, 0, 10, Rarity.RARE);
+        add("teleport_crystal", "Teleport Crystal", Material.AMETHYST_SHARD, Slot.OTHER, 0, 0, 10, Rarity.RARE);
     }
 
     private static final Map<String, Long> FOOD_PRICES = Map.of(

@@ -7,6 +7,9 @@ import com.aincrad.paper.party.Party;
 import com.aincrad.paper.party.PartyManager;
 import com.aincrad.paper.progression.PlayerProgression;
 import com.aincrad.paper.progression.ProgressionManager;
+import com.aincrad.paper.items.ItemDefs;
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -30,6 +33,7 @@ public class PlayerListener implements Listener {
         ProgressionManager.getInstance().getProgression(player.getUniqueId());
         ProgressionManager.getInstance().syncActionBar(player);
         com.aincrad.paper.items.ItemCommands.grantStarterKitIfNew(player);
+        migrateTeleportCrystals(player);
 
         String note = plugin.getLastChangeNote();
         if (note != null && !note.isBlank()) {
@@ -51,6 +55,23 @@ public class PlayerListener implements Listener {
         if (!com.aincrad.paper.AincradPaperPlugin.isFloorWorld(player.getWorld())
                 && !wn.contains("floor_")) {
             sendToFloor1(player);
+        }
+    }
+
+    private void migrateTeleportCrystals(org.bukkit.entity.Player player) {
+        for (ItemStack is : player.getInventory().getContents()) {
+            if (is == null) continue;
+            var def = ItemDefs.resolve(is);
+            if (def != null && def.id().equals("teleport_crystal")
+                    && is.getType() != Material.AMETHYST_SHARD) {
+                is.setType(Material.AMETHYST_SHARD);
+            }
+        }
+        ItemStack off = player.getInventory().getItemInOffHand();
+        var def = ItemDefs.resolve(off);
+        if (def != null && def.id().equals("teleport_crystal")
+                && off.getType() != Material.AMETHYST_SHARD) {
+            off.setType(Material.AMETHYST_SHARD);
         }
     }
 

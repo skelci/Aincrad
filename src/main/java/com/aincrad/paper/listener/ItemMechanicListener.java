@@ -1,6 +1,7 @@
 package com.aincrad.paper.listener;
 
 import com.aincrad.paper.items.ItemDefs;
+import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
@@ -133,6 +134,9 @@ public class ItemMechanicListener implements Listener {
             def = ItemDefs.resolve(is);
         }
         if (def == null || !def.id().equals("teleport_crystal")) return;
+        if (is.getType() != Material.AMETHYST_SHARD) {
+            is.setType(Material.AMETHYST_SHARD);
+        }
         event.setCancelled(true);
         event.setUseItemInHand(org.bukkit.event.Event.Result.DENY);
         if (!com.aincrad.paper.skills.PaperSkillService.spendMana(player, 60)) {
