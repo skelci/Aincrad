@@ -115,6 +115,8 @@ public class AincradCommand implements CommandExecutor, TabCompleter {
                     sender.sendMessage("§cfloor_1 not loaded");
                     return true;
                 }
+                sender.sendMessage("§eDebug: loadedChunks=" + w.getLoadedChunks().length
+                        + " entities=" + w.getEntities().size());
                 for (int i = 0; i < 5; i++) {
                     var p = com.aincrad.paper.world.FloorDungeons.site(i);
                     int regular = ms.countRegularDungeonMobsNear(w, p.x(), p.z(), 260);

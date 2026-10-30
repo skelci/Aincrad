@@ -241,7 +241,10 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
         getServer().getPluginManager().registerEvents(floorDungeons, this);
         getServer().getPluginManager().registerEvents(
                 new com.aincrad.paper.listener.FloorWorldListener(), this);
-        getServer().getScheduler().runTaskLater(this, () -> floorDungeons.buildAll(), 80L);
+        getServer().getScheduler().runTaskLater(this, () -> {
+            floorDungeons.buildAll();
+            floorDungeons.stockAll();
+        }, 80L);
         
         getServer().getPluginManager().registerEvents(this, this);
         getLogger().info("Aincrad Paper plugin enabled.");

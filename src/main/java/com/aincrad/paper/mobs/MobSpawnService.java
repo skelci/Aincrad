@@ -767,10 +767,10 @@ public class MobSpawnService implements Listener {
             for (int i = 0; i < drops; i++) {
                 String drop = bossDrops[random.nextInt(bossDrops.length)];
                 var stack = ItemDefs.create(drop, 1);
-                if (stack != null) mob.getWorld().dropItemNaturally(mob.getLocation(), stack);
+                if (stack != null) giveDrop(killer, stack);
             }
             var apple = ItemDefs.create("golden_apple", 1);
-            if (apple != null) mob.getWorld().dropItemNaturally(mob.getLocation(), apple);
+            if (apple != null) giveDrop(killer, apple);
             this.mob = null;
             return;
         }
@@ -786,7 +786,7 @@ public class MobSpawnService implements Listener {
         String food = foodDrop(id);
         if (food != null && random.nextDouble() < 0.85) {
             var fs = ItemDefs.create(food, 1);
-            if (fs != null) mob.getWorld().dropItemNaturally(mob.getLocation(), fs);
+            if (fs != null) giveDrop(killer, fs);
         }
 
         var nearby = killer.getWorld().getNearbyEntities(killer.getLocation(), 40, 40, 40,
@@ -803,7 +803,17 @@ public class MobSpawnService implements Listener {
             String drop = pool.get(random.nextInt(pool.size()));
             var stack = ItemDefs.create(drop, 1);
             if (stack != null) {
-                mob.getWorld().dropItemNaturally(mob.getLocation(), stack);
+                giveDrop(killer, stack);
+            }
+        }
+    }
+
+    private void giveDrop(org.bukkit.entity.Player player, org.bukkit.inventory.ItemStack stack) {
+        if (player == null || stack == null) return;
+        var leftovers = player.getInventory().addItem(stack);
+        if (!leftovers.isEmpty()) {
+            for (var left : leftovers.values()) {
+                player.getWorld().dropItemNaturally(player.getLocation(), left);
             }
         }
     }
