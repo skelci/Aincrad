@@ -149,8 +149,8 @@ public final class ItemDefs {
                     .decoration(TextDecoration.ITALIC, false));
         }
         if (def.id().equals("poison_crystal")) {
-            lore.add(Component.text("Immune to poison while in your inventory", NamedTextColor.GREEN)
-                    .decoration(TextDecoration.ITALIC, false));
+            lore.add(Component.text("Protects from poison and hunger; costs 5 MP per protection",
+                    NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false));
         }
         lore.add(Component.text("Requires Lv " + def.levelReq(), NamedTextColor.DARK_GRAY)
                 .decoration(TextDecoration.ITALIC, false));

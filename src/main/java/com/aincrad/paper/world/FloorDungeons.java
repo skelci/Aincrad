@@ -140,8 +140,12 @@ public final class FloorDungeons implements Listener {
         var ok = new org.bukkit.NamespacedKey(plugin, "dungeon_stock_ok_" + idx);
         var key = new org.bukkit.NamespacedKey(plugin, "dungeon_stock9_" + idx);
         Point pt = POINTS.get(idx);
-        if (w.getPersistentDataContainer().has(ok, org.bukkit.persistence.PersistentDataType.BYTE))
-            return true;
+        if (w.getPersistentDataContainer().has(ok, org.bukkit.persistence.PersistentDataType.BYTE)) {
+            boolean hasMobs = mobs != null
+                    && mobs.countRegularDungeonMobsNear(w, pt.x(), pt.z(), 260) > 0;
+            if (hasMobs) return true;
+            w.getPersistentDataContainer().remove(ok);
+        }
         boolean hasMobs = mobs != null
                 && mobs.countRegularDungeonMobsNear(w, pt.x(), pt.z(), 260) > 0;
         if (hasMobs) {
@@ -327,7 +331,10 @@ public final class FloorDungeons implements Listener {
             Point p = POINTS.get(i);
             World w = floorWorld(p.floor());
             if (w == null) continue;
-            restock(w, i);
+            boolean ok = stockSite(w, i);
+            if (!ok) {
+                plugin.getLogger().warning("[Aincrad] Could not stock dungeon: " + NAMES[i]);
+            }
             if (mobs != null) mobs.purgeSurfaceDungeonMobsNear(w, p.x(), p.z(), 60);
             stockExterior(w, p, i);
         }

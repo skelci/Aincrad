@@ -21,6 +21,7 @@ import org.bukkit.potion.PotionEffectType;
 public class PlayerListener implements Listener {
 
     private final AincradPaperPlugin plugin;
+    private static final double CRYSTAL_MP_COST = 5.0;
 
     public PlayerListener(AincradPaperPlugin plugin) {
         this.plugin = plugin;
@@ -88,11 +89,23 @@ public class PlayerListener implements Listener {
         return def != null && def.id().equals("poison_crystal");
     }
 
+    private boolean spendProtection(org.bukkit.entity.Player player, String label) {
+        if (!com.aincrad.paper.skills.PaperSkillService.spendMana(player, CRYSTAL_MP_COST)) {
+            player.sendMessage("§cNot enough MP (" + (int) CRYSTAL_MP_COST + " needed) for " + label + " protection.");
+            return false;
+        }
+        player.sendMessage("§b-" + (int) CRYSTAL_MP_COST + " MP §7(" + label + " protection).");
+        return true;
+    }
+
     @EventHandler(ignoreCancelled = true)
     public void onPoisonDamage(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof org.bukkit.entity.Player player)) return;
-        if (event.getCause() == EntityDamageEvent.DamageCause.POISON && hasPoisonCrystal(player)) {
-            event.setCancelled(true);
+        if (!hasPoisonCrystal(player)) return;
+        if (event.getCause() == EntityDamageEvent.DamageCause.POISON) {
+            if (spendProtection(player, "poison")) event.setCancelled(true);
+        } else if (event.getCause() == EntityDamageEvent.DamageCause.STARVATION) {
+            if (spendProtection(player, "hunger")) event.setCancelled(true);
         }
     }
 
@@ -100,8 +113,11 @@ public class PlayerListener implements Listener {
     public void onPotionEffect(EntityPotionEffectEvent event) {
         if (!(event.getEntity() instanceof org.bukkit.entity.Player player)) return;
         var effect = event.getNewEffect();
-        if (effect != null && effect.getType() == PotionEffectType.POISON && hasPoisonCrystal(player)) {
-            event.setCancelled(true);
+        if (effect == null || !hasPoisonCrystal(player)) return;
+        if (effect.getType() == PotionEffectType.POISON) {
+            if (spendProtection(player, "poison")) event.setCancelled(true);
+        } else if (effect.getType() == PotionEffectType.HUNGER) {
+            if (spendProtection(player, "hunger")) event.setCancelled(true);
         }
     }
 
