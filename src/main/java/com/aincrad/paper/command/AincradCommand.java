@@ -8,14 +8,16 @@ import org.bukkit.command.TabCompleter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AincradCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> SUBCOMMANDS = List.of(
             "guild", "party", "quest", "progression", "dungeon", "economy", "item", "mob", "skill",
             "restock", "restockall", "purgevanilla", "mobcount", "lastchange", "help",
-            "ambient"
+            "ambient", "treecount"
     );
 
     private final AincradPaperPlugin plugin;
@@ -198,6 +200,37 @@ public class AincradCommand implements CommandExecutor, TabCompleter {
                 if (sender instanceof org.bukkit.entity.Player p) {
                     plugin.getFloorBoss().summon(p.getWorld(), 1, p.getLocation());
                 }
+            }
+            case "treecount" -> {
+                if (sender instanceof org.bukkit.entity.Player pl && !pl.isOp()) {
+                    sender.sendMessage("§cOp only.");
+                    return true;
+                }
+                var fd = plugin.getFloorDungeons();
+                if (fd == null) { sender.sendMessage("§cNot ready."); return true; }
+                org.bukkit.World w = fd.worldForFloor(1);
+                if (w == null) { sender.sendMessage("§cfloor_1 not loaded"); return true; }
+                Map<String, Integer> counts = new HashMap<>();
+                for (var chunk : w.getLoadedChunks()) {
+                    int x0 = chunk.getX() * 16;
+                    int z0 = chunk.getZ() * 16;
+                    for (int x = x0; x < x0 + 16; x++) {
+                        for (int z = z0; z < z0 + 16; z++) {
+                            for (int y = 60; y <= 100; y++) {
+                                String n = w.getBlockAt(x, y, z).getType().name();
+                                if (n.endsWith("_LOG") || n.endsWith("_LEAVES")
+                                        || n.contains("TULIP") || n.equals("POPPY")
+                                        || n.equals("DANDELION") || n.equals("CORNFLOWER")
+                                        || n.equals("OXEYE_DAISY") || n.equals("ALLIUM")
+                                        || n.equals("AZURE_BLUET") || n.equals("BLUE_ORCHID")) {
+                                    counts.merge(n, 1, Integer::sum);
+                                }
+                            }
+                        }
+                    }
+                }
+                sender.sendMessage("§eTree/flower blocks: " + counts);
+                return true;
             }
             case "help" -> sendHelp(sender);
             default -> sender.sendMessage("§6[Aincrad] §fUnknown subcommand: " + args[0]);
