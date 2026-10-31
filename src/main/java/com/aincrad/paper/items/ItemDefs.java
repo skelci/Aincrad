@@ -42,6 +42,7 @@ public final class ItemDefs {
     }
 
     public static final NamespacedKey KEY_ITEM = new NamespacedKey("aincrad", "item");
+    public static final NamespacedKey KEY_PURCHASED = new NamespacedKey("aincrad", "shop_purchased");
 
     private static final Map<String, Def> DEFS = new HashMap<>();
 
@@ -126,6 +127,22 @@ public final class ItemDefs {
         if (meta == null) return null;
         String id = meta.getPersistentDataContainer().get(KEY_ITEM, PersistentDataType.STRING);
         return id == null ? null : DEFS.get(id);
+    }
+
+    public static void markPurchased(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return;
+        ItemMeta meta = stack.getItemMeta();
+        if (meta == null) return;
+        meta.getPersistentDataContainer().set(KEY_PURCHASED, PersistentDataType.BYTE, (byte) 1);
+        stack.setItemMeta(meta);
+    }
+
+    public static boolean isPurchased(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return false;
+        ItemMeta meta = stack.getItemMeta();
+        if (meta == null) return false;
+        Byte v = meta.getPersistentDataContainer().get(KEY_PURCHASED, PersistentDataType.BYTE);
+        return v != null && v == 1;
     }
 
     public static ItemStack create(String id, int count) {

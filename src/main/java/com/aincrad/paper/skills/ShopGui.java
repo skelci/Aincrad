@@ -108,6 +108,7 @@ public final class ShopGui implements InventoryHolder {
             return;
         }
         ItemStack item = ItemDefs.create(def.id(), amount);
+        ItemDefs.markPurchased(item);
         if (!player.getInventory().addItem(item).isEmpty()) {
             player.getWorld().dropItemNaturally(player.getLocation(), item);
         }

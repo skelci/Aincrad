@@ -38,6 +38,7 @@ public class PlayerListener implements Listener {
         ProgressionManager.getInstance().syncActionBar(player);
         com.aincrad.paper.items.ItemCommands.grantStarterKitIfNew(player);
         migrateTeleportCrystals(player);
+        stripUnpurchasedCrystals(player);
 
         String note = plugin.getLastChangeNote();
         if (note != null && !note.isBlank()) {
@@ -76,6 +77,29 @@ public class PlayerListener implements Listener {
         if (def != null && def.id().equals("teleport_crystal")
                 && off.getType() != Material.AMETHYST_SHARD) {
             off.setType(Material.AMETHYST_SHARD);
+        }
+    }
+
+    private void stripUnpurchasedCrystals(org.bukkit.entity.Player player) {
+        int removed = 0;
+        ItemStack[] contents = player.getInventory().getContents();
+        for (int i = 0; i < contents.length; i++) {
+            ItemStack is = contents[i];
+            if (is == null) continue;
+            ItemDefs.Def def = ItemDefs.resolve(is);
+            if (def != null && ItemDefs.isCrystal(def.id()) && !ItemDefs.isPurchased(is)) {
+                removed += is.getAmount();
+                player.getInventory().setItem(i, null);
+            }
+        }
+        ItemStack off = player.getInventory().getItemInOffHand();
+        ItemDefs.Def offDef = ItemDefs.resolve(off);
+        if (offDef != null && ItemDefs.isCrystal(offDef.id()) && !ItemDefs.isPurchased(off)) {
+            removed += off.getAmount();
+            player.getInventory().setItemInOffHand(new ItemStack(Material.AIR));
+        }
+        if (removed > 0) {
+            player.sendMessage("§cFree crystals removed; crystals must be bought from /shop.");
         }
     }
 

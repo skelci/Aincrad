@@ -93,7 +93,9 @@ public class ShopCommandHandler implements CommandExecutor {
             player.sendMessage("§cNot enough Col: need " + total);
             return;
         }
-        give(player, ItemDefs.create(def.id(), amount));
+        ItemStack stack = ItemDefs.create(def.id(), amount);
+        ItemDefs.markPurchased(stack);
+        give(player, stack);
         player.sendMessage("§aBought " + amount + "x " + def.name() + " for " + total + " Col");
     }
 
