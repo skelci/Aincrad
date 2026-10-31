@@ -38,17 +38,20 @@ public final class FloorTerrain {
             new org.bukkit.NamespacedKey("aincrad", "terrain_decorated");
     private static final org.bukkit.NamespacedKey DECORATED_V2 =
             new org.bukkit.NamespacedKey("aincrad", "terrain_decorated_v2");
+    private static final org.bukkit.NamespacedKey DECORATED_V3 =
+            new org.bukkit.NamespacedKey("aincrad", "terrain_decorated_v3");
 
     public static void decorate(Chunk chunk) {
         World w = chunk.getWorld();
         var pdc = chunk.getPersistentDataContainer();
-        if (pdc.has(DECORATED_V2, org.bukkit.persistence.PersistentDataType.BYTE)) return;
+        if (pdc.has(DECORATED_V3, org.bukkit.persistence.PersistentDataType.BYTE)) return;
         int cx = chunk.getX() * 16 + 8;
         int cz = chunk.getZ() * 16 + 8;
         if (Math.hypot(cx, cz) < TOWN_SKIP) return;
         if (FloorDungeons.nearDungeon(w, cx, cz, 40)) return;
 
-        if (pdc.has(DECORATED, org.bukkit.persistence.PersistentDataType.BYTE)) {
+        if (pdc.has(DECORATED, org.bukkit.persistence.PersistentDataType.BYTE)
+                || pdc.has(DECORATED_V2, org.bukkit.persistence.PersistentDataType.BYTE)) {
             clearOldFlora(chunk);
         }
         terraform(chunk);
@@ -69,7 +72,7 @@ public final class FloorTerrain {
         if (Math.hypot(cx, cz) > 160 && r.nextInt(90) == 0) {
             ruin(r, w, cx, cz);
         }
-        pdc.set(DECORATED_V2, org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
+        pdc.set(DECORATED_V3, org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
     }
 
     public static int redecorateLoaded(World w) {
@@ -91,7 +94,7 @@ public final class FloorTerrain {
                     Material t = b.getType();
                     if (t == Material.OAK_LOG || t == Material.OAK_LEAVES
                             || t == Material.OAK_SAPLING || t == Material.POPPY
-                            || t == Material.DANDELION) {
+                            || t == Material.DANDELION || t == Material.ANDESITE_WALL) {
                         b.setType(Material.AIR, false);
                     }
                 }
@@ -150,11 +153,6 @@ public final class FloorTerrain {
         }
         scatter(w, r, cx, cz, 4, Material.STONE);
         scatter(w, r, cx, cz, 3, Material.DEAD_BUSH);
-        if (r.nextInt(3) == 0) {
-            int x = cx + r.nextInt(6) - 3, z = cz + r.nextInt(6) - 3;
-            int s0 = surf(w, x, z);
-            for (int y = 1; y <= 3; y++) set(w, x, s0 + y, z, Material.ANDESITE_WALL);
-        }
     }
 
     private static void wetland(Random r, World w, int cx, int cz) {
