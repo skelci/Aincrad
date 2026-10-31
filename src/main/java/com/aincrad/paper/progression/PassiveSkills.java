@@ -41,6 +41,7 @@ public final class PassiveSkills {
                 int level = ProgressionManager.getInstance()
                         .getProgression(p.getUniqueId()).getLevel();
                 syncSpeed(p);
+                StaminaService.tick(p);
                 double next = p.getHealth() + hpRegenPerTwoSeconds(level);
                 if (next > max) next = max;
                 p.setHealth(next);

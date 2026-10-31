@@ -83,6 +83,7 @@ public final class FloorTerrain {
             ruin(r, w, cx, cz);
         }
         pdc.set(DECORATED_V5, org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
+        if (Math.hypot(cx, cz) >= TOWN_SKIP) clearStoneLayers(chunk);
     }
 
     public static int redecorateLoaded(World w) {

@@ -27,12 +27,16 @@ public final class StatsSync {
                     int level = ProgressionManager.getInstance().getProgression(p.getUniqueId()).getLevel();
                     double mana = PaperSkillService.mana(p);
                     double maxMana = PaperSkillService.maxMana(p);
+                    double stamina = com.aincrad.paper.progression.StaminaService.current(p);
+                    double maxStamina = com.aincrad.paper.progression.StaminaService.maxStamina(level);
                     long col = EconomyManager.getInstance().getBalance(p.getUniqueId()).getAmount();
                     ByteArrayOutputStream bs = new ByteArrayOutputStream();
                     DataOutputStream d = new DataOutputStream(bs);
                     d.writeInt(Math.max(1, level));
                     d.writeDouble(mana);
                     d.writeDouble(maxMana);
+                    d.writeDouble(stamina);
+                    d.writeDouble(maxStamina);
                     d.writeLong(col);
                     d.flush();
                     p.sendPluginMessage(plugin, CHANNEL, bs.toByteArray());

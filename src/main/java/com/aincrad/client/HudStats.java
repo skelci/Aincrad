@@ -9,6 +9,8 @@ public final class HudStats {
     public static volatile int level = 1;
     public static volatile double mana = 1.0;
     public static volatile double maxMana = 1.0;
+    public static volatile double stamina = 1.0;
+    public static volatile double maxStamina = 1.0;
     public static volatile long col = 0L;
 
     private HudStats() {
@@ -27,10 +29,20 @@ public final class HudStats {
         return (int) Math.round(mana) + "/" + (int) Math.round(maxMana);
     }
 
+    public static double staminaRatio() {
+        return maxStamina <= 0 ? 0 : Math.max(0, Math.min(1, stamina / maxStamina));
+    }
+
+    public static String staminaText() {
+        return (int) Math.round(stamina) + "/" + (int) Math.round(maxStamina);
+    }
+
     public static void apply(StatsPayload p) {
         level = Math.max(1, p.level());
         mana = p.mana();
         maxMana = p.maxMana();
+        stamina = p.stamina();
+        maxStamina = p.maxStamina();
         col = p.col();
     }
 }

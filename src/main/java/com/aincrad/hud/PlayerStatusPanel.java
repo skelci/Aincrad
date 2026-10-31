@@ -42,7 +42,7 @@ public class PlayerStatusPanel extends HudElement {
             float maxHp = player.getMaxHealth();
             targetHp = maxHp > 0 ? player.getHealth() / maxHp : 0.0f;
             targetMp = (float) com.aincrad.client.HudStats.manaRatio();
-            targetSt = player.getFoodData().getFoodLevel() / 20.0f;
+            targetSt = (float) com.aincrad.client.HudStats.staminaRatio();
         } else {
             targetHp = 0.0f; targetMp = 0.0f; targetSt = 0.0f;
         }
@@ -103,7 +103,7 @@ public class PlayerStatusPanel extends HudElement {
         int stBarX = contentX + font.width(stLabel) + 4;
         int stBarW = panelX + panelW - PADDING - stBarX;
         drawBar(extractor, stBarX, contentY, stBarW, BAR_HEIGHT, displayedSt, HudPalette.ST_GRADIENT_START, HudPalette.ST_GRADIENT_END, HudPalette.ST_BACKGROUND);
-        String stText = player != null ? String.format("%d/%d", player.getFoodData().getFoodLevel(), 20) : "0/20";
+        String stText = com.aincrad.client.HudStats.staminaText();
         extractor.text(font, stText, stBarX + stBarW - font.width(stText) - 2, contentY + 1, HudPalette.TEXT_PRIMARY);
         contentY += BAR_HEIGHT + BAR_SPACING;
 

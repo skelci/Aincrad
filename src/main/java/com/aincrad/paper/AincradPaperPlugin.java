@@ -156,7 +156,8 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
             int str = com.aincrad.paper.progression.ProgressionManager.strengthOf(lvl);
             double mp = com.aincrad.paper.skills.PaperSkillService.mana(p);
             double maxMp = com.aincrad.paper.skills.PaperSkillService.maxMana(p);
-            int food = p.getFoodLevel();
+            double st = com.aincrad.paper.progression.StaminaService.current(p);
+            double maxSt = com.aincrad.paper.progression.StaminaService.maxStamina(lvl);
             sender.sendMessage("§6§lStats §7(Lv " + lvl + ")");
             sender.sendMessage("§cHP: §f" + String.format(java.util.Locale.ROOT, "%.1f", p.getHealth())
                     + " / " + (maxHp == null ? "n/a" : String.format(java.util.Locale.ROOT, "%.1f", maxHp)));
@@ -164,13 +165,16 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
             sender.sendMessage("§aStrength: §f" + str);
             sender.sendMessage("§bMP: §f" + String.format(java.util.Locale.ROOT, "%.0f", mp)
                     + " / " + String.format(java.util.Locale.ROOT, "%.0f", maxMp));
-            sender.sendMessage("§eST: §f" + food + " / 20");
+            sender.sendMessage("§eST: §f" + String.format(java.util.Locale.ROOT, "%.0f", st)
+                    + " / " + String.format(java.util.Locale.ROOT, "%.0f", maxSt));
             double hpRegen = com.aincrad.paper.progression.PassiveSkills.hpRegenPerTwoSeconds(lvl);
             double mpRate = com.aincrad.paper.progression.PassiveSkills.mpRegenPerSecond(lvl) * 100.0;
+            double stRate = com.aincrad.paper.progression.StaminaService.regenPerTwoSeconds(lvl);
             double speedPct = com.aincrad.paper.progression.PassiveSkills.speedBonus(lvl) / 0.1 * 100.0;
             sender.sendMessage("§dPassives: §fHP +" + String.format(java.util.Locale.ROOT, "%.1f", hpRegen)
                     + "/2s §7| §bMP +" + String.format(java.util.Locale.ROOT, "%.2f", mpRate)
-                    + "%/s §7| §eSpeed +" + String.format(java.util.Locale.ROOT, "%.0f", speedPct) + "%");
+                    + "%/s §7| §eST +" + String.format(java.util.Locale.ROOT, "%.2f", stRate)
+                    + "/2s (when hunger is full) §7| §eSpeed +" + String.format(java.util.Locale.ROOT, "%.0f", speedPct) + "%");
             return true;
         };
         registerCommand("stats", statsView);

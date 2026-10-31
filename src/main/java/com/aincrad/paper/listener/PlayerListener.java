@@ -36,6 +36,7 @@ public class PlayerListener implements Listener {
         var player = event.getPlayer();
         ProgressionManager.getInstance().getProgression(player.getUniqueId());
         ProgressionManager.getInstance().syncActionBar(player);
+        com.aincrad.paper.progression.StaminaService.ensure(player);
         com.aincrad.paper.items.ItemCommands.grantStarterKitIfNew(player);
         migrateTeleportCrystals(player);
         stripUnpurchasedCrystals(player);
