@@ -13,7 +13,8 @@ import java.util.Random;
  */
 public final class FloorTerrain {
 
-    private static final int TOWN_SKIP = 136;
+    private static final int TOWN_SKIP = 150;
+    private static final int DUNGEON_SKIP = 50;
 
     private static final Material[][] TREE_TYPES = {
             {Material.OAK_LOG, Material.OAK_LEAVES},
@@ -40,18 +41,27 @@ public final class FloorTerrain {
             new org.bukkit.NamespacedKey("aincrad", "terrain_decorated_v2");
     private static final org.bukkit.NamespacedKey DECORATED_V3 =
             new org.bukkit.NamespacedKey("aincrad", "terrain_decorated_v3");
+    private static final org.bukkit.NamespacedKey DECORATED_V4 =
+            new org.bukkit.NamespacedKey("aincrad", "terrain_decorated_v4");
+    private static final org.bukkit.NamespacedKey DECORATED_V5 =
+            new org.bukkit.NamespacedKey("aincrad", "terrain_decorated_v5");
 
     public static void decorate(Chunk chunk) {
         World w = chunk.getWorld();
-        var pdc = chunk.getPersistentDataContainer();
-        if (pdc.has(DECORATED_V3, org.bukkit.persistence.PersistentDataType.BYTE)) return;
         int cx = chunk.getX() * 16 + 8;
         int cz = chunk.getZ() * 16 + 8;
+        var pdc = chunk.getPersistentDataContainer();
+        if (pdc.has(DECORATED_V5, org.bukkit.persistence.PersistentDataType.BYTE)) {
+            if (Math.hypot(cx, cz) >= TOWN_SKIP) clearStoneLayers(chunk);
+            return;
+        }
         if (Math.hypot(cx, cz) < TOWN_SKIP) return;
-        if (FloorDungeons.nearDungeon(w, cx, cz, 40)) return;
+        if (FloorDungeons.nearDungeon(w, cx, cz, DUNGEON_SKIP)) return;
 
         if (pdc.has(DECORATED, org.bukkit.persistence.PersistentDataType.BYTE)
-                || pdc.has(DECORATED_V2, org.bukkit.persistence.PersistentDataType.BYTE)) {
+                || pdc.has(DECORATED_V2, org.bukkit.persistence.PersistentDataType.BYTE)
+                || pdc.has(DECORATED_V3, org.bukkit.persistence.PersistentDataType.BYTE)
+                || pdc.has(DECORATED_V4, org.bukkit.persistence.PersistentDataType.BYTE)) {
             clearOldFlora(chunk);
         }
         terraform(chunk);
@@ -72,19 +82,24 @@ public final class FloorTerrain {
         if (Math.hypot(cx, cz) > 160 && r.nextInt(90) == 0) {
             ruin(r, w, cx, cz);
         }
-        pdc.set(DECORATED_V3, org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
+        pdc.set(DECORATED_V5, org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
     }
 
     public static int redecorateLoaded(World w) {
         int n = 0;
         for (Chunk chunk : w.getLoadedChunks()) {
+            int cx = chunk.getX() * 16 + 8;
+            int cz = chunk.getZ() * 16 + 8;
             decorate(chunk);
+            // Keep at most one decorative stone layer outside the town/castle.
+            if (Math.hypot(cx, cz) >= TOWN_SKIP) clearStoneLayers(chunk);
             n++;
         }
         return n;
     }
 
     private static void clearOldFlora(Chunk chunk) {
+        clearStoneLayers(chunk);
         int x0 = chunk.getX() * 16;
         int z0 = chunk.getZ() * 16;
         for (int x = x0; x < x0 + 16; x++) {
@@ -96,6 +111,39 @@ public final class FloorTerrain {
                             || t == Material.OAK_SAPLING || t == Material.POPPY
                             || t == Material.DANDELION || t == Material.ANDESITE_WALL) {
                         b.setType(Material.AIR, false);
+                    }
+                }
+            }
+        }
+    }
+
+    private static void clearStoneLayers(Chunk chunk) {
+        int x0 = chunk.getX() * 16;
+        int z0 = chunk.getZ() * 16;
+        for (int x = x0; x < x0 + 16; x++) {
+            for (int z = z0; z < z0 + 16; z++) {
+                int ground = -1;
+                for (int y = 100; y >= 60; y--) {
+                    Material t = chunk.getWorld().getBlockAt(x, y, z).getType();
+                    if (t == Material.GRASS_BLOCK || t == Material.DIRT
+                            || t == Material.COARSE_DIRT || t == Material.PODZOL
+                            || t == Material.MOSS_BLOCK || t == Material.SAND) {
+                        ground = y;
+                        break;
+                    }
+                }
+                if (ground < 0) continue;
+                int keep = -1;
+                for (int y = ground + 1; y <= 100; y++) {
+                    var b = chunk.getWorld().getBlockAt(x, y, z);
+                    Material t = b.getType();
+                    if (t == Material.STONE || t == Material.ANDESITE
+                            || t == Material.MOSSY_COBBLESTONE || t == Material.COAL_ORE) {
+                        if (keep < 0) {
+                            keep = y;
+                        } else {
+                            b.setType(Material.AIR, false);
+                        }
                     }
                 }
             }
@@ -149,7 +197,6 @@ public final class FloorTerrain {
                     set(w, x + dx, s0 + 1, z + dz, m);
                 }
             }
-            set(w, x, s0 + 2, z, r.nextInt(6) == 0 ? Material.COAL_ORE : Material.STONE);
         }
         scatter(w, r, cx, cz, 4, Material.STONE);
         scatter(w, r, cx, cz, 3, Material.DEAD_BUSH);

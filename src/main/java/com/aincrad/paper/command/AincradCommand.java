@@ -17,7 +17,7 @@ public class AincradCommand implements CommandExecutor, TabCompleter {
     private static final List<String> SUBCOMMANDS = List.of(
             "guild", "party", "quest", "progression", "dungeon", "economy", "item", "mob", "skill",
             "restock", "restockall", "purgevanilla", "mobcount", "lastchange", "help",
-            "ambient", "treecount"
+            "ambient", "treecount", "stonecount"
     );
 
     private final AincradPaperPlugin plugin;
@@ -232,7 +232,80 @@ public class AincradCommand implements CommandExecutor, TabCompleter {
                 sender.sendMessage("§eTree/flower blocks: " + counts);
                 return true;
             }
-            case "help" -> sendHelp(sender);
+            case "stonecount" -> {
+                if (sender instanceof org.bukkit.entity.Player pl && !pl.isOp()) {
+                    sender.sendMessage("§cOp only.");
+                    return true;
+                }
+                var fd = plugin.getFloorDungeons();
+                if (fd == null) { sender.sendMessage("§cNot ready."); return true; }
+                org.bukkit.World w = fd.worldForFloor(1);
+                if (w == null) { sender.sendMessage("§cfloor_1 not loaded"); return true; }
+                int maxRun = 0, multi = 0, total = 0;
+                int maxX = 0, maxZ = 0, maxTop = 0;
+                int castleMulti = 0, outsideMulti = 0;
+                for (var chunk : w.getLoadedChunks()) {
+                    int x0 = chunk.getX() * 16;
+                    int z0 = chunk.getZ() * 16;
+                    for (int x = x0; x < x0 + 16; x++) {
+                        for (int z = z0; z < z0 + 16; z++) {
+                            int ground = -1;
+                            for (int y = 100; y >= 60; y--) {
+                                String n = w.getBlockAt(x, y, z).getType().name();
+                                if (n.equals("GRASS_BLOCK") || n.equals("DIRT")
+                                        || n.equals("COARSE_DIRT") || n.equals("PODZOL")
+                                        || n.equals("MOSS_BLOCK") || n.equals("SAND")) {
+                                    ground = y;
+                                    break;
+                                }
+                            }
+                            if (ground < 0) continue;
+                            int run = 0;
+                            for (int y = ground + 1; y <= 100; y++) {
+                                String n = w.getBlockAt(x, y, z).getType().name();
+                                if (n.equals("STONE") || n.equals("ANDESITE")
+                                        || n.equals("MOSSY_COBBLESTONE") || n.equals("COAL_ORE")) {
+                                    run++;
+                                    total++;
+                                } else {
+                                    if (run > 1) {
+                                        multi++;
+                        if (Math.hypot(x, z) < 150) castleMulti++; else outsideMulti++;
+                                    }
+                                    if (run > maxRun) { maxRun = run; maxX = x; maxZ = z; maxTop = y - 1; }
+                                    run = 0;
+                                }
+                            }
+                            if (run > 1) {
+                                multi++;
+                                if (Math.hypot(x, z) < 150) castleMulti++; else outsideMulti++;
+                            }
+                            if (run > maxRun) { maxRun = run; maxX = x; maxZ = z; maxTop = ground + run; }
+                        }
+                    }
+                }
+                sender.sendMessage("§eStone layers: max=" + maxRun + ", multi=" + multi + ", total=" + total
+                        + ", castleMulti=" + castleMulti + ", outsideMulti=" + outsideMulti
+                        + ", sample=" + maxX + "," + maxZ + " topY=" + maxTop);
+                return true;
+            }
+            case "blockat" -> {
+                if (sender instanceof org.bukkit.entity.Player pl && !pl.isOp()) {
+                    sender.sendMessage("§cOp only.");
+                    return true;
+                }
+                var fd = plugin.getFloorDungeons();
+                if (fd == null) { sender.sendMessage("§cNot ready."); return true; }
+                org.bukkit.World w = fd.worldForFloor(1);
+                if (w == null) { sender.sendMessage("§cfloor_1 not loaded"); return true; }
+                if (args.length < 4) { sender.sendMessage("§cUsage: /aincrad blockat x y z"); return true; }
+                int bx = Integer.parseInt(args[1]);
+                int by = Integer.parseInt(args[2]);
+                int bz = Integer.parseInt(args[3]);
+                sender.sendMessage("§eBlock " + bx + "," + by + "," + bz + ": "
+                        + w.getBlockAt(bx, by, bz).getType().name());
+                return true;
+            }
             default -> sender.sendMessage("§6[Aincrad] §fUnknown subcommand: " + args[0]);
         }
         return true;
