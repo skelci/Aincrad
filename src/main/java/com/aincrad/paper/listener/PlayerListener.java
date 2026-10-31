@@ -21,7 +21,7 @@ import org.bukkit.potion.PotionEffectType;
 public class PlayerListener implements Listener {
 
     private final AincradPaperPlugin plugin;
-    private static final double CRYSTAL_MP_COST = 5.0;
+    private static final double CRYSTAL_MP_COST = 10.0;
 
     public PlayerListener(AincradPaperPlugin plugin) {
         this.plugin = plugin;
@@ -79,14 +79,13 @@ public class PlayerListener implements Listener {
         }
     }
 
-    private boolean hasPoisonCrystal(org.bukkit.entity.Player player) {
-        for (ItemStack is : player.getInventory().getContents()) {
+    private boolean hasCrystalInHotbar(org.bukkit.entity.Player player, String id) {
+        for (int slot = 0; slot < 9; slot++) {
+            ItemStack is = player.getInventory().getItem(slot);
             var def = ItemDefs.resolve(is);
-            if (def != null && def.id().equals("poison_crystal")) return true;
+            if (def != null && def.id().equals(id)) return true;
         }
-        var off = player.getInventory().getItemInOffHand();
-        var def = ItemDefs.resolve(off);
-        return def != null && def.id().equals("poison_crystal");
+        return false;
     }
 
     private boolean spendProtection(org.bukkit.entity.Player player, String label) {
@@ -101,7 +100,7 @@ public class PlayerListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onPoisonDamage(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof org.bukkit.entity.Player player)) return;
-        if (!hasPoisonCrystal(player)) return;
+        if (!hasCrystalInHotbar(player, "poison_crystal")) return;
         if (event.getCause() == EntityDamageEvent.DamageCause.POISON) {
             if (spendProtection(player, "poison")) event.setCancelled(true);
         } else if (event.getCause() == EntityDamageEvent.DamageCause.STARVATION) {
@@ -110,10 +109,24 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
+    public void onFireDamage(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof org.bukkit.entity.Player player)) return;
+        if (!hasCrystalInHotbar(player, "fire_crystal")) return;
+        var cause = event.getCause();
+        if (cause == EntityDamageEvent.DamageCause.FIRE
+                || cause == EntityDamageEvent.DamageCause.FIRE_TICK
+                || cause == EntityDamageEvent.DamageCause.LAVA
+                || cause == EntityDamageEvent.DamageCause.HOT_FLOOR
+                || cause == EntityDamageEvent.DamageCause.CAMPFIRE) {
+            if (spendProtection(player, "fire")) event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
     public void onPotionEffect(EntityPotionEffectEvent event) {
         if (!(event.getEntity() instanceof org.bukkit.entity.Player player)) return;
         var effect = event.getNewEffect();
-        if (effect == null || !hasPoisonCrystal(player)) return;
+        if (effect == null || !hasCrystalInHotbar(player, "poison_crystal")) return;
         if (effect.getType() == PotionEffectType.POISON) {
             if (spendProtection(player, "poison")) event.setCancelled(true);
         } else if (effect.getType() == PotionEffectType.HUNGER) {

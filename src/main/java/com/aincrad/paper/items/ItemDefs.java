@@ -96,6 +96,7 @@ public final class ItemDefs {
 
         add("teleport_crystal", "Teleport Crystal", Material.AMETHYST_SHARD, Slot.OTHER, 0, 0, 10, Rarity.RARE);
         add("poison_crystal", "Poison Immunity Crystal", Material.EMERALD, Slot.OTHER, 0, 0, 1, Rarity.RARE);
+        add("fire_crystal", "Fire Immunity Crystal", Material.BLAZE_ROD, Slot.OTHER, 0, 0, 1, Rarity.RARE);
     }
 
     private static final Map<String, Long> FOOD_PRICES = Map.of(
@@ -149,8 +150,12 @@ public final class ItemDefs {
                     .decoration(TextDecoration.ITALIC, false));
         }
         if (def.id().equals("poison_crystal")) {
-            lore.add(Component.text("Protects from poison and hunger; costs 5 MP per protection",
+            lore.add(Component.text("Hotbar: blocks poison and hunger; costs 10 MP per protection",
                     NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false));
+        }
+        if (def.id().equals("fire_crystal")) {
+            lore.add(Component.text("Hotbar: blocks fire and lava; costs 10 MP per protection",
+                    NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
         }
         lore.add(Component.text("Requires Lv " + def.levelReq(), NamedTextColor.DARK_GRAY)
                 .decoration(TextDecoration.ITALIC, false));
