@@ -45,9 +45,13 @@ public final class ItemCommands {
                 String id = args[2].toLowerCase(Locale.ROOT);
                 if (id.equals("all")) {
                     for (String defId : ItemDefs.all().keySet()) {
-                        give(player, defId, 1);
+                        if (!ItemDefs.isCrystal(defId)) give(player, defId, 1);
                     }
-                    player.sendMessage("§aGave one of every Aincrad item.");
+                    player.sendMessage("§aGave one of every non-crystal Aincrad item; crystals are shop-only.");
+                    return;
+                }
+                if (ItemDefs.isCrystal(id)) {
+                    player.sendMessage("§cCrystals must be purchased from /shop, not granted for free.");
                     return;
                 }
                 if (ItemDefs.get(id) == null) {
@@ -72,6 +76,10 @@ public final class ItemCommands {
                     return;
                 }
                 String gid = args[3].toLowerCase(Locale.ROOT);
+                if (ItemDefs.isCrystal(gid)) {
+                    sender.sendMessage("§cCrystals must be purchased from /shop, not granted for free.");
+                    return;
+                }
                 if (ItemDefs.get(gid) == null) {
                     sender.sendMessage("§cUnknown item id: " + gid);
                     return;

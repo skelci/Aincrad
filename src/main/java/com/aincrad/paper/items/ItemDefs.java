@@ -94,9 +94,13 @@ public final class ItemDefs {
         add("cooked_salmon", "Cooked Salmon", Material.COOKED_SALMON, Slot.HAND, 0, 0, 1, Rarity.COMMON);
         add("golden_apple", "Golden Apple", Material.GOLDEN_APPLE, Slot.HAND, 0, 0, 5, Rarity.RARE);
 
-        add("teleport_crystal", "Teleport Crystal", Material.AMETHYST_SHARD, Slot.OTHER, 0, 0, 10, Rarity.RARE);
-        add("poison_crystal", "Poison Immunity Crystal", Material.EMERALD, Slot.OTHER, 0, 0, 1, Rarity.RARE);
-        add("fire_crystal", "Fire Immunity Crystal", Material.BLAZE_ROD, Slot.OTHER, 0, 0, 1, Rarity.RARE);
+        add("teleport_crystal", "Teleport Crystal", Material.AMETHYST_SHARD, Slot.OTHER, 0, 0, 6, Rarity.RARE);
+        add("poison_crystal", "Poison Immunity Crystal", Material.EMERALD, Slot.OTHER, 0, 0, 3, Rarity.RARE);
+        add("fire_crystal", "Fire Immunity Crystal", Material.BLAZE_ROD, Slot.OTHER, 0, 0, 10, Rarity.RARE);
+    }
+
+    public static boolean isCrystal(String id) {
+        return "teleport_crystal".equals(id) || "poison_crystal".equals(id) || "fire_crystal".equals(id);
     }
 
     private static final Map<String, Long> FOOD_PRICES = Map.of(
