@@ -95,6 +95,7 @@ public final class ItemDefs {
         add("golden_apple", "Golden Apple", Material.GOLDEN_APPLE, Slot.HAND, 0, 0, 5, Rarity.RARE);
 
         add("teleport_crystal", "Teleport Crystal", Material.AMETHYST_SHARD, Slot.OTHER, 0, 0, 10, Rarity.RARE);
+        add("poison_crystal", "Poison Immunity Crystal", Material.EMERALD, Slot.OTHER, 0, 0, 1, Rarity.RARE);
     }
 
     private static final Map<String, Long> FOOD_PRICES = Map.of(
@@ -145,6 +146,10 @@ public final class ItemDefs {
         }
         if (def.id().equals("teleport_crystal")) {
             lore.add(Component.text("Right-click: teleport to this floor's spawn (60 MP)", NamedTextColor.AQUA)
+                    .decoration(TextDecoration.ITALIC, false));
+        }
+        if (def.id().equals("poison_crystal")) {
+            lore.add(Component.text("Immune to poison while in your inventory", NamedTextColor.GREEN)
                     .decoration(TextDecoration.ITALIC, false));
         }
         lore.add(Component.text("Requires Lv " + def.levelReq(), NamedTextColor.DARK_GRAY)

@@ -12,8 +12,11 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.potion.PotionEffectType;
 
 public class PlayerListener implements Listener {
 
@@ -72,6 +75,33 @@ public class PlayerListener implements Listener {
         if (def != null && def.id().equals("teleport_crystal")
                 && off.getType() != Material.AMETHYST_SHARD) {
             off.setType(Material.AMETHYST_SHARD);
+        }
+    }
+
+    private boolean hasPoisonCrystal(org.bukkit.entity.Player player) {
+        for (ItemStack is : player.getInventory().getContents()) {
+            var def = ItemDefs.resolve(is);
+            if (def != null && def.id().equals("poison_crystal")) return true;
+        }
+        var off = player.getInventory().getItemInOffHand();
+        var def = ItemDefs.resolve(off);
+        return def != null && def.id().equals("poison_crystal");
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPoisonDamage(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof org.bukkit.entity.Player player)) return;
+        if (event.getCause() == EntityDamageEvent.DamageCause.POISON && hasPoisonCrystal(player)) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPotionEffect(EntityPotionEffectEvent event) {
+        if (!(event.getEntity() instanceof org.bukkit.entity.Player player)) return;
+        var effect = event.getNewEffect();
+        if (effect != null && effect.getType() == PotionEffectType.POISON && hasPoisonCrystal(player)) {
+            event.setCancelled(true);
         }
     }
 

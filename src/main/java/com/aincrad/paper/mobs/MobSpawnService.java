@@ -236,10 +236,14 @@ public class MobSpawnService implements Listener {
                 org.bukkit.entity.EntityType.WITCH,
                 org.bukkit.entity.EntityType.SPIDER,
                 org.bukkit.entity.EntityType.CAVE_SPIDER,
-                org.bukkit.entity.EntityType.HUSK
+                org.bukkit.entity.EntityType.HUSK,
+                org.bukkit.entity.EntityType.PIG,
+                org.bukkit.entity.EntityType.CHICKEN
         };
         org.bukkit.entity.EntityType type = pool[random.nextInt(pool.length)];
-        int lvl = 2 + random.nextInt(4);
+        boolean passive = type == org.bukkit.entity.EntityType.PIG
+                || type == org.bukkit.entity.EntityType.CHICKEN;
+        int lvl = passive ? 1 : 2 + random.nextInt(4);
         suppressSpawnEvents = true;
         Entity spawned;
         try {
@@ -251,14 +255,15 @@ public class MobSpawnService implements Listener {
             spawned.remove();
             return -1;
         }
+        String label = passive ? niceName(type) : "&cLv" + lvl + " &f" + niceName(type);
         mob.customName(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
-                .legacyAmpersand().deserialize("&cLv" + lvl + " &f" + niceName(type)));
+                .legacyAmpersand().deserialize("&f" + label));
         mob.setCustomNameVisible(true);
-        buff(mob, 20 + 4.0 * lvl, 2.2 + 0.35 * lvl, 1.0);
+        if (!passive) buff(mob, 20 + 4.0 * lvl, 2.2 + 0.35 * lvl, 1.0);
         mob.getPersistentDataContainer().set(KEY_MOB, PersistentDataType.STRING, "ambient");
         mob.getPersistentDataContainer().set(KEY_MOB_LEVEL, PersistentDataType.INTEGER, lvl);
         mob.getPersistentDataContainer().set(KEY_MOB_NAME, PersistentDataType.STRING,
-                "&cLv" + lvl + " &f" + niceName(type));
+                "&f" + label);
         mob.getPersistentDataContainer().set(KEY_MOB_TYPE, PersistentDataType.STRING, type.name());
         updateHealthTag(mob, null);
         return 1;
@@ -416,8 +421,8 @@ public class MobSpawnService implements Listener {
             int pz = player.getLocation().getBlockZ();
             if (com.aincrad.paper.world.FloorDungeons.nearDungeon(world, px, pz, 130)) continue;
             int count = countAmbientMobsNear(world, px, pz, 180);
-            if (count >= 20) continue;
-            int attempts = Math.min(3, 20 - count);
+            if (count >= 30) continue;
+            int attempts = Math.min(3, 30 - count);
             for (int i = 0; i < attempts; i++) {
                 Location loc = findSpawnLocation(world, player.getLocation());
                 if (loc != null) spawnAmbientMob(loc);

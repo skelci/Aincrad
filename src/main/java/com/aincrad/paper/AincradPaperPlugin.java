@@ -244,6 +244,11 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
         getServer().getScheduler().runTaskLater(this, () -> {
             floorDungeons.buildAll();
             floorDungeons.stockAll();
+            for (org.bukkit.World w : getServer().getWorlds()) {
+                if (isFloorWorld(w)) {
+                    com.aincrad.paper.world.FloorTerrain.redecorateLoaded(w);
+                }
+            }
         }, 80L);
         
         getServer().getPluginManager().registerEvents(this, this);

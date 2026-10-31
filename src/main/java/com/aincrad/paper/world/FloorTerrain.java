@@ -36,16 +36,21 @@ public final class FloorTerrain {
 
     private static final org.bukkit.NamespacedKey DECORATED =
             new org.bukkit.NamespacedKey("aincrad", "terrain_decorated");
+    private static final org.bukkit.NamespacedKey DECORATED_V2 =
+            new org.bukkit.NamespacedKey("aincrad", "terrain_decorated_v2");
 
     public static void decorate(Chunk chunk) {
         World w = chunk.getWorld();
         var pdc = chunk.getPersistentDataContainer();
-        if (pdc.has(DECORATED, org.bukkit.persistence.PersistentDataType.BYTE)) return;
+        if (pdc.has(DECORATED_V2, org.bukkit.persistence.PersistentDataType.BYTE)) return;
         int cx = chunk.getX() * 16 + 8;
         int cz = chunk.getZ() * 16 + 8;
         if (Math.hypot(cx, cz) < TOWN_SKIP) return;
         if (FloorDungeons.nearDungeon(w, cx, cz, 40)) return;
 
+        if (pdc.has(DECORATED, org.bukkit.persistence.PersistentDataType.BYTE)) {
+            clearOldFlora(chunk);
+        }
         terraform(chunk);
 
         long seed = w.getSeed();
@@ -64,7 +69,34 @@ public final class FloorTerrain {
         if (Math.hypot(cx, cz) > 160 && r.nextInt(90) == 0) {
             ruin(r, w, cx, cz);
         }
-        pdc.set(DECORATED, org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
+        pdc.set(DECORATED_V2, org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
+    }
+
+    public static int redecorateLoaded(World w) {
+        int n = 0;
+        for (Chunk chunk : w.getLoadedChunks()) {
+            decorate(chunk);
+            n++;
+        }
+        return n;
+    }
+
+    private static void clearOldFlora(Chunk chunk) {
+        int x0 = chunk.getX() * 16;
+        int z0 = chunk.getZ() * 16;
+        for (int x = x0; x < x0 + 16; x++) {
+            for (int z = z0; z < z0 + 16; z++) {
+                for (int y = 60; y <= 100; y++) {
+                    var b = chunk.getWorld().getBlockAt(x, y, z);
+                    Material t = b.getType();
+                    if (t == Material.OAK_LOG || t == Material.OAK_LEAVES
+                            || t == Material.OAK_SAPLING || t == Material.POPPY
+                            || t == Material.DANDELION) {
+                        b.setType(Material.AIR, false);
+                    }
+                }
+            }
+        }
     }
 
     private static int surf(World w, int x, int z) {

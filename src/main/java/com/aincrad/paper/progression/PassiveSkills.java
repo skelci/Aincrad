@@ -40,6 +40,7 @@ public final class PassiveSkills {
                 if (max == null) continue;
                 int level = ProgressionManager.getInstance()
                         .getProgression(p.getUniqueId()).getLevel();
+                syncSpeed(p);
                 double next = p.getHealth() + hpRegenPerTwoSeconds(level);
                 if (next > max) next = max;
                 p.setHealth(next);
@@ -48,7 +49,11 @@ public final class PassiveSkills {
     }
 
     public static void syncSpeed(Player player) {
-        Attribute speed = Registry.ATTRIBUTE.get(NamespacedKey.minecraft("generic.movement_speed"));
+        Attribute speed = null;
+        for (String key : new String[]{"movement_speed", "generic.movement_speed", "speed"}) {
+            speed = Registry.ATTRIBUTE.get(NamespacedKey.minecraft(key));
+            if (speed != null) break;
+        }
         if (speed == null) return;
         AttributeInstance inst = player.getAttribute(speed);
         if (inst == null) return;
