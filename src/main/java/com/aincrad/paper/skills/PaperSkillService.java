@@ -175,7 +175,9 @@ public class PaperSkillService {
             double rate = com.aincrad.paper.progression.PassiveSkills.mpRegenPerSecond(level);
             double next = Math.min(max, current + max * rate);
             MANA.put(id, next);
-            player.setExp((float) (next / max));
+            var progression = ProgressionManager.getInstance().getProgression(id);
+            player.setLevel(progression.getLevel());
+            player.setExp((float) progression.getProgressToNextLevel());
         }
     }
 

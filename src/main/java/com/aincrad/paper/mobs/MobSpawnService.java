@@ -99,6 +99,7 @@ public class MobSpawnService implements Listener {
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::tick, 160L, 100L);
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::furyTick, 40L, 3L);
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::ambientTick, 20L, 80L);
+        plugin.getServer().getScheduler().runTaskTimer(plugin, this::hostileAmbientTick, 60L, 10L);
         plugin.getLogger().info("MobSpawnService online with " + SPECS.size() + " mob definitions.");
     }
 
@@ -158,15 +159,15 @@ public class MobSpawnService implements Listener {
         org.bukkit.entity.EntityType[] low = {org.bukkit.entity.EntityType.ZOMBIE,
                 org.bukkit.entity.EntityType.SKELETON, org.bukkit.entity.EntityType.PILLAGER,
                 org.bukkit.entity.EntityType.SPIDER, org.bukkit.entity.EntityType.HUSK,
-                org.bukkit.entity.EntityType.CAVE_SPIDER};
+                org.bukkit.entity.EntityType.CAVE_SPIDER, org.bukkit.entity.EntityType.BAT};
         org.bukkit.entity.EntityType[] mid = {org.bukkit.entity.EntityType.CAVE_SPIDER,
                 org.bukkit.entity.EntityType.PILLAGER, org.bukkit.entity.EntityType.STRAY,
                 org.bukkit.entity.EntityType.WITCH, org.bukkit.entity.EntityType.SKELETON,
-                org.bukkit.entity.EntityType.SPIDER};
+                org.bukkit.entity.EntityType.SPIDER, org.bukkit.entity.EntityType.BAT};
         org.bukkit.entity.EntityType[] hi = {org.bukkit.entity.EntityType.EVOKER,
                 org.bukkit.entity.EntityType.VINDICATOR, org.bukkit.entity.EntityType.WITCH,
                 org.bukkit.entity.EntityType.CAVE_SPIDER, org.bukkit.entity.EntityType.BLAZE,
-                org.bukkit.entity.EntityType.STRAY};
+                org.bukkit.entity.EntityType.STRAY, org.bukkit.entity.EntityType.BAT};
         org.bukkit.entity.EntityType[] pool = floor <= 1 ? low : floor == 2 ? mid : hi;
         org.bukkit.entity.EntityType type = pool[random.nextInt(pool.length)];
         int lvl = 2 + floor * 2 + random.nextInt(3);
@@ -238,12 +239,12 @@ public class MobSpawnService implements Listener {
                 org.bukkit.entity.EntityType.CAVE_SPIDER,
                 org.bukkit.entity.EntityType.HUSK,
                 org.bukkit.entity.EntityType.PIG,
-                org.bukkit.entity.EntityType.CHICKEN
+                org.bukkit.entity.EntityType.CHICKEN,
+                org.bukkit.entity.EntityType.COW,
+                org.bukkit.entity.EntityType.HORSE
         };
         org.bukkit.entity.EntityType type = pool[random.nextInt(pool.length)];
-        boolean passive = type == org.bukkit.entity.EntityType.PIG
-                || type == org.bukkit.entity.EntityType.CHICKEN;
-        int lvl = passive ? 1 : 2 + random.nextInt(4);
+        int lvl = 1 + random.nextInt(4);
         suppressSpawnEvents = true;
         Entity spawned;
         try {
@@ -255,15 +256,14 @@ public class MobSpawnService implements Listener {
             spawned.remove();
             return -1;
         }
-        String label = passive ? niceName(type) : "&cLv" + lvl + " &f" + niceName(type);
+        String label = "&cLv" + lvl + " &f" + niceName(type);
         mob.customName(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
-                .legacyAmpersand().deserialize("&f" + label));
+                .legacyAmpersand().deserialize(label));
         mob.setCustomNameVisible(true);
-        if (!passive) buff(mob, 20 + 4.0 * lvl, 2.2 + 0.35 * lvl, 1.0);
+        buff(mob, 20 + 4.0 * lvl, 2.2 + 0.35 * lvl, 1.0);
         mob.getPersistentDataContainer().set(KEY_MOB, PersistentDataType.STRING, "ambient");
         mob.getPersistentDataContainer().set(KEY_MOB_LEVEL, PersistentDataType.INTEGER, lvl);
-        mob.getPersistentDataContainer().set(KEY_MOB_NAME, PersistentDataType.STRING,
-                "&f" + label);
+        mob.getPersistentDataContainer().set(KEY_MOB_NAME, PersistentDataType.STRING, label);
         mob.getPersistentDataContainer().set(KEY_MOB_TYPE, PersistentDataType.STRING, type.name());
         updateHealthTag(mob, null);
         return 1;
@@ -372,7 +372,7 @@ public class MobSpawnService implements Listener {
                 String id = pdc.get(KEY_MOB, org.bukkit.persistence.PersistentDataType.STRING);
                 if (id == null || !(id.startsWith("fury") || id.contains("blood_fang")
                         || id.contains("razor_hen") || id.contains("mad_fleece"))) {
-                    continue;
+                    if (!("dungeon".equals(id) && creature.getType() == EntityType.BAT)) continue;
                 }
                 int level = pdc.get(KEY_MOB_LEVEL, org.bukkit.persistence.PersistentDataType.INTEGER) != null
                         ? pdc.get(KEY_MOB_LEVEL, org.bukkit.persistence.PersistentDataType.INTEGER) : 1;
@@ -382,6 +382,38 @@ public class MobSpawnService implements Listener {
                         .subtract(creature.getLocation().toVector());
                 double dist = to.length();
                 to.setY(0).normalize();
+                double speed = 0.28 + Math.min(0.2, level * 0.015);
+                org.bukkit.util.Vector v = to.multiply(speed);
+                v.setY(creature.isOnGround() && random.nextInt(9) == 0 ? 0.42 : 0.0);
+                creature.setVelocity(v);
+                org.bukkit.Location d = target.getLocation();
+                creature.setRotation((float) (Math.toDegrees(Math.atan2(
+                        d.getZ() - creature.getLocation().getZ(),
+                        d.getX() - creature.getLocation().getX())) - 90), 0);
+                if (dist < 1.9 && creature.getTicksLived() % 8 == 0) {
+                    target.damage(1.6 + level * 0.35, creature);
+                }
+            }
+        }
+    }
+
+    private void hostileAmbientTick() {
+        for (Player player : plugin.getServer().getOnlinePlayers()) {
+            if (player.isDead() || player.getGameMode() == org.bukkit.GameMode.CREATIVE) continue;
+            World world = player.getWorld();
+            for (Entity entity : world.getEntities()) {
+                if (!(entity instanceof org.bukkit.entity.Creature creature)) continue;
+                var pdc = creature.getPersistentDataContainer();
+                String id = pdc.get(KEY_MOB, org.bukkit.persistence.PersistentDataType.STRING);
+                if (!"ambient".equals(id)) continue;
+                Player target = nearestPlayer(creature.getLocation(), 22);
+                if (target == null) continue;
+                org.bukkit.util.Vector to = target.getLocation().toVector()
+                        .subtract(creature.getLocation().toVector());
+                double dist = to.length();
+                to.setY(0).normalize();
+                int level = pdc.get(KEY_MOB_LEVEL, org.bukkit.persistence.PersistentDataType.INTEGER) != null
+                        ? pdc.get(KEY_MOB_LEVEL, org.bukkit.persistence.PersistentDataType.INTEGER) : 1;
                 double speed = 0.28 + Math.min(0.2, level * 0.015);
                 org.bukkit.util.Vector v = to.multiply(speed);
                 v.setY(creature.isOnGround() && random.nextInt(9) == 0 ? 0.42 : 0.0);

@@ -56,7 +56,9 @@ public final class ProgressionManager {
     }
 
     public void syncActionBar(org.bukkit.entity.Player player) {
-        player.setLevel(getProgression(player.getUniqueId()).getLevel());
+        PlayerProgression progression = getProgression(player.getUniqueId());
+        player.setLevel(progression.getLevel());
+        player.setExp((float) progression.getProgressToNextLevel());
         syncStats(player);
     }
 
