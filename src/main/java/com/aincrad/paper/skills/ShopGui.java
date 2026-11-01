@@ -24,6 +24,29 @@ import java.util.List;
 
 public final class ShopGui implements InventoryHolder {
 
+    public enum Category {
+        WEAPONS("Weapons", Material.IRON_SWORD),
+        ARMOUR("Armour", Material.DIAMOND_CHESTPLATE),
+        CRYSTALS("Crystals", Material.AMETHYST_SHARD),
+        FOOD("Food", Material.BREAD);
+
+        private final String label;
+        private final Material icon;
+
+        Category(String label, Material icon) {
+            this.label = label;
+            this.icon = icon;
+        }
+
+        public String label() {
+            return label;
+        }
+
+        public Material icon() {
+            return icon;
+        }
+    }
+
     private static final int SIZE = 54;
     private static final int PAGE = 45;
     private static final List<ItemDefs.Def> CATALOG = new ArrayList<>();
@@ -33,17 +56,41 @@ public final class ShopGui implements InventoryHolder {
         CATALOG.sort((a, b) -> Integer.compare(a.levelReq(), b.levelReq()));
     }
 
+    public static List<ItemDefs.Def> catalog(Category category) {
+        List<ItemDefs.Def> out = new ArrayList<>();
+        for (ItemDefs.Def def : CATALOG) {
+            if (categoryOf(def) == category) out.add(def);
+        }
+        return out;
+    }
+
+    private static Category categoryOf(ItemDefs.Def def) {
+        if (ItemDefs.isCrystal(def.id())) return Category.CRYSTALS;
+        if (ItemDefs.foodPrice(def.id()) != null) return Category.FOOD;
+        if (def.damage() > 0) return Category.WEAPONS;
+        return Category.ARMOUR;
+    }
+
     private final Player player;
     private final Inventory inventory;
+    private final Category category;
+    private final List<ItemDefs.Def> catalog;
     private int page;
 
-    private ShopGui(Player player) {
+    private ShopGui(Player player, Category category) {
         this.player = player;
-        this.inventory = Bukkit.createInventory(this, SIZE, Component.text("Aincrad Shop"));
+        this.category = category;
+        this.catalog = catalog(category);
+        this.inventory = Bukkit.createInventory(this, SIZE,
+                Component.text("Aincrad Shop — " + category.label()));
     }
 
     public static void open(Player player) {
-        ShopGui gui = new ShopGui(player);
+        ShopMenu.open(player);
+    }
+
+    public static void openCategory(Player player, Category category) {
+        ShopGui gui = new ShopGui(player, category);
         gui.render();
         player.openInventory(gui.inventory);
     }
@@ -60,8 +107,8 @@ public final class ShopGui implements InventoryHolder {
     private void render() {
         inventory.clear();
         int from = page * PAGE;
-        for (int i = 0; i < PAGE && from + i < CATALOG.size(); i++) {
-            ItemDefs.Def def = CATALOG.get(from + i);
+        for (int i = 0; i < PAGE && from + i < catalog.size(); i++) {
+            ItemDefs.Def def = catalog.get(from + i);
             long price = ShopCommandHandler.priceOf(def);
             List<Component> lore = new ArrayList<>();
             lore.add(Component.text("§7Level req: §f" + def.levelReq()));
@@ -76,7 +123,9 @@ public final class ShopGui implements InventoryHolder {
             inventory.setItem(45, icon(new ItemStack(Material.ARROW),
                     Component.text("§f← Previous page"), List.of()));
         }
-        if ((page + 1) * PAGE < CATALOG.size()) {
+        inventory.setItem(46, icon(new ItemStack(Material.ARROW),
+                Component.text("§f← Back to categories"), List.of()));
+        if ((page + 1) * PAGE < catalog.size()) {
             inventory.setItem(53, icon(new ItemStack(Material.ARROW),
                     Component.text("§fNext page →"), List.of()));
         }
@@ -133,6 +182,21 @@ public final class ShopGui implements InventoryHolder {
 
         @EventHandler
         public void onClick(InventoryClickEvent event) {
+            if (event.getInventory().getHolder(false) instanceof ShopMenu menu) {
+                event.setCancelled(true);
+                if (event.getClickedInventory() != menu.getInventory() || event.getCurrentItem() == null) return;
+                ShopGui.Category category = switch (event.getSlot()) {
+                    case 10 -> ShopGui.Category.WEAPONS;
+                    case 12 -> ShopGui.Category.ARMOUR;
+                    case 14 -> ShopGui.Category.CRYSTALS;
+                    case 16 -> ShopGui.Category.FOOD;
+                    default -> null;
+                };
+                if (category != null && event.getWhoClicked() instanceof Player player) {
+                    ShopGui.openCategory(player, category);
+                }
+                return;
+            }
             if (!(event.getInventory().getHolder(false) instanceof ShopGui gui)) return;
             event.setCancelled(true);
             if (event.getClickedInventory() == null || event.getCurrentItem() == null) return;
@@ -146,15 +210,19 @@ public final class ShopGui implements InventoryHolder {
                 gui.render();
                 return;
             }
+            if (slot == 46) {
+                ShopMenu.open(gui.player);
+                return;
+            }
             if (slot == 53) {
-                if ((gui.page + 1) * PAGE < CATALOG.size()) gui.page++;
+                if ((gui.page + 1) * PAGE < gui.catalog.size()) gui.page++;
                 gui.render();
                 return;
             }
             if (slot < PAGE) {
                 int idx = gui.page * PAGE + slot;
-                if (idx < CATALOG.size()) {
-                    gui.buy(CATALOG.get(idx), event.isShiftClick() ? 5 : 1);
+                if (idx < gui.catalog.size()) {
+                    gui.buy(gui.catalog.get(idx), event.isShiftClick() ? 5 : 1);
                 }
             }
         }
