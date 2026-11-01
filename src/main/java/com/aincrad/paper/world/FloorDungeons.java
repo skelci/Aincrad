@@ -893,6 +893,7 @@ public final class FloorDungeons implements Listener {
 
     private ItemStack[] loot(int idx, int salt, boolean weapon) {
         var ids = ItemDefs.idsForLevel(REC_LVL[idx] + 2);
+        ids.removeIf(ItemDefs::isCrystal);
         String id = ids.isEmpty() ? "anneal_blade"
                 : ids.get(Math.abs(salt * 31 + (weapon ? 7 : 13)) % ids.size());
         return new ItemStack[] {

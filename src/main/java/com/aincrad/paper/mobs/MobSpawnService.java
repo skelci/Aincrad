@@ -847,6 +847,7 @@ public class MobSpawnService implements Listener {
 
         this.mob = null;
         List<String> pool = ItemDefs.idsForLevel(Math.max(1, lvl));
+        pool.removeIf(ItemDefs::isCrystal);
         if (!pool.isEmpty() && random.nextDouble() < 0.10) {
             String drop = pool.get(random.nextInt(pool.size()));
             var stack = ItemDefs.create(drop, 1);

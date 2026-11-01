@@ -134,6 +134,12 @@ public class ItemMechanicListener implements Listener {
             def = ItemDefs.resolve(is);
         }
         if (def == null || !def.id().equals("teleport_crystal")) return;
+        if (!ItemDefs.isPurchased(is)) {
+            player.getInventory().removeItem(is);
+            player.sendMessage("§cFree crystals removed; crystals must be bought from /shop.");
+            event.setCancelled(true);
+            return;
+        }
         if (is.getType() != Material.AMETHYST_SHARD) {
             is.setType(Material.AMETHYST_SHARD);
         }

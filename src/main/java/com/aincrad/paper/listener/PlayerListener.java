@@ -108,7 +108,7 @@ public class PlayerListener implements Listener {
         for (int slot = 0; slot < 9; slot++) {
             ItemStack is = player.getInventory().getItem(slot);
             var def = ItemDefs.resolve(is);
-            if (def != null && def.id().equals(id)) return true;
+            if (def != null && def.id().equals(id) && ItemDefs.isPurchased(is)) return true;
         }
         return false;
     }
