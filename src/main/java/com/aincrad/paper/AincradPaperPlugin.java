@@ -34,6 +34,7 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
         com.aincrad.paper.progression.ProgressionPersistence.wire(this);
         skillService.start();
         com.aincrad.paper.progression.PassiveSkills.start(this);
+        com.aincrad.paper.playtime.PlaytimeService.wire(this);
         getServer().getPluginManager().registerEvents(new com.aincrad.paper.listener.ItemMechanicListener(), this);
         getServer().getPluginManager().registerEvents(new com.aincrad.paper.listener.DamageNumbers(this), this);
 
@@ -104,6 +105,7 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
             sender.sendMessage("§6§l— Aincrad commands —");
             sender.sendMessage("§e/skills §7— skill menu (rank up, bind drives)");
             sender.sendMessage("§e/stats §7or §e/level §7— level, XP, points");
+            sender.sendMessage("§e/playtime §7— total hours played on the server");
             sender.sendMessage("§e/shop §7— buy gear/food; §7shift-click own item inside to sell");
             sender.sendMessage("§e/quests §7— quest book (accept / track / turn in)");
             sender.sendMessage("§7NPCs: §eMerchant §7(Market Hall), §eReceptionist §7(Guild Hall)");
@@ -179,6 +181,18 @@ public class AincradPaperPlugin extends JavaPlugin implements org.bukkit.event.L
         };
         registerCommand("stats", statsView);
         registerCommand("level", stats);
+        registerCommand("playtime", (sender, command, label, args) -> {
+            if (!(sender instanceof org.bukkit.entity.Player p)) {
+                sender.sendMessage("Player only");
+                return true;
+            }
+            double total = com.aincrad.paper.playtime.PlaytimeService.totalHours(p.getUniqueId());
+            double session = com.aincrad.paper.playtime.PlaytimeService.sessionHours(p.getUniqueId());
+            sender.sendMessage("§6Playtime: §f" + String.format(java.util.Locale.ROOT, "%.2f", total)
+                    + " h total §7| §f" + String.format(java.util.Locale.ROOT, "%.2f", session)
+                    + " h this session");
+            return true;
+        });
         registerCommand("aincrad", new com.aincrad.paper.command.AincradCommand(this));
         registerCommand("setlevel", (sender, command, label, args) -> {
             if (!sender.isOp()) {
