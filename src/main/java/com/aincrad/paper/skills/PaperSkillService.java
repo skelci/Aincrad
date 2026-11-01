@@ -14,12 +14,16 @@ import org.bukkit.Particle;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.AbstractArrow;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
 import java.io.File;
@@ -37,7 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class PaperSkillService {
 
-    public enum Effect { CONE, AIR_CONE, DASH_CONE, HEAL, MASS_HEAL, BUFF_ATTACK, BUFF_DEFENSE, AOE, REGEN }
+    public enum Effect { CONE, AIR_CONE, DASH_CONE, HEAL, MASS_HEAL, BUFF_ATTACK, BUFF_DEFENSE, AOE, REGEN, PROJECTILE }
 
     public record SkillDef(String id, String name, String description, int mpCost, int cooldownSec,
                            int requiredLevel, Effect effect, double power,
@@ -111,6 +115,9 @@ public class PaperSkillService {
         register(new SkillDef("vindicator", "Vindicator",
                 "A committed two-handed overhead blow aimed at a single foe.",
                 25, 12, 12, Effect.CONE, 3.0, "HIT", 15, 260, 5, "f1_ilfang_ending", Material.NETHERITE_SWORD));
+        register(new SkillDef("fireball", "Fireball",
+                "Fires an invisible flaming arrow; only its fire trail is visible. Damages and ignites targets.",
+                18, 8, 6, Effect.PROJECTILE, 1.4, "HIT", 8, 150, 5, null, Material.FIRE_CHARGE));
     }
 
     private static void register(SkillDef def) {
@@ -406,6 +413,10 @@ public class PaperSkillService {
                 w.playSound(loc, org.bukkit.Sound.BLOCK_BEACON_ACTIVATE, 0.35f, 1.3f);
             }
             case "vindicator" -> w.playSound(loc, org.bukkit.Sound.ENTITY_WARDEN_ATTACK_IMPACT, 0.8f, 1.25f);
+            case "fireball" -> {
+                w.playSound(loc, org.bukkit.Sound.ENTITY_BLAZE_SHOOT, 0.9f, 1.0f);
+                w.playSound(loc, org.bukkit.Sound.ITEM_FIRECHARGE_USE, 0.6f, 1.1f);
+            }
             case "rush" -> w.playSound(loc, org.bukkit.Sound.ENTITY_BREEZE_SHOOT, 0.7f, 1.15f);
             case "air_slash" -> w.playSound(loc, org.bukkit.Sound.ENTITY_BREEZE_WIND_BURST, 0.6f, 1.05f);
             case "chaos_streak" -> w.playSound(loc, org.bukkit.Sound.ENTITY_SKELETON_SHOOT, 0.8f, 1.5f);
@@ -449,6 +460,7 @@ public class PaperSkillService {
                 recordUsage(player, def, 1);
                 particle(ParticleNames.of("END_ROD", "WITCH"), player.getLocation(), 35);
             }
+            case PROJECTILE -> fireball(player, def, rank);
             case BUFF_ATTACK -> {
                 ItemMechanicListener.stance(player.getUniqueId(), 1, rankPower(def, rank), 12_000);
                 recordUsage(player, def, 1);
@@ -537,6 +549,33 @@ public class PaperSkillService {
         }
         particle(ParticleNames.of("SPELL_WITCH", "WITCH"), to, 25);
         return path.size();
+    }
+
+    private void fireball(Player player, SkillDef def, int rank) {
+        Location eye = player.getEyeLocation();
+        Vector dir = eye.getDirection().normalize();
+        Arrow arrow = player.getWorld().spawn(eye.clone().add(dir.clone().multiply(1.2)), Arrow.class);
+        arrow.setShooter(player);
+        arrow.setCritical(true);
+        arrow.setDamage(2.0 + rankPower(def, rank) * 2.0);
+        arrow.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
+        arrow.setMetadata("aincrad_fireball", new FixedMetadataValue(plugin, true));
+        arrow.setFireTicks(200);
+        arrow.setVisualFire(true);
+        for (Player viewer : player.getWorld().getPlayers()) {
+            viewer.hideEntity(plugin, arrow);
+        }
+        arrow.setVelocity(dir.multiply(2.4));
+
+        BukkitTask[] task = new BukkitTask[1];
+        task[0] = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            if (!arrow.isValid()) {
+                task[0].cancel();
+                return;
+            }
+            Location loc = arrow.getLocation();
+            loc.getWorld().spawnParticle(Particle.FLAME, loc, 8, 0.08, 0.08, 0.08, 0.0);
+        }, 0L, 2L);
     }
 
     private void heal(Player player, double amount) {

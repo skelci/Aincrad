@@ -2,11 +2,14 @@ package com.aincrad.paper.skills;
 
 import com.aincrad.paper.AincradPaperPlugin;
 import org.bukkit.NamespacedKey;
+import org.bukkit.entity.Arrow;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -43,5 +46,18 @@ public class SkillSlotListener implements Listener {
             return;
         }
         plugin.getServer().getScheduler().runTask(plugin, () -> service.use(player, def.id()));
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onFireballHit(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Arrow arrow)) return;
+        if (!arrow.hasMetadata("aincrad_fireball")) return;
+        if (!(event.getEntity() instanceof LivingEntity target)) return;
+
+        target.setFireTicks(Math.max(target.getFireTicks(), 120));
+        if (arrow.getShooter() instanceof Player shooter) {
+            PaperSkillService.SkillDef def = PaperSkillService.get("fireball");
+            if (def != null) service.recordUsage(shooter, def, 1);
+        }
     }
 }
