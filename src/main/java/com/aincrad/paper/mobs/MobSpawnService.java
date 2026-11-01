@@ -422,8 +422,17 @@ public class MobSpawnService implements Listener {
                 creature.setRotation((float) (Math.toDegrees(Math.atan2(
                         d.getZ() - creature.getLocation().getZ(),
                         d.getX() - creature.getLocation().getX())) - 90), 0);
-                if (dist < 1.9 && creature.getTicksLived() % 8 == 0) {
-                    target.damage(1.6 + level * 0.35, creature);
+                if (dist < 3.0 && creature.getTicksLived() % 10 == 0) {
+                    boolean passiveAnimal = creature.getType() == EntityType.PIG
+                            || creature.getType() == EntityType.CHICKEN
+                            || creature.getType() == EntityType.COW
+                            || creature.getType() == EntityType.HORSE;
+                    double dmg = passiveAnimal ? 0.8 + level * 0.25 : 1.6 + level * 0.35;
+                    if (passiveAnimal) {
+                        target.damage(dmg);
+                    } else {
+                        target.damage(dmg, creature);
+                    }
                 }
             }
         }
