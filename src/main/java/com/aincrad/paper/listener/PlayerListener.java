@@ -9,11 +9,14 @@ import com.aincrad.paper.progression.PlayerProgression;
 import com.aincrad.paper.progression.ProgressionManager;
 import com.aincrad.paper.items.ItemDefs;
 import org.bukkit.Material;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.EntityPotionEffectEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.potion.PotionEffectType;
@@ -103,6 +106,38 @@ public class PlayerListener implements Listener {
             player.sendMessage("§cFree crystals removed; crystals must be bought from /shop.");
         }
     }
+
+    @EventHandler
+    public void onContainerOpen(InventoryOpenEvent event) {
+        if (!(event.getPlayer() instanceof org.bukkit.entity.Player player)) return;
+        Inventory inv = event.getInventory();
+        int removed = 0;
+        for (int i = 0; i < inv.getSize(); i++) {
+            ItemStack is = inv.getItem(i);
+            if (is == null) continue;
+            ItemDefs.Def def = ItemDefs.resolve(is);
+            if (def != null && ItemDefs.isCrystal(def.id()) && !ItemDefs.isPurchased(is)) {
+                removed += is.getAmount();
+                inv.setItem(i, null);
+            }
+        }
+        if (removed > 0) {
+            player.sendMessage("§cFree crystals removed from container; crystals must be bought from /shop.");
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onCrystalPickup(EntityPickupItemEvent event) {
+        if (!(event.getEntity() instanceof org.bukkit.entity.Player player)) return;
+        ItemStack is = event.getItem().getItemStack();
+        ItemDefs.Def def = ItemDefs.resolve(is);
+        if (def != null && ItemDefs.isCrystal(def.id()) && !ItemDefs.isPurchased(is)) {
+            event.setCancelled(true);
+            event.getItem().remove();
+            player.sendMessage("§cFree crystals removed; crystals must be bought from /shop.");
+        }
+    }
+
 
     private boolean hasCrystalInHotbar(org.bukkit.entity.Player player, String id) {
         for (int slot = 0; slot < 9; slot++) {
