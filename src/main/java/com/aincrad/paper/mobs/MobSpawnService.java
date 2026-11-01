@@ -155,7 +155,7 @@ public class MobSpawnService implements Listener {
     }
 
     /** Hostile-only dungeon mob, tiered by depth level (1..3). */
-    public int spawnDungeonMob(Location loc, int floor) {
+    public int spawnDungeonMob(Location loc, int floor, int level) {
         org.bukkit.entity.EntityType[] low = {org.bukkit.entity.EntityType.ZOMBIE,
                 org.bukkit.entity.EntityType.SKELETON, org.bukkit.entity.EntityType.PILLAGER,
                 org.bukkit.entity.EntityType.SPIDER, org.bukkit.entity.EntityType.HUSK,
@@ -170,7 +170,7 @@ public class MobSpawnService implements Listener {
                 org.bukkit.entity.EntityType.STRAY, org.bukkit.entity.EntityType.BAT};
         org.bukkit.entity.EntityType[] pool = floor <= 1 ? low : floor == 2 ? mid : hi;
         org.bukkit.entity.EntityType type = pool[random.nextInt(pool.length)];
-        int lvl = 2 + floor * 2 + random.nextInt(3);
+        int lvl = level;
         suppressSpawnEvents = true;
         Entity spawned;
         try {
@@ -185,7 +185,7 @@ public class MobSpawnService implements Listener {
         mob.customName(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
                 .legacyAmpersand().deserialize("&cLv" + lvl + " &f" + niceName(type)));
         mob.setCustomNameVisible(true);
-        buff(mob, 18 + 13.0 * floor, 3.0 + 1.5 * floor, 1.0);
+        buff(mob, 12 + 8.0 * lvl, 2.2 + 0.65 * lvl, 1.0);
         mob.getPersistentDataContainer().set(KEY_MOB, PersistentDataType.STRING, "dungeon");
         mob.getPersistentDataContainer().set(KEY_MOB_LEVEL, PersistentDataType.INTEGER, lvl);
         mob.getPersistentDataContainer().set(KEY_MOB_NAME, PersistentDataType.STRING,
@@ -193,6 +193,10 @@ public class MobSpawnService implements Listener {
         mob.getPersistentDataContainer().set(KEY_MOB_TYPE, PersistentDataType.STRING, type.name());
         updateHealthTag(mob, null);
         return 1;
+    }
+
+    public int spawnDungeonMob(Location loc, int floor) {
+        return spawnDungeonMob(loc, floor, 2 + floor * 2 + random.nextInt(3));
     }
 
     /** Surface guard that does not burn in daylight. */
@@ -286,12 +290,17 @@ public class MobSpawnService implements Listener {
         return removed;
     }
 
-    /** Real dungeon boss: ravager, huge HP, glowing, custom name. */
+    /** Real dungeon boss: unique type, scaled HP, glowing, custom name. */
     public java.util.UUID spawnDungeonBoss(Location loc, int floor, String name) {
+        return spawnDungeonBoss(loc, 2 + floor * 2, name, org.bukkit.entity.EntityType.RAVAGER);
+    }
+
+    public java.util.UUID spawnDungeonBoss(Location loc, int level, String name,
+                                            org.bukkit.entity.EntityType type) {
         suppressSpawnEvents = true;
         Entity spawned;
         try {
-            spawned = loc.getWorld().spawnEntity(loc, org.bukkit.entity.EntityType.RAVAGER);
+            spawned = loc.getWorld().spawnEntity(loc, type);
         } finally {
             suppressSpawnEvents = false;
         }
@@ -303,14 +312,16 @@ public class MobSpawnService implements Listener {
                 .legacyAmpersand().deserialize("&4&l☠ " + name + " &r"));
         boss.setCustomNameVisible(true);
         boss.setGlowing(true);
-        buff(boss, 220 + 90.0 * floor, 6.0 + 2.5 * floor, 1.12);
+        buff(boss, 240 + 60.0 * level, 6.0 + 1.4 * level, 1.12);
         boss.getPersistentDataContainer().set(KEY_MOB, PersistentDataType.STRING, "dungeon_boss");
-        boss.getPersistentDataContainer().set(KEY_MOB_LEVEL, PersistentDataType.INTEGER, floor);
+        boss.getPersistentDataContainer().set(KEY_MOB_LEVEL, PersistentDataType.INTEGER, level);
         boss.getPersistentDataContainer().set(KEY_MOB_NAME, PersistentDataType.STRING,
                 "&4&l☠ " + name + " &r");
-        boss.getPersistentDataContainer().set(KEY_MOB_TYPE, PersistentDataType.STRING, "RAVAGER");
+        boss.getPersistentDataContainer().set(KEY_MOB_TYPE, PersistentDataType.STRING, type.name());
         updateHealthTag(boss, null);
-        loc.getWorld().playSound(loc, org.bukkit.Sound.ENTITY_RAVAGER_ROAR, 2f, 0.8f);
+        loc.getWorld().playSound(loc, type == org.bukkit.entity.EntityType.RAVAGER
+                ? org.bukkit.Sound.ENTITY_RAVAGER_ROAR
+                : org.bukkit.Sound.ENTITY_WITHER_SPAWN, 2f, 0.8f);
         return boss.getUniqueId();
     }
 

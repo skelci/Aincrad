@@ -92,6 +92,16 @@ public final class DungeonLayoutGenerator {
             if (t.type != RoomType.ENTRANCE && t.type != RoomType.BOSS && t.type != RoomType.STAIRS)
                 mids.add(t);
 
+        // Reserve the anchor before middle rooms so every level's stairs/boss
+        // sits exactly on the same grid cell and the vertical shaft is aligned.
+        Template fin = pick(pool, bossLevel ? RoomType.BOSS : RoomType.STAIRS);
+        int fx = Math.max(0, Math.min(gw - fin.w, anchorX));
+        int fy = Math.max(0, Math.min(gh - fin.h, anchorY));
+        Placed fp = new Placed(fin, fx, fy, 0, fin.doors());
+        if (!canPlace(fp, gw, gh, occ)) return null;
+        out.rooms.add(fp);
+        mark(fp, occ, out.rooms.size() - 1);
+
         int placed = 0, attempts = 0;
         while (placed < middleCount && attempts++ < 6000) {
             Template t = weighted(mids, rnd);
@@ -109,12 +119,8 @@ public final class DungeonLayoutGenerator {
             placed++;
         }
 
-        Template fin = pick(pool, bossLevel ? RoomType.BOSS : RoomType.STAIRS);
-        try {
-            placeFinal(out, occ, fin, anchorX, anchorY, rnd);
-        } catch (IllegalStateException e) {
-            return null;
-        }
+        if (placed < middleCount) return null;
+
         recomputeConns(out);
         if (reachableFromEntrance(out) != out.rooms.size()) return null;
         if (entranceLevel && out.conns.stream().noneMatch(c -> c.a() == 0 || c.b() == 0))

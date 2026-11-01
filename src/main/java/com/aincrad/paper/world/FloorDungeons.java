@@ -14,6 +14,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Container;
+import org.bukkit.entity.EntityType;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 
@@ -45,6 +46,12 @@ public final class FloorDungeons implements Listener {
             "The Rusty Sword", "Goblin Warrens", "The Flooded Crypt",
             "Spider's Lair", "Crystal Caverns"};
     private static final int[] REC_LVL = {3, 6, 9, 11, 13};
+    private static final String[] BOSS_NAMES = {
+            "Illuyong's Whelp", "Goblin King", "Drowned Lord",
+            "Broodmother", "Ilfang"};
+    private static final EntityType[] BOSS_TYPES = {
+            EntityType.IRON_GOLEM, EntityType.PILLAGER, EntityType.DROWNED,
+            EntityType.CAVE_SPIDER, EntityType.RAVAGER};
 
     private static final class Palette {
         final Material wall, floor, accent, glow;
@@ -114,16 +121,46 @@ public final class FloorDungeons implements Listener {
         for (int i = 0; i < POINTS.size(); i++) {
             Point p = POINTS.get(i);
             World w = floorWorld(p.floor());
-            Location anchor = bossAnchors.get(i);
-            if (w == null || anchor == null) continue;
-            if (mobs.countDungeonBossesNear(w, p.x(), p.z(), 260) > 0) continue;
-            String bn = NAMES[i] + " Overlord";
-            java.util.UUID id = mobs.spawnDungeonBoss(anchor, 3, bn);
-            if (id != null) {
-                trackBoss(id, bn);
-                plugin.getLogger().info("Dungeon boss respawned: " + bn);
+            if (w == null) continue;
+            var spawnedKey = bossSpawnedKey(i);
+            if (w.getPersistentDataContainer().has(spawnedKey,
+                    org.bukkit.persistence.PersistentDataType.BYTE)) continue;
+            if (mobs.countRegularDungeonMobsNear(w, p.x(), p.z(), 260) > 0) continue;
+            if (mobs.countDungeonBossesNear(w, p.x(), p.z(), 260) > 0) {
+                w.getPersistentDataContainer().set(spawnedKey,
+                        org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
+                continue;
             }
+            spawnBossForSite(w, i);
         }
+    }
+
+    private org.bukkit.NamespacedKey bossSpawnedKey(int idx) {
+        return new org.bukkit.NamespacedKey(plugin, "dungeon_boss_spawned_" + idx);
+    }
+
+    private boolean spawnBossForSite(World w, int idx) {
+        if (mobs == null) return false;
+        Point p = POINTS.get(idx);
+        var spawnedKey = bossSpawnedKey(idx);
+        if (w.getPersistentDataContainer().has(spawnedKey,
+                org.bukkit.persistence.PersistentDataType.BYTE)) return true;
+        if (mobs.countDungeonBossesNear(w, p.x(), p.z(), 260) > 0) {
+            w.getPersistentDataContainer().set(spawnedKey,
+                    org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
+            return true;
+        }
+        if (mobs.countRegularDungeonMobsNear(w, p.x(), p.z(), 260) > 0) return false;
+        Location anchor = bossAnchors.get(idx);
+        if (anchor == null) return false;
+        String name = BOSS_NAMES[idx];
+        java.util.UUID id = mobs.spawnDungeonBoss(anchor, REC_LVL[idx], name, BOSS_TYPES[idx]);
+        if (id == null) return false;
+        w.getPersistentDataContainer().set(spawnedKey,
+                org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
+        trackBoss(id, name);
+        plugin.getLogger().info("Dungeon boss spawned: " + name + " after clearing room mobs");
+        return true;
     }
 
     public void restock(org.bukkit.World w, int idx) {
@@ -131,6 +168,8 @@ public final class FloorDungeons implements Listener {
                 new org.bukkit.NamespacedKey(plugin, "dungeon_stock9_" + idx));
         w.getPersistentDataContainer().remove(
                 new org.bukkit.NamespacedKey(plugin, "dungeon_stock_ok_" + idx));
+        w.getPersistentDataContainer().remove(bossSpawnedKey(idx));
+        bossAnchors.remove(idx);
         Point pt = POINTS.get(idx);
         if (mobs != null) mobs.purgeDungeonMobsNear(w, pt.x(), pt.z(), 260);
         stockSite(w, idx);
@@ -140,31 +179,53 @@ public final class FloorDungeons implements Listener {
         var ok = new org.bukkit.NamespacedKey(plugin, "dungeon_stock_ok_" + idx);
         var key = new org.bukkit.NamespacedKey(plugin, "dungeon_stock9_" + idx);
         Point pt = POINTS.get(idx);
-        if (w.getPersistentDataContainer().has(ok, org.bukkit.persistence.PersistentDataType.BYTE)) {
-            boolean hasMobs = mobs != null
-                    && mobs.countRegularDungeonMobsNear(w, pt.x(), pt.z(), 260) > 0;
-            if (hasMobs) return true;
-            w.getPersistentDataContainer().remove(ok);
-        }
         boolean hasMobs = mobs != null
                 && mobs.countRegularDungeonMobsNear(w, pt.x(), pt.z(), 260) > 0;
-        if (hasMobs) {
-            w.getPersistentDataContainer().set(ok, org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
+        boolean bossSpawned = w.getPersistentDataContainer().has(
+                bossSpawnedKey(idx), org.bukkit.persistence.PersistentDataType.BYTE);
+
+        if (bossSpawned) {
+            if (hasMobs) {
+                w.getPersistentDataContainer().set(ok,
+                        org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
+            }
             return true;
         }
+        if (hasMobs) {
+            w.getPersistentDataContainer().set(ok,
+                    org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
+            return true;
+        }
+
+        // No regular room mobs left: if the site has a boss anchor, open the
+        // boss gate instead of restocking the dungeon.
+        if (bossAnchors.containsKey(idx) && spawnBossForSite(w, idx)) {
+            return true;
+        }
+
         w.getPersistentDataContainer().remove(key);
         w.getPersistentDataContainer().remove(ok);
         build(w, pt, idx, true);
         if (mobs != null && mobs.countDungeonMobsNear(w, pt.x(), pt.z(), 260) > 0) {
-            w.getPersistentDataContainer().set(ok, org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
+            w.getPersistentDataContainer().set(ok,
+                    org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
             return true;
         }
         return false;
     }
 
+    private int tierFor(int idx) {
+        int rec = REC_LVL[idx];
+        if (rec <= 5) return 1;
+        if (rec <= 9) return 2;
+        return 3;
+    }
+
     private int stockRooms(World w, List<Layout> layouts, int gx, int gz, int idx) {
         if (mobs == null) return 0;
         int n = 0;
+        int tier = tierFor(idx);
+        int baseLevel = REC_LVL[idx];
         java.util.Random rnd = new java.util.Random(4242L + idx * 7919L);
         for (int lvl = 0; lvl < layouts.size(); lvl++) {
             int fy = FLOOR_Y[lvl];
@@ -172,39 +233,37 @@ public final class FloorDungeons implements Listener {
                 RoomType t = r.t().type();
                 int count = switch (t) {
                     case ENTRANCE -> 0;
-                    case MONSTER -> 8;
-                    case LOOT -> 6;
-                    case STAIRS, PASSING -> 2;
-                    case MINI_BOSS -> 4;
-                    case BOSS -> 6;
+                    case MONSTER -> 12;
+                    case LOOT -> 8;
+                    case STAIRS, PASSING -> 4;
+                    case MINI_BOSS -> 6;
+                    case BOSS -> 8;
                 };
                 if (count == 0) continue;
                 int[] dim = DungeonLayoutGenerator.rotDim(r.t().w(), r.t().h(), r.rot());
                 int x0 = gx + r.x() * PITCH, z0 = gz + r.y() * PITCH;
                 int x1 = x0 + dim[0] * CELL - 1, z1 = z0 + dim[1] * CELL - 1;
+
+                if (t == RoomType.BOSS) {
+                    Location loc = bossSpot(w, x0, x1, z0, z1, fy, (x0 + x1) / 2, (z0 + z1) / 2);
+                    bossAnchors.put(idx, loc.clone());
+                    w.setChunkForceLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4, true);
+                    plugin.getLogger().info("Dungeon boss gate set: " + BOSS_NAMES[idx]
+                            + " (spawns after room mobs are cleared)");
+                }
+
                 for (int i = 0; i < count; i++) {
                     int px = x0 + 2 + rnd.nextInt(Math.max(1, x1 - x0 - 3));
                     int pz = z0 + 2 + rnd.nextInt(Math.max(1, z1 - z0 - 3));
-                    if (spawnRoomMob(w, px, pz, fy, lvl + 1) > 0) n++;
-                }
-                if (t == RoomType.MINI_BOSS || t == RoomType.BOSS) {
-                    Location loc = bossSpot(w, x0, x1, z0, z1, fy, (x0 + x1) / 2, (z0 + z1) / 2);
-                    String bn = NAMES[idx] + (t == RoomType.BOSS ? " Overlord" : " Champion");
-                    java.util.UUID bossId = mobs.spawnDungeonBoss(loc, lvl + 1, bn);
-                    trackBoss(bossId, bn);
-                    if (t == RoomType.BOSS && bossId != null) {
-                        bossAnchors.put(idx, loc.clone());
-                        w.setChunkForceLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4, true);
-                        plugin.getLogger().info("Dungeon boss spawned: " + bn);
-                    }
-                    n++;
+                    int level = baseLevel + rnd.nextInt(2);
+                    if (spawnRoomMob(w, px, pz, fy, tier, level) > 0) n++;
                 }
             }
         }
         return n;
     }
 
-    private int spawnRoomMob(World w, int px, int pz, int fy, int lvl) {
+    private int spawnRoomMob(World w, int px, int pz, int fy, int tier, int level) {
         for (int r = 0; r <= 4; r++) {
             for (int dx = -r; dx <= r; dx++) {
                 for (int dz = -r; dz <= r; dz++) {
@@ -212,7 +271,7 @@ public final class FloorDungeons implements Listener {
                     int x = px + dx, z = pz + dz;
                     int y = fy;
                     if (!clearForMob(w, x, y, z)) continue;
-                    return mobs.spawnDungeonMob(new Location(w, x + 0.5, y, z + 0.5), lvl);
+                    return mobs.spawnDungeonMob(new Location(w, x + 0.5, y, z + 0.5), tier, level);
                 }
             }
         }
@@ -294,6 +353,7 @@ public final class FloorDungeons implements Listener {
         this.mobs = service;
         if (service != null) {
             armEntryStock();
+            armBossGuard();
         }
     }
 
@@ -304,6 +364,41 @@ public final class FloorDungeons implements Listener {
     }
 
     private final java.util.Set<Point> built = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    /** Recompute the boss-room anchor from the shared layout seed. */
+    private void computeBossAnchor(World w, Point p, int idx) {
+        long seed = 7919L * (idx + 1) + 13;
+        List<Layout> layouts = new ArrayList<>();
+        int anchorX = ENTRANCE_X + 3, anchorY = GRID - 4;
+        for (int lvl = 0; lvl < LEVELS; lvl++) {
+            boolean finalLevel = lvl == LEVELS - 1;
+            Layout layout = DungeonLayoutGenerator.generate(
+                    seed, GRID, GRID, DungeonLayoutGenerator.DEFAULT_POOL,
+                    lvl == 0, finalLevel, ENTRANCE_X, anchorX, anchorY, 8);
+            layouts.add(layout);
+            Placed fin = layout.find(finalLevel ? RoomType.BOSS : RoomType.STAIRS);
+            if (fin != null) {
+                anchorX = fin.x();
+                anchorY = fin.y();
+            }
+        }
+        Placed e = layouts.get(0).find(RoomType.ENTRANCE);
+        if (e == null) return;
+        int[] edim = DungeonLayoutGenerator.rotDim(e.t().w(), e.t().h(), e.rot());
+        int exRel = e.x() * PITCH + edim[0] * CELL / 2;
+        int ezRel = e.y() * PITCH + edim[1] * CELL / 2;
+        int gx = p.x() - exRel, gz = p.z() - ezRel;
+        Placed b = layouts.get(LEVELS - 1).find(RoomType.BOSS);
+        if (b == null) return;
+        int[] dim = DungeonLayoutGenerator.rotDim(b.t().w(), b.t().h(), b.rot());
+        int x0 = gx + b.x() * PITCH, z0 = gz + b.y() * PITCH;
+        int x1 = x0 + dim[0] * CELL - 1, z1 = z0 + dim[1] * CELL - 1;
+        Location loc = bossSpot(w, x0, x1, z0, z1, FLOOR_Y[LEVELS - 1],
+                (x0 + x1) / 2, (z0 + z1) / 2);
+        bossAnchors.put(idx, loc.clone());
+        w.setChunkForceLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4, true);
+        plugin.getLogger().info("Dungeon boss anchor: " + NAMES[idx] + " -> " + BOSS_NAMES[idx]);
+    }
 
     public void buildAll() {
         for (int i = 0; i < POINTS.size(); i++) {
@@ -335,6 +430,7 @@ public final class FloorDungeons implements Listener {
             if (!ok) {
                 plugin.getLogger().warning("[Aincrad] Could not stock dungeon: " + NAMES[i]);
             }
+            computeBossAnchor(w, p, i);
             if (mobs != null) mobs.purgeSurfaceDungeonMobsNear(w, p.x(), p.z(), 60);
             stockExterior(w, p, i);
         }
@@ -445,7 +541,7 @@ public final class FloorDungeons implements Listener {
             }
         var wpc = org.bukkit.persistence.PersistentDataType.BYTE;
         if (w.getPersistentDataContainer()
-                .has(new org.bukkit.NamespacedKey(plugin, "dungeon_built4_" + idx), wpc)) {
+                .has(new org.bukkit.NamespacedKey(plugin, "dungeon_built5_" + idx), wpc)) {
             built.add(p);
             if (!stockOnly) return;
         }
@@ -524,7 +620,7 @@ public final class FloorDungeons implements Listener {
             verify(w, layouts.get(lvl), gx, gz, FLOOR_Y[lvl], idx);
         }
         w.getPersistentDataContainer().set(
-                new org.bukkit.NamespacedKey(plugin, "dungeon_built4_" + idx),
+                new org.bukkit.NamespacedKey(plugin, "dungeon_built5_" + idx),
                 org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
     }
 
