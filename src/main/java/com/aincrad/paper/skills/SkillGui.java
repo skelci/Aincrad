@@ -132,7 +132,8 @@ public final class SkillGui implements InventoryHolder {
         for (int i = 0; i < PaperSkillService.SLOT_COUNT; i++) {
             String bound = st.slots[i];
             boolean here = def.id().equals(bound);
-            String other = bound != null && !here ? PaperSkillService.get(bound).name() : null;
+            SkillDef otherDef = bound != null && !here ? PaperSkillService.get(bound) : null;
+            String other = otherDef != null ? otherDef.name() : null;
             List<Component> slotLore = new ArrayList<>();
             if (here) {
                 slotLore.add(LEGACY.deserialize("§aBound to this skill"));
@@ -145,10 +146,13 @@ public final class SkillGui implements InventoryHolder {
                 slotLore.add(LEGACY.deserialize(ok ? "§eClick to bind this skill"
                         : "§cSkill locked"));
             }
-            inventory.setItem(9 + i, icon(here ? Material.LIME_STAINED_GLASS_PANE
-                            : other != null ? Material.YELLOW_STAINED_GLASS_PANE
-                            : Material.CYAN_STAINED_GLASS_PANE,
-                    "§fDrive Slot " + (i + 1), slotLore));
+            Material slotIcon = here ? def.icon()
+                    : otherDef != null ? otherDef.icon()
+                    : Material.CYAN_STAINED_GLASS_PANE;
+            String slotName = here ? "§fDrive Slot " + (i + 1) + " §a— " + def.name()
+                    : otherDef != null ? "§fDrive Slot " + (i + 1) + " §e— " + otherDef.name()
+                    : "§fDrive Slot " + (i + 1);
+            inventory.setItem(9 + i, icon(slotIcon, slotName, slotLore));
         }
 
         List<Component> upLore = new ArrayList<>();
