@@ -115,6 +115,11 @@ public final class ShopGui implements InventoryHolder {
             if (def.damage() > 0) lore.add(Component.text("§7Damage: §f" + def.damage()));
             if (def.defense() > 0) lore.add(Component.text("§7Defense: §f" + def.defense()));
             lore.add(Component.text("§6" + Col.format(price) + " Col"));
+            ShopBuyback.Sale sale = ShopBuyback.get(player, def.id());
+            if (sale != null) {
+                lore.add(Component.text("§aBuyback: §f" + sale.remaining()
+                        + " §afor §6" + Col.format(sale.unitPrice()) + " Col §7(60s)"));
+            }
             lore.add(Component.text("§eClick §7buy 1 §8| §eShift-click §7buy 5"));
             inventory.setItem(i, icon(ItemDefs.create(def.id(), 1),
                     Component.text("§f" + def.name()), lore));
@@ -132,7 +137,12 @@ public final class ShopGui implements InventoryHolder {
         long bal = EconomyManager.getInstance().getBalance(player.getUniqueId()).getAmount();
         inventory.setItem(49, icon(new ItemStack(Material.SUNFLOWER),
                 Component.text("§eYour Col: §6" + Col.format(bal)),
-                List.of(Component.text("§7Sell: §fclick Aincrad items in §eyour inventory"))));
+                List.of(Component.text("§7Sell: click Aincrad items in §eyour inventory"),
+                        Component.text("§7Sold items can be rebought at sale price for §e60s"))));
+        inventory.setItem(47, icon(new ItemStack(Material.GOLD_INGOT),
+                Component.text("§eSell held item"),
+                List.of(Component.text("§7Sell the Aincrad item in your main hand at half price"),
+                        Component.text("§7Click inventory items to sell stacks"))));
         ItemStack pane = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
         for (int s = 45; s < SIZE; s++) {
             if (inventory.getItem(s) == null) inventory.setItem(s, pane);
@@ -149,6 +159,11 @@ public final class ShopGui implements InventoryHolder {
 
     private void buy(ItemDefs.Def def, int amount) {
         long total = ShopCommandHandler.priceOf(def) * amount;
+        ShopBuyback.Sale sale = ShopBuyback.get(player, def.id());
+        if (sale != null) {
+            amount = Math.min(amount, sale.remaining());
+            total = sale.unitPrice() * amount;
+        }
         try {
             EconomyManager.getInstance().withdraw(player.getUniqueId(), new Col(total), "shop");
         } catch (IllegalStateException e) {
@@ -156,12 +171,14 @@ public final class ShopGui implements InventoryHolder {
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.8f, 1f);
             return;
         }
+        if (sale != null) ShopBuyback.consume(player, def.id(), amount);
         ItemStack item = ItemDefs.create(def.id(), amount);
         ItemDefs.markPurchased(item);
         if (!player.getInventory().addItem(item).isEmpty()) {
             player.getWorld().dropItemNaturally(player.getLocation(), item);
         }
-        player.sendMessage("§aBought §f" + amount + "x " + def.name() + " §afor §6" + Col.format(total) + " Col");
+        player.sendMessage("§aBought §f" + amount + "x " + def.name() + " §afor §6" + Col.format(total) + " Col"
+                + (sale != null ? " §7(buyback)" : ""));
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, 1.4f);
         render();
     }
@@ -173,6 +190,7 @@ public final class ShopGui implements InventoryHolder {
         long total = ShopCommandHandler.priceOf(def) / 2 * count;
         stack.setAmount(0);
         EconomyManager.getInstance().deposit(player.getUniqueId(), new Col(total), "shop sell");
+        ShopBuyback.record(player, def.id(), ShopCommandHandler.priceOf(def) / 2, count);
         player.sendMessage("§aSold §f" + count + "x " + def.name() + " §afor §6" + Col.format(total) + " Col");
         player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.9f, 1.2f);
         render();
@@ -217,6 +235,12 @@ public final class ShopGui implements InventoryHolder {
             if (slot == 53) {
                 if ((gui.page + 1) * PAGE < gui.catalog.size()) gui.page++;
                 gui.render();
+                return;
+            }
+            if (slot == 47) {
+                ItemStack hand = gui.player.getInventory().getItemInMainHand();
+                if (ItemDefs.resolve(hand) != null) gui.sellStack(hand);
+                else gui.player.sendMessage("§cHold an Aincrad item to sell.");
                 return;
             }
             if (slot < PAGE) {

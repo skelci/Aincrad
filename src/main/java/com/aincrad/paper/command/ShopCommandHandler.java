@@ -3,6 +3,7 @@ package com.aincrad.paper.command;
 import com.aincrad.paper.economy.Col;
 import com.aincrad.paper.economy.EconomyManager;
 import com.aincrad.paper.items.ItemDefs;
+import com.aincrad.paper.skills.ShopBuyback;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -87,16 +88,23 @@ public class ShopCommandHandler implements CommandExecutor {
             return;
         }
         long total = priceOf(def) * amount;
+        ShopBuyback.Sale sale = ShopBuyback.get(player, def.id());
+        if (sale != null) {
+            amount = Math.min(amount, sale.remaining());
+            total = sale.unitPrice() * amount;
+        }
         try {
             EconomyManager.getInstance().withdraw(player.getUniqueId(), new Col(total), "shop");
         } catch (IllegalStateException e) {
             player.sendMessage("§cNot enough Col: need " + total);
             return;
         }
+        if (sale != null) ShopBuyback.consume(player, def.id(), amount);
         ItemStack stack = ItemDefs.create(def.id(), amount);
         ItemDefs.markPurchased(stack);
         give(player, stack);
-        player.sendMessage("§aBought " + amount + "x " + def.name() + " for " + total + " Col");
+        player.sendMessage("§aBought " + amount + "x " + def.name() + " for " + total + " Col"
+                + (sale != null ? " §7(buyback)" : ""));
     }
 
     private void sell(Player player, String[] args) {
@@ -127,6 +135,7 @@ public class ShopCommandHandler implements CommandExecutor {
         }
         long total = unit * count;
         EconomyManager.getInstance().deposit(player.getUniqueId(), new Col(total), "shop sell");
+        ShopBuyback.record(player, def.id(), unit, count);
         player.sendMessage("§aSold " + count + "x " + def.name() + " for " + total + " Col");
     }
 
