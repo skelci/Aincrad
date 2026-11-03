@@ -5,7 +5,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Singleton manager for all player progression.
- * Implements XP curve 50 * L^1.5, handles level-ups, milestone checks, and NG+ resets.
+ * Uses an exponential XP curve: each level costs 10% more XP than the previous.
+ * Level-up stats also compound by 10% per level.
  */
 public final class ProgressionManager {
 
@@ -13,8 +14,8 @@ public final class ProgressionManager {
         static final ProgressionManager INSTANCE = new ProgressionManager();
     }
 
-    private static final double XP_COEFFICIENT = 70.0;
-    private static final double XP_EXPONENT = 1.5;
+    private static final double XP_BASE = 50.0;
+    private static final double XP_GROWTH = 1.10;
     private static final double NG_PLUS_BONUS_PER_CYCLE = 0.05;
     private static final double NG_PLUS_MAX_BONUS = 0.25;
 
@@ -26,12 +27,25 @@ public final class ProgressionManager {
 
     public static double xpForLevel(int level) {
         if (level < 1) throw new IllegalArgumentException("Level must be >= 1");
-        return XP_COEFFICIENT * Math.pow(level, XP_EXPONENT);
+        return XP_BASE * (Math.pow(XP_GROWTH, level) - 1.0) / (XP_GROWTH - 1.0);
     }
 
     public static double xpForNextLevel(int currentLevel) {
         if (currentLevel < 1) throw new IllegalArgumentException("Level must be >= 1");
         return xpForLevel(currentLevel + 1) - xpForLevel(currentLevel);
+    }
+
+    /** Largest level that the given accumulated XP reaches. */
+    public static int levelForXp(double xp) {
+        if (xp < xpForLevel(2)) return 1;
+        int lo = 1;
+        int hi = PlayerProgression.MAX_LEVEL;
+        while (lo < hi) {
+            int mid = (lo + hi + 1) / 2;
+            if (xpForLevel(mid) <= xp) lo = mid;
+            else hi = mid - 1;
+        }
+        return lo;
     }
 
     public PlayerProgression getProgression(UUID playerId) {
@@ -62,18 +76,21 @@ public final class ProgressionManager {
         syncStats(player);
     }
 
+    /** Level-up stats compound by 10% per level. */
+    private static double compoundBonus(double baseGain, int level) {
+        return baseGain * (Math.pow(XP_GROWTH, level) - 1.0) / (XP_GROWTH - 1.0);
+    }
+
     public static int strengthOf(int level) {
-        return level * 2;
+        return (int) Math.round(compoundBonus(2.0, level));
     }
 
-    /** Base 20 HP + 1.2 per level — same growth ratio as mana (100 base + 6/level). */
     public static double bonusHealth(int level) {
-        return level * 1.2;
+        return compoundBonus(1.2, level);
     }
 
-    /** Level defense: +1 per level on top of armor defense. */
     public static double levelDefense(int level) {
-        return level * 1.0;
+        return compoundBonus(1.0, level);
     }
 
     private static org.bukkit.attribute.AttributeInstance healthInstance(
@@ -172,6 +189,22 @@ public final class ProgressionManager {
 
     public Map<UUID, PlayerProgression> getAllProgressions() {
         return Collections.unmodifiableMap(progressions);
+    }
+
+    /** Recompute levels, stat points, skill points, and milestones for the new curve. */
+    public void recalculateAll() {
+        for (PlayerProgression p : progressions.values()) {
+            int newLevel = levelForXp(p.getXp());
+            p.setLevel(newLevel);
+            p.setSkillPoints((newLevel - 1) * PlayerProgression.SKILL_POINTS_PER_LEVEL);
+            p.setStatPoints((newLevel - 1) * PlayerProgression.STAT_POINTS_PER_LEVEL);
+            p.clearMilestones();
+            for (Milestone m : Milestone.values()) {
+                if (m.isAchievedAt(newLevel)) p.achieveMilestone(m);
+            }
+            org.bukkit.entity.Player online = org.bukkit.Bukkit.getPlayer(p.getPlayerId());
+            if (online != null) syncActionBar(online);
+        }
     }
 
     public PlayerProgression removeProgression(UUID playerId) {

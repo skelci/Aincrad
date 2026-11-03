@@ -27,6 +27,8 @@ public final class ProgressionPersistence {
 
     public static void wire(JavaPlugin plugin) {
         load();
+        ProgressionManager.getInstance().recalculateAll();
+        saveAll();
         plugin.getServer().getScheduler().runTaskTimer(plugin, ProgressionPersistence::saveAll, 6000L, 6000L);
         plugin.getServer().getPluginManager().registerEvents(new Listener() {
             @EventHandler

@@ -68,6 +68,9 @@ public final class PlayerProgression {
 
     void addSkillPoints(int amount) { this.skillPoints += amount; }
     void addStatPoints(int amount) { this.statPoints += amount; }
+    void setSkillPoints(int amount) { this.skillPoints = Math.max(0, amount); }
+    void setStatPoints(int amount) { this.statPoints = Math.max(0, amount); }
+    void clearMilestones() { this.milestonesAchieved.clear(); }
 
     void achieveMilestone(Milestone milestone) {
         this.milestonesAchieved.add(milestone);
