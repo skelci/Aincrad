@@ -5,8 +5,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Singleton manager for all player progression.
- * Uses an exponential XP curve: each level costs 10% more XP than the previous.
- * Level-up stats also compound by 10% per level.
+ * Uses an exponential XP curve: base 1000 XP at level 2, 20% more per level.
+ * Level-up stats compound by 10% per level.
  */
 public final class ProgressionManager {
 
@@ -14,8 +14,9 @@ public final class ProgressionManager {
         static final ProgressionManager INSTANCE = new ProgressionManager();
     }
 
-    private static final double XP_BASE = 50.0;
-    private static final double XP_GROWTH = 1.10;
+    private static final double XP_BASE = 1000.0;
+    private static final double XP_GROWTH = 1.20;
+    private static final double STAT_GROWTH = 1.10;
     private static final double NG_PLUS_BONUS_PER_CYCLE = 0.05;
     private static final double NG_PLUS_MAX_BONUS = 0.25;
 
@@ -27,7 +28,7 @@ public final class ProgressionManager {
 
     public static double xpForLevel(int level) {
         if (level < 1) throw new IllegalArgumentException("Level must be >= 1");
-        return XP_BASE * (Math.pow(XP_GROWTH, level) - 1.0) / (XP_GROWTH - 1.0);
+        return XP_BASE * (Math.pow(XP_GROWTH, level - 1) - 1.0) / (XP_GROWTH - 1.0);
     }
 
     public static double xpForNextLevel(int currentLevel) {
@@ -78,7 +79,7 @@ public final class ProgressionManager {
 
     /** Level-up stats compound by 10% per level. */
     private static double compoundBonus(double baseGain, int level) {
-        return baseGain * (Math.pow(XP_GROWTH, level) - 1.0) / (XP_GROWTH - 1.0);
+        return baseGain * (Math.pow(STAT_GROWTH, level) - 1.0) / (STAT_GROWTH - 1.0);
     }
 
     public static int strengthOf(int level) {
