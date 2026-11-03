@@ -154,7 +154,7 @@ public class PaperSkillService {
 
     public static double maxMana(Player player) {
         int level = ProgressionManager.getInstance().getProgression(player.getUniqueId()).getLevel();
-        return 100 + level * 6.0;
+        return 100 + ProgressionManager.statBonus(6.0, level);
     }
 
     public static double mana(Player player) {

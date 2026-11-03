@@ -14,7 +14,7 @@ public final class StaminaService {
     }
 
     public static double maxStamina(int level) {
-        return 20.0 + level * 2.0;
+        return 20.0 + ProgressionManager.statBonus(2.0, level);
     }
 
     public static double regenPerTwoSeconds(int level) {

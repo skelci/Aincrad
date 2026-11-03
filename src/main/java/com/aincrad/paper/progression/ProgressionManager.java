@@ -82,6 +82,10 @@ public final class ProgressionManager {
         return baseGain * (Math.pow(STAT_GROWTH, level) - 1.0) / (STAT_GROWTH - 1.0);
     }
 
+    public static double statBonus(double baseGain, int level) {
+        return compoundBonus(baseGain, level);
+    }
+
     public static int strengthOf(int level) {
         return (int) Math.round(compoundBonus(2.0, level));
     }
